@@ -1,0 +1,792 @@
+// ================================================================
+// PRISMA SCHEMA — Centralized Custom Tailoring Platform
+// Database: PostgreSQL 16 (Neon.tech for free tier)
+// Generator: Prisma Client JS
+// ================================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [uuidOssp(map: "uuid-ossp"), pgcrypto, pgTrgm(map: "pg_trgm")]
+}
+
+// ================================================================
+// ENUMS
+// ================================================================
+
+enum UserRole {
+  customer
+  admin
+  tailor
+  qc_inspector
+  delivery_agent
+  super_admin
+}
+
+enum Gender {
+  male
+  female
+  other
+  prefer_not_to_say
+}
+
+enum OrderStatus {
+  pending_payment
+  payment_confirmed
+  assigned
+  in_stitching
+  stitching_complete
+  qc_pending
+  qc_approved
+  qc_rejected
+  dispatched
+  in_transit
+  out_for_delivery
+  delivered
+  return_requested
+  returned
+  cancelled
+  refunded
+}
+
+enum PaymentStatus {
+  pending
+  processing
+  completed
+  failed
+  refunded
+  partially_refunded
+  disputed
+}
+
+enum PaymentMethod {
+  paddle
+  jazzcash
+  easypaisa
+  bank_transfer
+  cod
+}
+
+enum QcResult {
+  approved
+  rejected
+  needs_minor_fix
+}
+
+enum DeliveryStatus {
+  pending
+  ready_for_pickup
+  picked_up
+  in_transit
+  out_for_delivery
+  delivered
+  failed_attempt
+  returned_to_sender
+}
+
+enum NotificationChannel {
+  email
+  sms
+  whatsapp
+  push
+  in_app
+}
+
+enum NotificationStatus {
+  pending
+  queued
+  sent
+  delivered
+  read
+  failed
+}
+
+enum TailorSkillLevel {
+  junior
+  mid
+  senior
+  master
+}
+
+enum GarmentType {
+  kameez
+  trouser
+  dupatta
+  kurta
+  shalwar
+  full_suit
+  kameez_only
+  trouser_only
+  other
+}
+
+enum FabricType {
+  cotton
+  lawn
+  chiffon
+  silk
+  linen
+  khaddar
+  karandi
+  organza
+  georgette
+  other
+}
+
+enum CouponType {
+  percentage
+  fixed_amount
+  free_delivery
+}
+
+enum AuditTriggerType {
+  manual
+  system
+  webhook
+  ai
+}
+
+// ================================================================
+// MODELS
+// ================================================================
+
+model User {
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email              String?   @unique @db.VarChar(255)
+  phone              String    @unique @db.VarChar(20)
+  phoneVerified      Boolean   @default(false) @map("phone_verified")
+  emailVerified      Boolean   @default(false) @map("email_verified")
+  passwordHash       String?   @map("password_hash")
+  role               UserRole  @default(customer)
+  firstName          String    @map("first_name") @db.VarChar(100)
+  lastName           String?   @map("last_name") @db.VarChar(100)
+  gender             Gender?
+  dateOfBirth        DateTime? @map("date_of_birth") @db.Date
+  profileImageUrl    String?   @map("profile_image_url")
+  isActive           Boolean   @default(true) @map("is_active")
+  isBlocked          Boolean   @default(false) @map("is_blocked")
+  blockReason        String?   @map("block_reason")
+  blockedAt          DateTime? @map("blocked_at") @db.Timestamptz
+  blockedById        String?   @map("blocked_by") @db.Uuid
+  lastLoginAt        DateTime? @map("last_login_at") @db.Timestamptz
+  lastLoginIp        String?   @map("last_login_ip") @db.Inet
+  failedLoginCount   Int       @default(0) @map("failed_login_count")
+  lockedUntil        DateTime? @map("locked_until") @db.Timestamptz
+  referralCode       String?   @unique @map("referral_code") @db.VarChar(20)
+  referredById       String?   @map("referred_by") @db.Uuid
+  metadata           Json      @default("{}") @db.JsonB
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt          DateTime? @map("deleted_at") @db.Timestamptz
+
+  // Relations
+  referredBy         User?           @relation("UserReferrals", fields: [referredById], references: [id])
+  referredUsers      User[]          @relation("UserReferrals")
+  blockedBy          User?           @relation("UserBlocks", fields: [blockedById], references: [id])
+  blockedUsers       User[]          @relation("UserBlocks")
+  authTokens         AuthToken[]
+  otpCodes           OtpCode[]
+  addresses          Address[]
+  measurementProfiles MeasurementProfile[]
+  styleConfigurations StyleConfiguration[]
+  ordersAsCustomer   Order[]         @relation("CustomerOrders")
+  ordersAsTailor     Order[]         @relation("TailorOrders")
+  ordersAsQc         Order[]         @relation("QcOrders")
+  cancelledOrders    Order[]         @relation("CancelledByOrders")
+  payments           Payment[]
+  tailorProfile      TailorProfile?
+  deliveries         Delivery[]
+  feedback           OrderFeedback[]
+  referralsGiven     Referral[]      @relation("ReferrerReferrals")
+  referralsReceived  Referral[]      @relation("RefereeReferrals")
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+  aiLogs             AiLog[]
+  createdCoupons     Coupon[]
+
+  @@map("users")
+  @@index([phone])
+  @@index([email])
+  @@index([role])
+  @@index([referralCode])
+}
+
+model AuthToken {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  tokenHash   String    @unique @map("token_hash")
+  family      String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  deviceInfo  Json      @default("{}") @map("device_info") @db.JsonB
+  ipAddress   String?   @map("ip_address") @db.Inet
+  isRevoked   Boolean   @default(false) @map("is_revoked")
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz
+  revokeReason String?  @map("revoke_reason") @db.VarChar(100)
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz
+  lastUsedAt  DateTime? @map("last_used_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_tokens")
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([family])
+}
+
+model OtpCode {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId      String?   @map("user_id") @db.Uuid
+  phone       String?   @db.VarChar(20)
+  email       String?   @db.VarChar(255)
+  codeHash    String    @map("code_hash")
+  purpose     String    @db.VarChar(50)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3) @map("max_attempts")
+  isUsed      Boolean   @default(false) @map("is_used")
+  usedAt      DateTime? @map("used_at") @db.Timestamptz
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz
+  ipAddress   String?   @map("ip_address") @db.Inet
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("otp_codes")
+  @@index([phone, purpose])
+  @@index([userId, purpose])
+}
+
+model Address {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  label         String?   @db.VarChar(50)
+  fullName      String    @map("full_name") @db.VarChar(200)
+  phone         String    @db.VarChar(20)
+  addressLine1  String    @map("address_line1")
+  addressLine2  String?   @map("address_line2")
+  landmark      String?
+  city          String    @db.VarChar(100)
+  province      String    @db.VarChar(100)
+  postalCode    String?   @map("postal_code") @db.VarChar(20)
+  country       String    @default("Pakistan") @db.VarChar(100)
+  latitude      Decimal?  @db.Decimal(10, 8)
+  longitude     Decimal?  @db.Decimal(11, 8)
+  isDefault     Boolean   @default(false) @map("is_default")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders        Order[]
+
+  @@map("addresses")
+  @@index([userId])
+}
+
+model MeasurementProfile {
+  id                  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId              String    @map("user_id") @db.Uuid
+  label               String    @default("My Measurements") @db.VarChar(100)
+  isDefault           Boolean   @default(false) @map("is_default")
+  // Upper body (cm)
+  chest               Decimal?  @db.Decimal(5, 2)
+  waist               Decimal?  @db.Decimal(5, 2)
+  hips                Decimal?  @db.Decimal(5, 2)
+  shoulderWidth       Decimal?  @map("shoulder_width") @db.Decimal(5, 2)
+  backLength          Decimal?  @map("back_length") @db.Decimal(5, 2)
+  frontLength         Decimal?  @map("front_length") @db.Decimal(5, 2)
+  sleeveLength        Decimal?  @map("sleeve_length") @db.Decimal(5, 2)
+  armhole             Decimal?  @db.Decimal(5, 2)
+  bicep               Decimal?  @db.Decimal(5, 2)
+  wrist               Decimal?  @db.Decimal(5, 2)
+  neckCircumference   Decimal?  @map("neck_circumference") @db.Decimal(5, 2)
+  // Lower body (cm)
+  trouserLength       Decimal?  @map("trouser_length") @db.Decimal(5, 2)
+  thigh               Decimal?  @db.Decimal(5, 2)
+  knee                Decimal?  @db.Decimal(5, 2)
+  calf                Decimal?  @db.Decimal(5, 2)
+  ankle               Decimal?  @db.Decimal(5, 2)
+  trouserWaist        Decimal?  @map("trouser_waist") @db.Decimal(5, 2)
+  seat                Decimal?  @db.Decimal(5, 2)
+  // Style
+  kameezLength        Decimal?  @map("kameez_length") @db.Decimal(5, 2)
+  galaDepth           Decimal?  @map("gala_depth") @db.Decimal(4, 2)
+  // AI validation
+  aiValidationScore   Decimal?  @map("ai_validation_score") @db.Decimal(3, 2)
+  aiFlags             Json      @default("[]") @map("ai_flags") @db.JsonB
+  aiValidatedAt       DateTime? @map("ai_validated_at") @db.Timestamptz
+  // Media
+  photoUrls           Json      @default("[]") @map("photo_urls") @db.JsonB
+  notes               String?
+  // Versioning
+  version             Int       @default(1)
+  previousVersionId   String?   @map("previous_version_id") @db.Uuid
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt           DateTime? @map("deleted_at") @db.Timestamptz
+
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  previousVersion     MeasurementProfile?  @relation("MeasurementVersions", fields: [previousVersionId], references: [id])
+  nextVersions        MeasurementProfile[] @relation("MeasurementVersions")
+  orders              Order[]
+
+  @@map("measurement_profiles")
+  @@index([userId])
+}
+
+model StyleConfiguration {
+  id                  String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId              String?      @map("user_id") @db.Uuid
+  label               String?      @db.VarChar(100)
+  garmentType         GarmentType  @map("garment_type")
+  galaStyle           String?      @map("gala_style") @db.VarChar(100)
+  sleeveStyle         String?      @map("sleeve_style") @db.VarChar(100)
+  sleeveHemStyle      String?      @map("sleeve_hem_style") @db.VarChar(100)
+  kameezHemStyle      String?      @map("kameez_hem_style") @db.VarChar(100)
+  sideCutStyle        String?      @map("side_cut_style") @db.VarChar(100)
+  backStyle           String?      @map("back_style") @db.VarChar(100)
+  trouserStyle        String?      @map("trouser_style") @db.VarChar(100)
+  trouserHemStyle     String?      @map("trouser_hem_style") @db.VarChar(100)
+  pocketPreference    String?      @map("pocket_preference") @db.VarChar(50)
+  liningRequired      Boolean      @default(false) @map("lining_required")
+  liningColor         String?      @map("lining_color") @db.VarChar(50)
+  embroideryOnGala    Boolean      @default(false) @map("embroidery_on_gala")
+  embroideryOnSleeve  Boolean      @default(false) @map("embroidery_on_sleeve")
+  embroideryNotes     String?      @map("embroidery_notes")
+  specialInstructions String?      @map("special_instructions")
+  referenceImages     Json         @default("[]") @map("reference_images") @db.JsonB
+  createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt           DateTime?    @map("deleted_at") @db.Timestamptz
+
+  user                User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  orders              Order[]
+
+  @@map("style_configurations")
+  @@index([userId])
+}
+
+model Product {
+  id              String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sourceUrl       String?      @map("source_url")
+  normalizedUrl   String?      @map("normalized_url")
+  name            String?      @db.VarChar(500)
+  brand           String?      @db.VarChar(200)
+  description     String?
+  images          Json         @default("[]") @db.JsonB
+  fabricType      FabricType?  @map("fabric_type")
+  garmentType     GarmentType  @default(full_suit) @map("garment_type")
+  colorTags       String[]     @map("color_tags") @db.VarChar(50)
+  priceOriginal   Decimal?     @map("price_original") @db.Decimal(10, 2)
+  currencyOriginal String?     @map("currency_original") @db.VarChar(10)
+  isActive        Boolean      @default(true) @map("is_active")
+  parseSource     String?      @map("parse_source") @db.VarChar(100)
+  parsedAt        DateTime?    @map("parsed_at") @db.Timestamptz
+  parseMetadata   Json         @default("{}") @map("parse_metadata") @db.JsonB
+  createdById     String?      @map("created_by") @db.Uuid
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  orders          Order[]
+
+  @@map("products")
+  @@index([normalizedUrl])
+}
+
+model Order {
+  id                        String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orderNumber               String       @unique @map("order_number") @db.VarChar(30)
+  customerId                String       @map("customer_id") @db.Uuid
+  productId                 String?      @map("product_id") @db.Uuid
+  garmentType               GarmentType  @map("garment_type")
+  measurementProfileId      String?      @map("measurement_profile_id") @db.Uuid
+  measurementSnapshot       Json         @map("measurement_snapshot") @db.JsonB
+  styleConfigId             String?      @map("style_config_id") @db.Uuid
+  styleSnapshot             Json         @map("style_snapshot") @db.JsonB
+  productSnapshot           Json         @default("{}") @map("product_snapshot") @db.JsonB
+  assignedTailorId          String?      @map("assigned_tailor_id") @db.Uuid
+  assignedAt                DateTime?    @map("assigned_at") @db.Timestamptz
+  assignmentReason          String?      @map("assignment_reason")
+  stitchingDeadline         DateTime?    @map("stitching_deadline") @db.Timestamptz
+  estimatedCompletion       DateTime?    @map("estimated_completion") @db.Date
+  qcInspectorId             String?      @map("qc_inspector_id") @db.Uuid
+  qcResult                  QcResult?    @map("qc_result")
+  qcInspectedAt             DateTime?    @map("qc_inspected_at") @db.Timestamptz
+  qcNotes                   String?      @map("qc_notes")
+  qcImages                  Json         @default("[]") @map("qc_images") @db.JsonB
+  qcRetryCount              Int          @default(0) @map("qc_retry_count")
+  deliveryAddressId         String?      @map("delivery_address_id") @db.Uuid
+  deliveryAddressSnapshot   Json         @map("delivery_address_snapshot") @db.JsonB
+  estimatedDeliveryDate     DateTime?    @map("estimated_delivery_date") @db.Date
+  status                    OrderStatus  @default(pending_payment)
+  priorityLevel             Int          @default(0) @map("priority_level")
+  currency                  String       @default("PKR") @db.VarChar(3)
+  stitchingFee              Decimal      @map("stitching_fee") @db.Decimal(10, 2)
+  deliveryFee               Decimal      @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  addonFee                  Decimal      @default(0) @map("addon_fee") @db.Decimal(10, 2)
+  discountAmount            Decimal      @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  couponId                  String?      @map("coupon_id") @db.Uuid
+  totalAmount               Decimal      @map("total_amount") @db.Decimal(10, 2)
+  isCod                     Boolean      @default(false) @map("is_cod")
+  codCollected              Boolean      @default(false) @map("cod_collected")
+  codCollectedAt            DateTime?    @map("cod_collected_at") @db.Timestamptz
+  codCollectedById          String?      @map("cod_collected_by") @db.Uuid
+  adminNotes                String?      @map("admin_notes")
+  internalNotes             String?      @map("internal_notes")
+  cancelledAt               DateTime?    @map("cancelled_at") @db.Timestamptz
+  cancellationReason        String?      @map("cancellation_reason")
+  cancelledById             String?      @map("cancelled_by") @db.Uuid
+  refundedAt                DateTime?    @map("refunded_at") @db.Timestamptz
+  refundAmount              Decimal?     @map("refund_amount") @db.Decimal(10, 2)
+  refundReason              String?      @map("refund_reason")
+  metadata                  Json         @default("{}") @db.JsonB
+  createdAt                 DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                 DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt                 DateTime?    @map("deleted_at") @db.Timestamptz
+
+  customer          User                @relation("CustomerOrders", fields: [customerId], references: [id])
+  assignedTailor    User?               @relation("TailorOrders", fields: [assignedTailorId], references: [id])
+  qcInspector       User?               @relation("QcOrders", fields: [qcInspectorId], references: [id])
+  cancelledBy       User?               @relation("CancelledByOrders", fields: [cancelledById], references: [id])
+  product           Product?            @relation(fields: [productId], references: [id])
+  measurementProfile MeasurementProfile? @relation(fields: [measurementProfileId], references: [id])
+  styleConfig       StyleConfiguration? @relation(fields: [styleConfigId], references: [id])
+  deliveryAddress   Address?            @relation(fields: [deliveryAddressId], references: [id])
+  coupon            Coupon?             @relation(fields: [couponId], references: [id])
+  statusHistory     OrderStatusHistory[]
+  payments          Payment[]
+  delivery          Delivery?
+  feedback          OrderFeedback?
+  referral          Referral?
+  notifications     Notification[]
+  couponUsages      CouponUsage[]
+  aiLogs            AiLog[]
+
+  @@map("orders")
+  @@index([customerId])
+  @@index([status])
+  @@index([assignedTailorId])
+  @@index([orderNumber])
+  @@index([createdAt(sort: Desc)])
+}
+
+model OrderStatusHistory {
+  id          String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orderId     String           @map("order_id") @db.Uuid
+  fromStatus  OrderStatus?     @map("from_status")
+  toStatus    OrderStatus      @map("to_status")
+  changedById String?          @map("changed_by") @db.Uuid
+  triggerType AuditTriggerType @default(manual) @map("trigger_type")
+  notes       String?
+  metadata    Json             @default("{}") @db.JsonB
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  order       Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_status_history")
+  @@index([orderId])
+}
+
+model Coupon {
+  id                  String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  code                String       @unique @db.VarChar(50)
+  description         String?
+  discountType        CouponType   @default(percentage) @map("discount_type")
+  discountValue       Decimal      @map("discount_value") @db.Decimal(10, 2)
+  minOrderAmount      Decimal      @default(0) @map("min_order_amount") @db.Decimal(10, 2)
+  maxDiscountAmount   Decimal?     @map("max_discount_amount") @db.Decimal(10, 2)
+  usageLimit          Int?         @map("usage_limit")
+  usedCount           Int          @default(0) @map("used_count")
+  perUserLimit        Int          @default(1) @map("per_user_limit")
+  validFrom           DateTime     @default(now()) @map("valid_from") @db.Timestamptz
+  validUntil          DateTime?    @map("valid_until") @db.Timestamptz
+  isActive            Boolean      @default(true) @map("is_active")
+  createdById         String?      @map("created_by") @db.Uuid
+  createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  createdBy           User?        @relation(fields: [createdById], references: [id])
+  orders              Order[]
+  usages              CouponUsage[]
+
+  @@map("coupons")
+  @@index([code])
+}
+
+model CouponUsage {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  couponId         String    @map("coupon_id") @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  orderId          String    @map("order_id") @db.Uuid
+  discountApplied  Decimal   @map("discount_applied") @db.Decimal(10, 2)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  coupon           Coupon    @relation(fields: [couponId], references: [id])
+  order            Order     @relation(fields: [orderId], references: [id])
+
+  @@unique([couponId, orderId])
+  @@map("coupon_usage")
+  @@index([couponId])
+  @@index([userId, couponId])
+}
+
+model Payment {
+  id                      String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orderId                 String         @map("order_id") @db.Uuid
+  customerId              String         @map("customer_id") @db.Uuid
+  method                  PaymentMethod
+  status                  PaymentStatus  @default(pending)
+  amount                  Decimal        @db.Decimal(10, 2)
+  currency                String         @default("PKR") @db.VarChar(3)
+  idempotencyKey          String?        @unique @map("idempotency_key") @db.VarChar(200)
+  gatewayTransactionId    String?        @map("gateway_transaction_id") @db.VarChar(500)
+  gatewayOrderId          String?        @map("gateway_order_id") @db.VarChar(500)
+  gatewayResponse         Json           @default("{}") @map("gateway_response") @db.JsonB
+  gatewayWebhookData      Json           @default("{}") @map("gateway_webhook_data") @db.JsonB
+  paddleCustomerId        String?        @map("paddle_customer_id") @db.VarChar(200)
+  paddleSubscriptionId    String?        @map("paddle_subscription_id") @db.VarChar(200)
+  paddleCheckoutId        String?        @map("paddle_checkout_id") @db.VarChar(200)
+  initiatedAt             DateTime       @default(now()) @map("initiated_at") @db.Timestamptz
+  paidAt                  DateTime?      @map("paid_at") @db.Timestamptz
+  failedAt                DateTime?      @map("failed_at") @db.Timestamptz
+  failureReason           String?        @map("failure_reason")
+  failureCode             String?        @map("failure_code") @db.VarChar(100)
+  refundAmount            Decimal        @default(0) @map("refund_amount") @db.Decimal(10, 2)
+  refundedAt              DateTime?      @map("refunded_at") @db.Timestamptz
+  refundReason            String?        @map("refund_reason")
+  refundGatewayId         String?        @map("refund_gateway_id") @db.VarChar(500)
+  codCollected            Boolean        @default(false) @map("cod_collected")
+  codCollectedAt          DateTime?      @map("cod_collected_at") @db.Timestamptz
+  codCollectedById        String?        @map("cod_collected_by") @db.Uuid
+  metadata                Json           @default("{}") @db.JsonB
+  createdAt               DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  order                   Order          @relation(fields: [orderId], references: [id])
+  customer                User           @relation(fields: [customerId], references: [id])
+
+  @@map("payments")
+  @@index([orderId])
+  @@index([customerId])
+  @@index([gatewayTransactionId])
+  @@index([status])
+}
+
+model TailorProfile {
+  id                      String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                  String           @unique @map("user_id") @db.Uuid
+  employeeId              String?          @unique @map("employee_id") @db.VarChar(50)
+  skillLevel              TailorSkillLevel @default(junior) @map("skill_level")
+  maxDailyCapacity        Int              @default(3) @map("max_daily_capacity")
+  currentActiveOrders     Int              @default(0) @map("current_active_orders")
+  totalOrdersCompleted    Int              @default(0) @map("total_orders_completed")
+  totalOrdersRejectedQc   Int              @default(0) @map("total_orders_rejected_qc")
+  avgCompletionHours      Decimal?         @map("avg_completion_hours") @db.Decimal(6, 2)
+  qualityScore            Decimal          @default(0.00) @map("quality_score") @db.Decimal(3, 2)
+  onTimeRate              Decimal          @default(0.0000) @map("on_time_rate") @db.Decimal(5, 4)
+  isAvailable             Boolean          @default(true) @map("is_available")
+  unavailableFrom         DateTime?        @map("unavailable_from") @db.Timestamptz
+  unavailableUntil        DateTime?        @map("unavailable_until") @db.Timestamptz
+  availabilityNotes       String?          @map("availability_notes")
+  joinedAt                DateTime?        @map("joined_at") @db.Date
+  salaryType              String?          @map("salary_type") @db.VarChar(20)
+  metadata                Json             @default("{}") @db.JsonB
+  createdAt               DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  user                    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("tailor_profiles")
+  @@index([isAvailable, currentActiveOrders])
+}
+
+model Delivery {
+  id                  String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orderId             String         @unique @map("order_id") @db.Uuid
+  deliveryAgentId     String?        @map("delivery_agent_id") @db.Uuid
+  courierName         String         @default("TCS") @map("courier_name") @db.VarChar(100)
+  trackingNumber      String?        @unique @map("tracking_number") @db.VarChar(200)
+  trackingUrl         String?        @map("tracking_url")
+  status              DeliveryStatus @default(pending)
+  bookedAt            DateTime?      @map("booked_at") @db.Timestamptz
+  pickedUpAt          DateTime?      @map("picked_up_at") @db.Timestamptz
+  estimatedDelivery   DateTime?      @map("estimated_delivery") @db.Timestamptz
+  deliveredAt         DateTime?      @map("delivered_at") @db.Timestamptz
+  podImageUrl         String?        @map("pod_image_url")
+  podSignatureUrl     String?        @map("pod_signature_url")
+  podNotes            String?        @map("pod_notes")
+  podCollectedBy      String?        @map("pod_collected_by") @db.VarChar(200)
+  attemptCount        Int            @default(0) @map("attempt_count")
+  lastAttemptAt       DateTime?      @map("last_attempt_at") @db.Timestamptz
+  failedReason        String?        @map("failed_reason")
+  courierBookingId    String?        @map("courier_booking_id") @db.VarChar(200)
+  courierResponse     Json           @default("{}") @map("courier_response") @db.JsonB
+  metadata            Json           @default("{}") @db.JsonB
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  order               Order          @relation(fields: [orderId], references: [id])
+  deliveryAgent       User?          @relation(fields: [deliveryAgentId], references: [id])
+  statusHistory       DeliveryStatusHistory[]
+
+  @@map("deliveries")
+  @@index([trackingNumber])
+  @@index([deliveryAgentId])
+  @@index([status])
+}
+
+model DeliveryStatusHistory {
+  id            String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  deliveryId    String         @map("delivery_id") @db.Uuid
+  status        DeliveryStatus
+  locationName  String?        @map("location_name")
+  locationCity  String?        @map("location_city") @db.VarChar(100)
+  notes         String?
+  recordedById  String?        @map("recorded_by") @db.Uuid
+  source        String         @default("manual") @db.VarChar(50)
+  courierData   Json           @default("{}") @map("courier_data") @db.JsonB
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  delivery      Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@map("delivery_status_history")
+  @@index([deliveryId])
+}
+
+model Notification {
+  id            String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId        String              @map("user_id") @db.Uuid
+  orderId       String?             @map("order_id") @db.Uuid
+  channel       NotificationChannel
+  status        NotificationStatus  @default(pending)
+  templateKey   String?             @map("template_key") @db.VarChar(100)
+  subject       String?
+  body          String
+  metadata      Json                @default("{}") @db.JsonB
+  scheduledAt   DateTime?           @map("scheduled_at") @db.Timestamptz
+  sentAt        DateTime?           @map("sent_at") @db.Timestamptz
+  deliveredAt   DateTime?           @map("delivered_at") @db.Timestamptz
+  readAt        DateTime?           @map("read_at") @db.Timestamptz
+  failedAt      DateTime?           @map("failed_at") @db.Timestamptz
+  failureReason String?             @map("failure_reason")
+  retryCount    Int                 @default(0) @map("retry_count")
+  maxRetries    Int                 @default(3) @map("max_retries")
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz
+
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order         Order?              @relation(fields: [orderId], references: [id])
+
+  @@map("notifications")
+  @@index([userId])
+  @@index([status, scheduledAt])
+  @@index([orderId])
+}
+
+model OrderFeedback {
+  id                  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  orderId             String    @unique @map("order_id") @db.Uuid
+  customerId          String    @map("customer_id") @db.Uuid
+  tailorId            String?   @map("tailor_id") @db.Uuid
+  overallRating       Int?      @map("overall_rating")
+  qualityRating       Int?      @map("quality_rating")
+  deliveryRating      Int?      @map("delivery_rating")
+  fitRating           Int?      @map("fit_rating")
+  measurementRating   Int?      @map("measurement_rating")
+  comment             String?
+  images              Json      @default("[]") @db.JsonB
+  isPublic            Boolean   @default(true) @map("is_public")
+  isVerified          Boolean   @default(true) @map("is_verified")
+  adminResponse       String?   @map("admin_response")
+  adminId             String?   @map("admin_id") @db.Uuid
+  adminRespondedAt    DateTime? @map("admin_responded_at") @db.Timestamptz
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  order               Order     @relation(fields: [orderId], references: [id])
+  customer            User      @relation(fields: [customerId], references: [id])
+
+  @@map("order_feedback")
+  @@index([tailorId])
+  @@index([isPublic, overallRating])
+}
+
+model Referral {
+  id                  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  referrerId          String    @map("referrer_id") @db.Uuid
+  refereeId           String    @unique @map("referee_id") @db.Uuid
+  referralCode        String    @map("referral_code") @db.VarChar(20)
+  qualifyingOrderId   String?   @map("qualifying_order_id") @db.Uuid
+  rewardType          String    @default("discount") @map("reward_type") @db.VarChar(50)
+  rewardAmount        Decimal?  @map("reward_amount") @db.Decimal(10, 2)
+  rewardGiven         Boolean   @default(false) @map("reward_given")
+  rewardGivenAt       DateTime? @map("reward_given_at") @db.Timestamptz
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  referrer            User      @relation("ReferrerReferrals", fields: [referrerId], references: [id])
+  referee             User      @relation("RefereeReferrals", fields: [refereeId], references: [id])
+  qualifyingOrder     Order?    @relation(fields: [qualifyingOrderId], references: [id])
+
+  @@map("referrals")
+  @@index([referrerId])
+}
+
+model AuditLog {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId      String?   @map("user_id") @db.Uuid
+  action      String    @db.VarChar(200)
+  entityType  String?   @map("entity_type") @db.VarChar(100)
+  entityId    String?   @map("entity_id") @db.Uuid
+  oldData     Json?     @map("old_data") @db.JsonB
+  newData     Json?     @map("new_data") @db.JsonB
+  ipAddress   String?   @map("ip_address") @db.Inet
+  userAgent   String?   @map("user_agent")
+  sessionId   String?   @map("session_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user        User?     @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt(sort: Desc)])
+}
+
+model AiLog {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId        String?   @map("user_id") @db.Uuid
+  orderId       String?   @map("order_id") @db.Uuid
+  feature       String    @db.VarChar(100)
+  modelUsed     String?   @map("model_used") @db.VarChar(100)
+  inputTokens   Int?      @map("input_tokens")
+  outputTokens  Int?      @map("output_tokens")
+  totalCostUsd  Decimal?  @map("total_cost_usd") @db.Decimal(8, 6)
+  latencyMs     Int?      @map("latency_ms")
+  success       Boolean   @default(true)
+  errorCode     String?   @map("error_code") @db.VarChar(100)
+  errorMessage  String?   @map("error_message")
+  metadata      Json      @default("{}") @db.JsonB
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user          User?     @relation(fields: [userId], references: [id])
+  order         Order?    @relation(fields: [orderId], references: [id])
+
+  @@map("ai_logs")
+  @@index([feature])
+  @@index([userId])
+}
+
+model SystemSetting {
+  key         String    @id @db.VarChar(200)
+  value       Json      @db.JsonB
+  description String?
+  isPublic    Boolean   @default(false) @map("is_public")
+  updatedById String?   @map("updated_by") @db.Uuid
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("system_settings")
+}
