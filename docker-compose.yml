@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database for local development
+  postgres:
+    image: postgres:16
+    container_name: tailoring_postgres
+    environment:
+      POSTGRES_DB: tailoring_db
+      POSTGRES_USER: tailoring_user
+      POSTGRES_PASSWORD: localdev_password_123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tailoring_user -d tailoring_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tailoring_network
+
+  # Redis for cache, sessions, rate-limiting, and BullMQ queues
+  redis:
+    image: redis:7-alpine
+    container_name: tailoring_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tailoring_network
+
+  # pgAdmin for database GUI browser
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: tailoring_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@tailoring.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - tailoring_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  tailoring_network:
