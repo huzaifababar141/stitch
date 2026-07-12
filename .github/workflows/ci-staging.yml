@@ -1,0 +1,25 @@
+name: CI/CD Staging
+
+on:
+  push:
+    branches: [ "staging" ]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          
+      - name: Install & Build Backend
+        run: |
+          cd backend
+          npm install
+          npm run build
+          
+      - name: Deploy to Railway (Staging)
+        run: echo "Deploying to Railway Staging..."
