@@ -119,40 +119,119 @@ export async function parseProductLink(urlStr: string, userId: string) {
     images.push(image);
   }
 
-  // Find price (basic heuristic)
-  let priceOriginal = null;
+  // ── Find Price (Multi-Tier Robust Extraction for Pakistani Stores) ──
+  let priceOriginal: number | null = null;
   let currency = 'PKR';
 
-  // Example for scraping schema.org product metadata (often present in Shopify/Magento)
-  $('script[type="application/ld+json"]').each((i, el) => {
-    try {
-      const data = JSON.parse($(el).html() || '{}');
-      if (
-        data['@type'] === 'Product' ||
-        data['@type'] === 'IndividualProduct'
-      ) {
-        if (data.name) description = data.name;
-        if (data.image) {
-          if (Array.isArray(data.image)) {
-            images = [...images, ...data.image];
-          } else if (typeof data.image === 'string') {
-            images.push(data.image);
+  // 1. Meta tag heuristics (OG / Schema / Twitter)
+  const metaPrice =
+    $('meta[property="product:price:amount"]').attr('content') ||
+    $('meta[property="og:price:amount"]').attr('content') ||
+    $('meta[itemprop="price"]').attr('content') ||
+    $('meta[name="twitter:data1"]').attr('content');
+
+  if (metaPrice) {
+    const cleaned = parseFloat(metaPrice.replace(/[^0-9.]/g, ''));
+    if (!isNaN(cleaned) && cleaned > 0) {
+      priceOriginal = cleaned;
+    }
+  }
+
+  // 2. Schema.org JSON-LD structured data (Shopify, Magento, WooCommerce)
+  if (!priceOriginal) {
+    $('script[type="application/ld+json"]').each((i, el) => {
+      try {
+        const raw = JSON.parse($(el).html() || '{}');
+        const items = Array.isArray(raw)
+          ? raw
+          : raw['@graph']
+            ? raw['@graph']
+            : [raw];
+
+        for (const data of items) {
+          if (
+            data['@type'] === 'Product' ||
+            data['@type'] === 'IndividualProduct' ||
+            data['@type'] === 'ItemPage'
+          ) {
+            if (data.name && !description) description = data.name;
+            if (data.image) {
+              if (Array.isArray(data.image)) {
+                images = [...images, ...data.image];
+              } else if (typeof data.image === 'string') {
+                images.push(data.image);
+              }
+            }
+            if (data.offers) {
+              const offer = Array.isArray(data.offers)
+                ? data.offers[0]
+                : data.offers;
+              if (offer && offer.price) {
+                const parsed = parseFloat(
+                  String(offer.price).replace(/[^0-9.]/g, '')
+                );
+                if (!isNaN(parsed) && parsed > 0) {
+                  priceOriginal = parsed;
+                  currency = offer.priceCurrency || currency;
+                }
+              }
+            }
           }
         }
-        if (data.offers) {
-          const offer = Array.isArray(data.offers)
-            ? data.offers[0]
-            : data.offers;
-          if (offer && offer.price) {
-            priceOriginal = parseFloat(offer.price);
-            currency = offer.priceCurrency || currency;
+      } catch (e) {
+        // Ignore JSON parse errors
+      }
+    });
+  }
+
+  // 3. Pakistani E-Commerce HTML Selector Heuristics (Khaadi, Sana Safinaz, Sapphire, Gul Ahmed, Maria B, Limelight)
+  if (!priceOriginal) {
+    const priceSelectors = [
+      '[data-product-price]',
+      '[data-price]',
+      '.price-item--sale',
+      '.price-item--regular',
+      '.product__price',
+      '.product-price',
+      '.current-price',
+      '.special-price .price',
+      '.regular-price .price',
+      '.price-box .price',
+      '.price .money',
+      '.price',
+    ];
+
+    for (const selector of priceSelectors) {
+      const el = $(selector).first();
+      if (el.length > 0) {
+        const text = el.text().trim();
+        const numMatch = text.match(
+          /(?:PKR|Rs\.?|₨)?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?|[0-9]+(?:\.[0-9]{2})?)/i
+        );
+        if (numMatch && numMatch[1]) {
+          const parsed = parseFloat(numMatch[1].replace(/,/g, ''));
+          if (!isNaN(parsed) && parsed > 100) {
+            priceOriginal = parsed;
+            break;
           }
         }
       }
-    } catch (e) {
-      // Ignore JSON parse errors
     }
-  });
+  }
+
+  // 4. Raw Body Regex fallback
+  if (!priceOriginal) {
+    const bodyText = $('body').text();
+    const regexMatch = bodyText.match(
+      /(?:PKR|Rs\.?)\s*([0-9]{1,2},[0-9]{3}(?:\.[0-9]{2})?|[0-9]{4,6})/i
+    );
+    if (regexMatch && regexMatch[1]) {
+      const parsed = parseFloat(regexMatch[1].replace(/,/g, ''));
+      if (!isNaN(parsed) && parsed >= 500 && parsed <= 500000) {
+        priceOriginal = parsed;
+      }
+    }
+  }
 
   // Fallback image search
   if (images.length === 0) {
