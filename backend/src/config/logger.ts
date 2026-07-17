@@ -31,10 +31,10 @@ const devFormat = printf(({ level, message, timestamp, metadata, ...rest }) => {
   const metaObj = metadata || rest;
   
   // Safely extract out winston internal symbols from printing in local dev
-  const safeMeta = Object.keys(metaObj)
+  const safeMeta = Object.keys(metaObj as Record<string, any>)
     .filter((key) => typeof key === 'string' && !['level', 'message', 'timestamp', 'hostname', 'pid'].includes(key))
-    .reduce((obj: any, key) => {
-      obj[key] = metaObj[key];
+    .reduce((obj: Record<string, any>, key) => {
+      obj[key] = (metaObj as Record<string, any>)[key];
       return obj;
     }, {});
 
