@@ -4,13 +4,9 @@ import { db } from './config/database';
 import { redis } from './config/redis';
 import { Server } from 'socket.io';
 import config from './config';
-import winston from 'winston';
+import { logger } from './config/logger';
 
 const server = createServer(app);
-
-const logger = winston.createLogger({
-  transports: [new winston.transports.Console()],
-});
 
 export const io = new Server(server, {
   cors: {
