@@ -12,10 +12,12 @@
     "test:watch": "jest --watch",
     "test:routes": "jest --testPathPattern=route-validator",
     "test:security": "jest --testPathPattern=security",
-    "migrate:dev": "prisma migrate dev",
-    "migrate:deploy": "prisma migrate deploy",
-    "db:seed": "ts-node src/testing/seed.ts",
-    "db:studio": "prisma studio"
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:prod": "prisma migrate deploy",
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "prisma:reset": "ts-node prisma/reset.ts",
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
     "@paddle/paddle-node-sdk": "^1.2.0",
