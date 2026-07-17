@@ -719,7 +719,7 @@ model Referral {
   referrerId          String    @map("referrer_id") @db.Uuid
   refereeId           String    @unique @map("referee_id") @db.Uuid
   referralCode        String    @map("referral_code") @db.VarChar(20)
-  qualifyingOrderId   String?   @map("qualifying_order_id") @db.Uuid
+  qualifyingOrderId   String?   @unique @map("qualifying_order_id") @db.Uuid
   rewardType          String    @default("discount") @map("reward_type") @db.VarChar(50)
   rewardAmount        Decimal?  @map("reward_amount") @db.Decimal(10, 2)
   rewardGiven         Boolean   @default(false) @map("reward_given")

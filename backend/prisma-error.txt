@@ -1,0 +1,66 @@
+﻿Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+node.exe : Error: 
+Prisma schema 
+validation - 
+(get-dmmf wasm)
+At line:1 char:1
++ & "E:\Node 
+Js/node.exe" "C:\Users
+\User\AppData\Roaming\
+npm/node_modul ...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (Error: Pri   
+ sma s...(get-dmmf    
+ wasm):String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+Error code: P1012
+[1;91merror[0m: 
+[1mError parsing 
+attribute 
+"@relation": A 
+one-to-one relation 
+must use unique 
+fields on the 
+defining side. Either 
+add an `@unique` 
+attribute to the 
+field 
+`qualifyingOrderId`, 
+or change the 
+relation to 
+one-to-many.[0m
+  [1;94m-->[0m  [4m
+prisma\schema.prisma:7
+31[0m
+[1;94m   | [0m
+[1;94m730 | [0m  
+referee             
+User      @relation("R
+efereeReferrals", 
+fields: [refereeId], 
+references: [id])
+[1;94m731 | [0m  [1
+;91mqualifyingOrder   
+  Order?    
+@relation(fields: 
+[qualifyingOrderId], 
+references: [id])[0m
+[1;94m732 | [0m
+[1;94m   | [0m
+
+Validation Error 
+Count: 1
+[Context: getDmmf]
+
+Prisma CLI Version : 
+5.22.0
