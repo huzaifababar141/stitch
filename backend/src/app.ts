@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import config from './config';
 import { errorHandler } from './middleware/errorHandler.middleware';
 import { requestLogger } from './middleware/requestLogger.middleware';
+import healthRoutes from './modules/health/health.routes';
 
 const app: Express = express();
 
@@ -39,13 +40,7 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 app.use(requestLogger);
 
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '1.0.0',
-  });
-});
+app.use('/health', healthRoutes);
 
 app.use('*', (req: Request, res: Response) => {
   res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' } });
