@@ -81,10 +81,14 @@ export class AuthService {
   }
 
   static async generateTokenPair(userId: string, deviceInfo: any, ipAddress: string) {
-    // Generate access token containing standard payload
+    const user = await db.user.findUnique({ where: { id: userId } });
+    if (!user) throw AppError.notFound('Token binding failed: User missing');
+
     const accessToken = generateAccessToken({ 
       id: userId,
-      role: 'customer' // Needs generic injection based on fetched DB state in prod
+      role: user.role,
+      email: user.email,
+      phone: user.phone
     });
     
     // Generate refresh token cryptographic string

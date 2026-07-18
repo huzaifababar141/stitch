@@ -7,6 +7,7 @@ import config from './config';
 import { errorHandler } from './middleware/errorHandler.middleware';
 import { requestLogger } from './middleware/requestLogger.middleware';
 import healthRoutes from './modules/health/health.routes';
+import authRoutes from './modules/auth/auth.routes';
 
 const app: Express = express();
 
@@ -41,6 +42,8 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(requestLogger);
 
 app.use('/health', healthRoutes);
+
+app.use('/api/v1/auth', authRoutes);
 
 app.use('*', (req: Request, res: Response) => {
   res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' } });
