@@ -10,6 +10,7 @@ import healthRoutes from './modules/health/health.routes';
 import authRoutes from './modules/auth/auth.routes';
 import usersRoutes from './modules/users/users.routes';
 import measurementsRoutes from './modules/measurements/measurements.routes';
+import productsRoutes from './modules/products/products.routes';
 
 const app: Express = express();
 
@@ -48,6 +49,7 @@ app.use('/health', healthRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', usersRoutes);
 app.use('/api/v1/measurements', measurementsRoutes);
+app.use('/api/v1/products', productsRoutes);
 
 app.use('*', (req: Request, res: Response) => {
   res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' } });
