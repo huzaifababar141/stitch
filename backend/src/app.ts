@@ -8,6 +8,7 @@ import { errorHandler } from './middleware/errorHandler.middleware';
 import { requestLogger } from './middleware/requestLogger.middleware';
 import healthRoutes from './modules/health/health.routes';
 import authRoutes from './modules/auth/auth.routes';
+import usersRoutes from './modules/users/users.routes';
 
 const app: Express = express();
 
@@ -23,7 +24,7 @@ app.use(
 
 app.use(
   morgan('dev', {
-    skip: (req) => req.originalUrl === '/health',
+    skip: (req: Request) => req.originalUrl === '/health',
   })
 );
 
@@ -44,6 +45,7 @@ app.use(requestLogger);
 app.use('/health', healthRoutes);
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', usersRoutes);
 
 app.use('*', (req: Request, res: Response) => {
   res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' } });
