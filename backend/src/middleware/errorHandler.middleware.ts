@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../shared/errors/AppError';
 import { ZodError } from 'zod';
 import { Prisma } from '@prisma/client';
-import config from '@/config';
+import config from '../config';
 import { logger } from '../config/logger';
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction): void => {

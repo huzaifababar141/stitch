@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
-import config from '@/config';
+import config from '../../config';
 
 export const generateSecureToken = (bytes = 32): string => {
   return crypto.randomBytes(bytes).toString('hex');
