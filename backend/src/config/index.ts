@@ -1,7 +1,11 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
 
-dotenv.config();
+if (process.env.NODE_ENV === 'test') {
+  dotenv.config({ path: '.env.test' });
+} else {
+  dotenv.config();
+}
 
 const envSchema = z.object({
   NODE_ENV: z.string().default('development'),
