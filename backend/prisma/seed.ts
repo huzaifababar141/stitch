@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, Gender } from '@prisma/client';
+import { PrismaClient, UserRole, Gender, TailorSkillLevel } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -13,12 +13,12 @@ async function main() {
     create: {
       phone: '+923001111111',
       email: 'admin@tailoring.local',
-      password: passwordHash,
+      passwordHash,
       role: UserRole.super_admin,
       firstName: 'Super',
       lastName: 'Admin',
       phoneVerified: true,
-      lastLogin: new Date(),
+      lastLoginAt: new Date(),
     },
   });
 
@@ -29,7 +29,7 @@ async function main() {
     create: {
       phone: '+923001111112',
       email: 'ops@tailoring.local',
-      password: passwordHash,
+      passwordHash,
       role: UserRole.admin,
       firstName: 'Operations',
       lastName: 'Admin',
@@ -43,7 +43,7 @@ async function main() {
     update: {},
     create: {
       phone: '+923002222221',
-      password: passwordHash,
+      passwordHash,
       role: UserRole.tailor,
       firstName: 'Ahmed',
       lastName: 'Ali',
@@ -55,9 +55,9 @@ async function main() {
     update: {},
     create: {
       userId: tailor1.id,
-      skillLevel: 'senior',
-      specializations: ['full_suit', 'kameez'],
-      capacityPerDay: 5,
+      skillLevel: TailorSkillLevel.senior,
+      maxDailyCapacity: 5,
+      metadata: { specializations: ['full_suit', 'kameez'] },
     },
   });
 
@@ -66,7 +66,7 @@ async function main() {
     update: {},
     create: {
       phone: '+923002222222',
-      password: passwordHash,
+      passwordHash,
       role: UserRole.tailor,
       firstName: 'Hassan',
       lastName: 'Khan',
@@ -78,9 +78,9 @@ async function main() {
     update: {},
     create: {
       userId: tailor2.id,
-      skillLevel: 'mid',
-      specializations: ['trouser', 'kameez'],
-      capacityPerDay: 3,
+      skillLevel: TailorSkillLevel.mid,
+      maxDailyCapacity: 3,
+      metadata: { specializations: ['trouser', 'kameez'] },
     },
   });
 
@@ -89,7 +89,7 @@ async function main() {
     update: {},
     create: {
       phone: '+923002222223',
-      password: passwordHash,
+      passwordHash,
       role: UserRole.tailor,
       firstName: 'Bilal',
       lastName: 'Raza',
@@ -101,9 +101,9 @@ async function main() {
     update: {},
     create: {
       userId: tailor3.id,
-      skillLevel: 'junior',
-      specializations: ['trouser'],
-      capacityPerDay: 2,
+      skillLevel: TailorSkillLevel.junior,
+      maxDailyCapacity: 2,
+      metadata: { specializations: ['trouser'] },
     },
   });
 
@@ -113,7 +113,7 @@ async function main() {
     update: {},
     create: {
       phone: '+923003333333',
-      password: passwordHash,
+      passwordHash,
       role: UserRole.qc_inspector,
       firstName: 'Fatima',
       lastName: 'Malik',
@@ -127,7 +127,7 @@ async function main() {
     update: {},
     create: {
       phone: '+923004444444',
-      password: passwordHash,
+      passwordHash,
       role: UserRole.delivery_agent,
       firstName: 'Usman',
       lastName: 'Dar',
