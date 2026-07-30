@@ -1,44 +1,10 @@
-# Environment
-.env
-.env.local
-.env.production
-*.env
-
-# Dependencies
 node_modules/
-.pnp
-.pnp.js
-
-# Build
-dist/
 .next/
-out/
-build/
-
-# Database
-*.db
-*.sqlite
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/settings.json
-.idea/
-*.swp
-
-# Test
+.env*.local
+.env
+dist/
 coverage/
-.nyc_output
-
-# Docker
-# (do NOT ignore docker-compose.yml — it has no secrets)
-
-# Prisma
-prisma/*.db
+*.log
+.DS_Store
+supabase/.branches/
+supabase/.temp/
