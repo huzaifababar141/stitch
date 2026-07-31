@@ -1,7 +1,7 @@
-import { prisma } from '../prisma'
-import { createClient } from '../supabase/server'
-import { NotificationTemplates } from '../notifications/templates'
-import { logger } from '../utils/logger'
+import { prisma } from '../prisma';
+import { createClient } from '../supabase/server';
+import { NotificationTemplates } from '../notifications/templates';
+import { logger } from '../utils/logger';
 
 export class NotificationsService {
   /**
@@ -13,13 +13,13 @@ export class NotificationsService {
     variables: any,
     orderId?: string
   ) {
-    const templateFn = NotificationTemplates[templateKey]
+    const templateFn = NotificationTemplates[templateKey];
     if (!templateFn) {
-      logger.error(`Notification template ${templateKey as string} not found`)
-      return
+      logger.error(`Notification template ${templateKey as string} not found`);
+      return;
     }
 
-    const { title, body, channels } = templateFn(variables)
+    const { title, body, channels } = templateFn(variables);
 
     // Save to database
     const notification = await prisma.notification.create({
@@ -31,31 +31,39 @@ export class NotificationsService {
         message: body,
         channels: channels as any,
         metadata: variables,
-        status: 'pending' // Enums match our Prisma schema
-      }
-    })
+        status: 'pending', // Enums match our Prisma schema
+      },
+    });
 
     // Asynchronously trigger Edge Function for external delivery (email/whatsapp)
-    if (channels.some(c => c === 'email' || c === 'whatsapp' || c === 'sms')) {
+    if (
+      channels.some((c) => c === 'email' || c === 'whatsapp' || c === 'sms')
+    ) {
       // Fire and forget
       this.triggerEdgeFunction(notification.id).catch((err) => {
-        logger.error(`Failed to trigger Edge Function for notification ${notification.id}`, err)
-      })
+        logger.error(
+          `Failed to trigger Edge Function for notification ${notification.id}`,
+          err
+        );
+      });
     }
 
-    return notification
+    return notification;
   }
 
   private static async triggerEdgeFunction(notificationId: string) {
-    const supabase = createClient()
-    const { data, error } = await supabase.functions.invoke('send-notification', {
-      body: { notificationId }
-    })
+    const supabase = await createClient();
+    const { data, error } = await supabase.functions.invoke(
+      'send-notification',
+      {
+        body: { notificationId },
+      }
+    );
 
     if (error) {
-      throw error
+      throw error;
     }
-    return data
+    return data;
   }
 
   /**
@@ -65,13 +73,13 @@ export class NotificationsService {
     await prisma.notification.updateMany({
       where: {
         id: { in: notificationIds },
-        userId
+        userId,
       },
       data: {
         isRead: true,
-        readAt: new Date()
-      }
-    })
+        readAt: new Date(),
+      },
+    });
   }
 
   /**
@@ -81,9 +89,9 @@ export class NotificationsService {
     const count = await prisma.notification.count({
       where: {
         userId,
-        isRead: false
-      }
-    })
-    return count
+        isRead: false,
+      },
+    });
+    return count;
   }
 }
