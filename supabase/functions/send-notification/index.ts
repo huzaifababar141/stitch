@@ -1,71 +1,70 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
-import { supabase } from '../_shared/supabase-client.ts'
+// @ts-ignore
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+// @ts-ignore
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-serve(async (req) => {
+serve(async (req: Request) => {
   try {
-    const { userId, templateKey, variables, channel, orderId } = await req.json()
-
-    if (!userId || !templateKey || !channel) {
-      return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 })
+    if (req.method === 'OPTIONS') {
+      return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*' } })
     }
 
-    // 1. Fetch User
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('id, phone, email, first_name')
-      .eq('id', userId)
+    const { notificationId } = await req.json()
+
+    if (!notificationId) {
+      return new Response(JSON.stringify({ error: 'notificationId is required' }), { status: 400 })
+    }
+
+    // Initialize Supabase Client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+    // Fetch the notification
+    const { data: notification, error: fetchError } = await supabase
+      .from('notifications')
+      .select('*, user:users(*)')
+      .eq('id', notificationId)
       .single()
 
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 })
+    if (fetchError || !notification) {
+      console.error('Failed to fetch notification', fetchError)
+      return new Response(JSON.stringify({ error: 'Notification not found' }), { status: 404 })
     }
 
-    // 2. Logic to route based on channel
-    let deliveryStatus = 'pending'
-    let providerResponse = null
+    const { channels, user, title, message } = notification
 
-    if (channel === 'whatsapp') {
-      // Mock WhatsApp API call
-      console.log(`Sending WhatsApp to ${user.phone} using template ${templateKey}`)
-      deliveryStatus = 'sent'
-      providerResponse = { messageId: 'wa_' + Date.now() }
-    } else if (channel === 'email') {
-      // Mock Email API call (Resend, etc.)
-      console.log(`Sending Email to ${user.email} using template ${templateKey}`)
-      deliveryStatus = 'sent'
-      providerResponse = { messageId: 'email_' + Date.now() }
-    } else {
-      // In-app push
-      console.log(`Sending In-App Push to user ${user.id}`)
-      deliveryStatus = 'sent'
+    console.log(`Processing notification ${notificationId} for user ${user.id}`)
+
+    // 1. Send Email via Resend/SendGrid
+    if (channels.includes('email') && user.email) {
+      console.log(`[EMAIL] Sending to ${user.email}: ${title}`)
+      // Example external API call here
     }
 
-    // 3. Save Notification Record
-    const { error: dbError } = await supabase
+    // 2. Send WhatsApp via Meta Graph API
+    if (channels.includes('whatsapp') && user.phoneNumber) {
+      console.log(`[WHATSAPP] Sending to ${user.phoneNumber}: ${message}`)
+      // Example WhatsApp Cloud API call here
+    }
+
+    // Mark as sent
+    const { error: updateError } = await supabase
       .from('notifications')
-      .insert({
-        user_id: user.id,
-        order_id: orderId,
-        type: templateKey,
-        channel,
-        title: `Notification: ${templateKey}`, // You would typically render the actual template here
-        content: JSON.stringify(variables),
-        is_read: false,
-      })
+      .update({ status: 'sent' })
+      .eq('id', notificationId)
 
-    if (dbError) {
-      console.error('Failed to log notification:', dbError)
+    if (updateError) {
+      throw updateError
     }
 
-    return new Response(JSON.stringify({ success: true, deliveryStatus, providerResponse }), {
-      headers: { 'Content-Type': 'application/json' },
-      status: 200
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { "Content-Type": "application/json" },
+      status: 200,
     })
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { 'Content-Type': 'application/json' },
-      status: 500
-    })
+    console.error('Edge Function Error:', error)
+    return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 })
   }
 })
