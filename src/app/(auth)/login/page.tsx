@@ -5,116 +5,66 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { Scissors, ShieldCheck, Truck, Ruler, Loader2 } from 'lucide-react';
+import {
+  Scissors,
+  ShieldCheck,
+  Truck,
+  Ruler,
+  Loader2,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { PhoneInput } from '@/components/auth/PhoneInput';
-import { OTPInput } from '@/components/auth/OTPInput';
-import { CountdownTimer } from '@/components/auth/CountdownTimer';
+import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [phoneError, setPhoneError] = useState('');
 
   const router = useRouter();
   const { toast } = useToast();
   const { supabase } = useAuth();
 
-  const formatPhone = (p: string) => {
-    let formatted = p.replace(/\D/g, '');
-    if (formatted.startsWith('0')) formatted = formatted.substring(1);
-    return `+92${formatted}`;
-  };
-
-  const handlePhoneChange = (val: string) => {
-    setPhone(val);
-    if (phoneError && val.length === 10) {
-      setPhoneError('');
-    }
-  };
-
-  const handleSendOtp = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-
-    if (phone.length < 10) {
-      setPhoneError('Please enter a valid 10-digit mobile number');
-      toast({
-        title: 'Invalid Phone Number',
-        description: 'Please enter a valid 10-digit mobile number',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setPhoneError('');
-    setLoading(true);
-    const formattedPhone = formatPhone(phone);
-
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: formattedPhone,
-      });
-      if (error) throw error;
-      setStep('otp');
-      toast({
-        title: 'OTP Sent',
-        description: 'Please check your phone for the 6-digit code.',
-      });
-    } catch (err: any) {
-      toast({
-        title: 'Auth Error',
-        description: err.message || 'Failed to send OTP',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (otp.length < 6) {
+    if (!email.trim() || !password) {
       toast({
-        title: 'Invalid OTP',
-        description: 'Please enter the 6-digit code',
+        title: 'Missing Fields',
+        description: 'Please enter both your email address and password.',
         variant: 'destructive',
       });
       return;
     }
 
     setLoading(true);
-    const formattedPhone = formatPhone(phone);
 
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone: formattedPhone,
-        token: otp,
-        type: 'sms',
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
       });
 
       if (error) throw error;
 
+      // Fetch user profile role
       const { data: profile } = await supabase
         .from('users')
         .select('role')
         .eq('id', data.user?.id)
         .single();
 
-      if (!profile) {
-        router.push('/register');
-        return;
-      }
-
       toast({
-        title: 'Login Successful',
-        description: 'Redirecting to your dashboard...',
+        title: 'Welcome Back',
+        description: 'Login successful. Redirecting to your dashboard...',
       });
 
-      const role = profile.role;
+      const role = profile?.role || 'customer';
       if (role === 'admin' || role === 'super_admin')
         router.push('/admin/dashboard');
       else if (role === 'tailor') router.push('/tailor/dashboard');
@@ -122,11 +72,20 @@ export default function LoginPage() {
       else if (role === 'delivery_agent') router.push('/delivery/dashboard');
       else router.push('/dashboard');
     } catch (err: any) {
-      toast({
-        title: 'Verification Error',
-        description: err.message || 'Invalid OTP code',
-        variant: 'destructive',
-      });
+      if (err.message?.toLowerCase().includes('email not confirmed')) {
+        toast({
+          title: 'Email Not Confirmed',
+          description:
+            'Please check your email inbox for the verification link, or disable "Confirm email" in your Supabase Auth settings to log in immediately.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Login Error',
+          description: err.message || 'Invalid email address or password.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -165,86 +124,82 @@ export default function LoginPage() {
                 Welcome Back
               </h2>
               <p className="mt-1.5 text-sm text-gray-500">
-                Sign in to manage your orders and custom measurements.
+                Sign in with your email to manage your orders and custom
+                measurements.
               </p>
             </div>
 
-            {step === 'phone' ? (
-              <form onSubmit={handleSendOtp} className="space-y-5">
-                <div className="space-y-1.5">
+            <form onSubmit={handleLogin} className="space-y-5">
+              {/* Email Input */}
+              <div className="space-y-1.5">
+                <label className="block text-[13px] font-semibold text-gray-700">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. ali@example.com"
+                    disabled={loading}
+                    className="h-12 pl-10 border-gray-300 text-base placeholder:text-gray-400 focus-visible:border-[#7E153A] focus-visible:ring-2 focus-visible:ring-[#7E153A]/20"
+                  />
+                </div>
+              </div>
+
+              {/* Password Input */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
                   <label className="block text-[13px] font-semibold text-gray-700">
-                    Phone Number
+                    Password
                   </label>
-                  <PhoneInput
-                    value={phone}
-                    onChange={handlePhoneChange}
-                    disabled={loading}
-                    error={phoneError}
-                  />
+                  <a
+                    href="#"
+                    className="text-[12px] font-medium text-[#7E153A] hover:underline"
+                  >
+                    Forgot password?
+                  </a>
                 </div>
-
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#7E153A] text-[15px] font-semibold text-white shadow-md shadow-[#7E153A]/25 transition-all duration-150 hover:bg-[#6b1131] hover:shadow-lg hover:shadow-[#7E153A]/30 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Sending code...</span>
-                    </>
-                  ) : (
-                    'Login with OTP'
-                  )}
-                </Button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyOtp} className="space-y-5">
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-[13px] font-semibold text-gray-700">
-                      Verification Code
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setStep('phone')}
-                      className="text-[12px] font-medium text-[#7E153A] hover:underline"
-                    >
-                      Change Number
-                    </button>
-                  </div>
-                  <OTPInput
-                    value={otp}
-                    onChange={setOtp}
-                    length={6}
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
                     disabled={loading}
+                    className="h-12 pl-10 pr-10 border-gray-300 text-base placeholder:text-gray-400 focus-visible:border-[#7E153A] focus-visible:ring-2 focus-visible:ring-[#7E153A]/20"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label="Toggle Password Visibility"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
+              </div>
 
-                <div className="flex justify-end">
-                  <CountdownTimer
-                    initialSeconds={60}
-                    onResend={handleSendOtp}
-                    disabled={loading}
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#7E153A] text-[15px] font-semibold text-white shadow-md shadow-[#7E153A]/25 transition-all duration-150 hover:bg-[#6b1131] hover:shadow-lg active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Verifying...</span>
-                    </>
-                  ) : (
-                    'Verify & Sign In'
-                  )}
-                </Button>
-              </form>
-            )}
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={loading}
+                className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#7E153A] text-[15px] font-semibold text-white shadow-md shadow-[#7E153A]/25 transition-all duration-150 hover:bg-[#6b1131] hover:shadow-lg hover:shadow-[#7E153A]/30 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Signing In...</span>
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+            </form>
 
             {/* Divider */}
             <div className="relative my-7">

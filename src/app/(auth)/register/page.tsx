@@ -9,20 +9,29 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { PhoneInput } from '@/components/auth/PhoneInput';
-import { OTPInput } from '@/components/auth/OTPInput';
-import { CountdownTimer } from '@/components/auth/CountdownTimer';
-import { Scissors, ShieldCheck, Truck, Ruler, Loader2 } from 'lucide-react';
+import {
+  Scissors,
+  ShieldCheck,
+  Truck,
+  Ruler,
+  Loader2,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  User,
+} from 'lucide-react';
 
 export default function RegisterPage() {
-  const { user, supabase } = useAuth();
+  const { supabase } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<'details' | 'otp'>('details');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [phoneError, setPhoneError] = useState('');
 
@@ -37,8 +46,8 @@ export default function RegisterPage() {
     if (phoneError && val.length === 10) setPhoneError('');
   };
 
-  const handleSendOtp = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
 
     if (!fullName.trim()) {
       toast({
@@ -49,11 +58,29 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!email.trim()) {
+      toast({
+        title: 'Email Required',
+        description: 'Please enter a valid email address.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (phone.length < 10) {
       setPhoneError('Please enter a valid 10-digit mobile number');
       toast({
-        title: 'Invalid Phone',
+        title: 'Invalid Phone Number',
         description: 'Please enter a valid 10-digit mobile number.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: 'Weak Password',
+        description: 'Password must be at least 6 characters long.',
         variant: 'destructive',
       });
       return;
@@ -61,87 +88,94 @@ export default function RegisterPage() {
 
     setLoading(true);
     setPhoneError('');
-
-    try {
-      if (user) {
-        await saveProfile(user.id, user.phone || formatPhone(phone));
-        return;
-      }
-
-      const formattedPhone = formatPhone(phone);
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: formattedPhone,
-      });
-      if (error) throw error;
-
-      setStep('otp');
-      toast({
-        title: 'OTP Sent',
-        description: 'Please check your phone for the 6-digit code.',
-      });
-    } catch (err: any) {
-      toast({
-        title: 'Auth Error',
-        description: err.message || 'Failed to send OTP',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyAndRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp.length < 6) {
-      toast({
-        title: 'Invalid OTP',
-        description: 'Please enter the 6-digit code',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setLoading(true);
     const formattedPhone = formatPhone(phone);
 
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone: formattedPhone,
-        token: otp,
-        type: 'sms',
+      // 1. Check if email already exists in database
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', email.trim())
+        .maybeSingle();
+
+      if (existingUser) {
+        toast({
+          title: 'Email Already Registered',
+          description:
+            'An account with this email address already exists. Please log in.',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
+      // 2. Sign up user via Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            phone_number: formattedPhone,
+          },
+        },
       });
 
       if (error) throw error;
+
       if (data.user) {
+        // 3. Create user profile in public database tables
         await saveProfile(data.user.id, formattedPhone);
+      } else {
+        toast({
+          title: 'Account Created',
+          description:
+            'Please check your email inbox to confirm your registration.',
+        });
       }
     } catch (err: any) {
-      toast({
-        title: 'Verification Error',
-        description: err.message || 'Invalid OTP code',
-        variant: 'destructive',
-      });
+      if (
+        err.message?.toLowerCase().includes('already registered') ||
+        err.message?.toLowerCase().includes('user_already_exists')
+      ) {
+        toast({
+          title: 'Email Already Registered',
+          description:
+            'An account with this email address already exists. Please log in.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Registration Error',
+          description:
+            err.message || 'Failed to create account. Please try again.',
+          variant: 'destructive',
+        });
+      }
       setLoading(false);
     }
   };
 
   const saveProfile = async (userId: string, userPhone: string) => {
     try {
+      const nameParts = fullName.trim().split(' ');
+      const firstName = nameParts[0] || fullName;
+      const lastName = nameParts.slice(1).join(' ') || null;
+
+      // Upsert public.users record
+      const now = new Date().toISOString();
       const { error: userError } = await supabase.from('users').upsert({
         id: userId,
-        phone_number: userPhone,
-        email: email || null,
+        phone: userPhone,
+        email: email.trim(),
+        first_name: firstName,
+        last_name: lastName,
         role: 'customer',
+        updated_at: now,
+        created_at: now,
       });
-      if (userError) throw userError;
 
-      const { error: profileError } = await supabase
-        .from('customer_profiles')
-        .upsert({
-          user_id: userId,
-          full_name: fullName,
-        });
-      if (profileError) throw profileError;
+      if (userError) throw userError;
 
       toast({
         title: 'Account Created 🎉',
@@ -150,8 +184,8 @@ export default function RegisterPage() {
       router.push('/dashboard');
     } catch (err: any) {
       toast({
-        title: 'Error',
-        description: err.message || 'Failed to save profile',
+        title: 'Profile Error',
+        description: err.message || 'Failed to save profile details.',
         variant: 'destructive',
       });
     } finally {
@@ -196,13 +230,14 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {step === 'details' ? (
-              <form onSubmit={handleSendOtp} className="space-y-4">
-                {/* Full Name */}
-                <div className="space-y-1.5">
-                  <label className="block text-[13px] font-semibold text-gray-700">
-                    Full Name <span className="text-[#7E153A]">*</span>
-                  </label>
+            <form onSubmit={handleRegister} className="space-y-4">
+              {/* Full Name */}
+              <div className="space-y-1.5">
+                <label className="block text-[13px] font-semibold text-gray-700">
+                  Full Name <span className="text-[#7E153A]">*</span>
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     type="text"
                     required
@@ -210,107 +245,87 @@ export default function RegisterPage() {
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="e.g. Ali Ahmed"
                     disabled={loading}
-                    className="h-12 border-gray-300 text-base placeholder:text-gray-400 focus-visible:border-[#7E153A] focus-visible:ring-2 focus-visible:ring-[#7E153A]/20"
+                    className="h-12 pl-10 border-gray-300 text-base placeholder:text-gray-400 focus-visible:border-[#7E153A] focus-visible:ring-2 focus-visible:ring-[#7E153A]/20"
                   />
                 </div>
+              </div>
 
-                {/* Phone Number */}
-                {!user && (
-                  <div className="space-y-1.5">
-                    <label className="block text-[13px] font-semibold text-gray-700">
-                      Phone Number <span className="text-[#7E153A]">*</span>
-                    </label>
-                    <PhoneInput
-                      value={phone}
-                      onChange={handlePhoneChange}
-                      disabled={loading}
-                      error={phoneError}
-                    />
-                  </div>
-                )}
-
-                {/* Email (optional) */}
-                <div className="space-y-1.5">
-                  <label className="block text-[13px] font-semibold text-gray-700">
-                    Email Address{' '}
-                    <span className="font-normal text-gray-400">
-                      (optional)
-                    </span>
-                  </label>
+              {/* Email Address */}
+              <div className="space-y-1.5">
+                <label className="block text-[13px] font-semibold text-gray-700">
+                  Email Address <span className="text-[#7E153A]">*</span>
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     type="email"
+                    required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="e.g. ali@example.com"
                     disabled={loading}
-                    className="h-12 border-gray-300 text-base placeholder:text-gray-400 focus-visible:border-[#7E153A] focus-visible:ring-2 focus-visible:ring-[#7E153A]/20"
+                    className="h-12 pl-10 border-gray-300 text-base placeholder:text-gray-400 focus-visible:border-[#7E153A] focus-visible:ring-2 focus-visible:ring-[#7E153A]/20"
                   />
                 </div>
+              </div>
 
-                <Button
-                  type="submit"
+              {/* Phone Number */}
+              <div className="space-y-1.5">
+                <label className="block text-[13px] font-semibold text-gray-700">
+                  Phone Number <span className="text-[#7E153A]">*</span>
+                </label>
+                <PhoneInput
+                  value={phone}
+                  onChange={handlePhoneChange}
                   disabled={loading}
-                  className="mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#7E153A] text-[15px] font-semibold text-white shadow-md shadow-[#7E153A]/25 transition-all duration-150 hover:bg-[#6b1131] hover:shadow-lg hover:shadow-[#7E153A]/30 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Processing...</span>
-                    </>
-                  ) : user ? (
-                    'Complete Profile'
-                  ) : (
-                    'Continue with OTP'
-                  )}
-                </Button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyAndRegister} className="space-y-5">
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-[13px] font-semibold text-gray-700">
-                      Verification Code
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setStep('details')}
-                      className="text-[12px] font-medium text-[#7E153A] hover:underline"
-                    >
-                      Edit Details
-                    </button>
-                  </div>
-                  <OTPInput
-                    value={otp}
-                    onChange={setOtp}
-                    length={6}
-                    disabled={loading}
-                  />
-                </div>
+                  error={phoneError}
+                />
+              </div>
 
-                <div className="flex justify-end">
-                  <CountdownTimer
-                    initialSeconds={60}
-                    onResend={handleSendOtp}
+              {/* Password */}
+              <div className="space-y-1.5">
+                <label className="block text-[13px] font-semibold text-gray-700">
+                  Password <span className="text-[#7E153A]">*</span>
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Create a strong password"
                     disabled={loading}
+                    className="h-12 pl-10 pr-10 border-gray-300 text-base placeholder:text-gray-400 focus-visible:border-[#7E153A] focus-visible:ring-2 focus-visible:ring-[#7E153A]/20"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label="Toggle Password Visibility"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
+              </div>
 
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#7E153A] text-[15px] font-semibold text-white shadow-md shadow-[#7E153A]/25 transition-all duration-150 hover:bg-[#6b1131] hover:shadow-lg active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Creating Account...</span>
-                    </>
-                  ) : (
-                    'Verify & Create Account'
-                  )}
-                </Button>
-              </form>
-            )}
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={loading}
+                className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#7E153A] text-[15px] font-semibold text-white shadow-md shadow-[#7E153A]/25 transition-all duration-150 hover:bg-[#6b1131] hover:shadow-lg hover:shadow-[#7E153A]/30 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Creating Account...</span>
+                  </>
+                ) : (
+                  'Create Account'
+                )}
+              </Button>
+            </form>
 
             {/* Divider */}
             <div className="relative my-7">
