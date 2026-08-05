@@ -20,7 +20,11 @@ export async function requireAuth(): Promise<AuthUser> {
   return user;
 }
 
-export async function requireRole(...roles: string[]): Promise<AuthUser> {
+export async function requireRole(
+  ...args: string[] | [string[]]
+): Promise<AuthUser> {
+  // Accept both requireRole('admin', 'tailor') and requireRole(['admin', 'tailor'])
+  const roles: string[] = Array.isArray(args[0]) ? args[0] : (args as string[]);
   const user = await requireAuth();
   const userRole = user.user_metadata?.role || 'customer';
   if (!roles.includes(userRole) && userRole !== 'super_admin') {
