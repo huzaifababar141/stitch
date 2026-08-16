@@ -252,7 +252,7 @@ export default function OrderTrackingPage() {
           {/* Connecting Line */}
           <div className="absolute top-6 left-6 right-6 h-1 bg-gray-100 -z-0 hidden md:block" />
           <div
-            className="absolute top-6 left-6 h-1 bg-gradient-to-r from-[#7E153A] to-[#C9A84C] -z-0 transition-all duration-700 hidden md:block"
+            className="absolute top-6 left-6 h-1 bg-gradient-to-r from-[#7E153A] to-[#A01B4C] -z-0 transition-all duration-700 hidden md:block"
             style={{
               width: `${(currentStepIdx / (STATUS_STEPS.length - 1)) * 100}%`,
             }}
@@ -463,7 +463,7 @@ export default function OrderTrackingPage() {
                 <p className="text-xs text-gray-500">
                   {order.tailor.role} · {order.tailor.workshop}
                 </p>
-                <div className="flex items-center gap-2 text-[10px] font-bold text-[#C9A84C] mt-1">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-[#7E153A] mt-1">
                   <span>{order.tailor.rating}</span>
                   <span>·</span>
                   <span className="text-gray-500">

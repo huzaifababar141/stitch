@@ -89,7 +89,7 @@ export default function Home() {
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight leading-[1.15]">
               Bespoke Tailoring. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7E153A] to-[#C9A84C]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7E153A] to-[#A01B4C]">
                 Guaranteed Perfect Fit.
               </span>
             </h1>
@@ -132,8 +132,8 @@ export default function Home() {
                 <p className="text-xs text-gray-500 font-medium">QC Dispatch</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#C9A84C] flex items-center justify-center lg:justify-start gap-1">
-                  4.9 <Star className="w-4 h-4 fill-current text-[#C9A84C]" />
+                <p className="text-2xl font-bold text-[#7E153A] flex items-center justify-center lg:justify-start gap-1">
+                  4.9 <Star className="w-4 h-4 fill-current text-[#7E153A]" />
                 </p>
                 <p className="text-xs text-gray-500 font-medium">
                   Customer Rating
@@ -144,7 +144,7 @@ export default function Home() {
 
           {/* Hero Visual Cards Right */}
           <div className="relative">
-            <div className="relative mx-auto max-w-md lg:max-w-none bg-gradient-to-tr from-[#7E153A] to-[#A01D4C] p-8 lg:p-10 rounded-3xl text-white shadow-2xl space-y-6">
+            <div className="relative mx-auto max-w-md lg:max-w-none bg-[#7E153A] p-8 lg:p-10 rounded-3xl text-white shadow-2xl space-y-6">
               <div className="flex items-center justify-between pb-6 border-b border-white/20">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white">
@@ -159,7 +159,7 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-                <span className="bg-[#C9A84C] text-gray-900 text-xs font-extrabold px-3 py-1 rounded-full">
+                <span className="bg-white text-[#7E153A] text-xs font-extrabold px-3 py-1 rounded-full">
                   ACTIVE
                 </span>
               </div>
@@ -168,14 +168,14 @@ export default function Home() {
               <div className="space-y-4">
                 <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#C9A84C]" /> Shalwar
+                    <CheckCircle2 className="w-4 h-4 text-white" /> Shalwar
                     Kameez / Kurta Customization
                   </span>
                   <span className="font-mono text-xs opacity-90">Verified</span>
                 </div>
                 <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-[#C9A84C]" /> Internal
+                    <ShieldCheck className="w-4 h-4 text-white" /> Internal
                     Quality Check Protocol
                   </span>
                   <span className="font-mono text-xs opacity-90">
@@ -184,8 +184,8 @@ export default function Home() {
                 </div>
                 <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2">
-                    <Truck className="w-4 h-4 text-[#C9A84C]" /> TCS Courier
-                    Live Tracking Integration
+                    <Truck className="w-4 h-4 text-white" /> TCS Courier Live
+                    Tracking Integration
                   </span>
                   <span className="font-mono text-xs opacity-90">Realtime</span>
                 </div>

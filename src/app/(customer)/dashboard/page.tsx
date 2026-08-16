@@ -141,8 +141,8 @@ const STATUS_CONFIG: Record<
   },
   in_stitching: {
     label: 'In Stitching',
-    color: 'text-blue-700',
-    bg: 'bg-blue-50',
+    color: 'text-[#7E153A]',
+    bg: 'bg-red-50',
     icon: Scissors,
   },
   quality_check: {
@@ -202,7 +202,7 @@ function OrderProgressBar({ progress }: { progress: number }) {
   return (
     <div className="w-full bg-gray-100 rounded-full h-1.5">
       <div
-        className="bg-gradient-to-r from-[#7E153A] to-[#C9A84C] h-1.5 rounded-full transition-all duration-700"
+        className="bg-gradient-to-r from-[#7E153A] to-[#A01B4C] h-1.5 rounded-full transition-all duration-700"
         style={{ width: `${progress}%` }}
       />
     </div>
@@ -256,29 +256,29 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Welcome Banner ───────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#7E153A] via-[#9e1a48] to-[#C9A84C] rounded-2xl p-8 text-white shadow-xl shadow-[#7E153A]/20">
+      <div className="relative overflow-hidden bg-[#7E153A] rounded-2xl p-8 text-white shadow-xl shadow-[#7E153A]/15">
         {/* Background texture circles */}
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 translate-x-24 -translate-y-24" />
         <div className="absolute bottom-0 right-16 w-32 h-32 rounded-full bg-white/5" />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-white/70 mb-1">
+            <p className="text-sm font-medium text-white/80 mb-1">
               Welcome back,
             </p>
             <h1 className="text-2xl font-extrabold tracking-tight">
               Sarah Khan
             </h1>
-            <p className="text-sm text-white/70 mt-1">
+            <p className="text-sm text-white/90 mt-1">
               You have{' '}
-              <span className="text-[#f5c96e] font-bold">
+              <span className="font-bold underline underline-offset-4 decoration-white/40">
                 {ACTIVE_ORDERS.length} active orders
               </span>{' '}
               in progress.
             </p>
           </div>
           <Link href="/new-order">
-            <button className="flex items-center gap-2 bg-white text-[#7E153A] font-bold text-sm px-5 py-3 rounded-xl hover:bg-white/90 transition-colors shadow-lg shadow-black/20">
+            <button className="flex items-center gap-2 bg-white text-[#7E153A] font-bold text-sm px-5 py-3 rounded-xl hover:bg-red-50 transition-colors shadow-md">
               <Plus size={18} />
               Place New Order
             </button>
@@ -300,21 +300,21 @@ export default function DashboardPage() {
           value="2"
           label="Active Orders"
           sublabel="In production"
-          color="bg-blue-50 text-blue-700"
+          color="bg-red-50 text-[#7E153A]"
         />
         <StatCard
           icon={Ruler}
           value="1"
           label="Saved Profiles"
           sublabel="Last updated Aug 01"
-          color="bg-emerald-50 text-emerald-700"
+          color="bg-[#7E153A]/10 text-[#7E153A]"
         />
         <StatCard
           icon={TrendingUp}
           value="PKR 200"
           label="Referral Credit"
           sublabel="Available to redeem"
-          color="bg-amber-50 text-amber-700"
+          color="bg-red-50 text-[#7E153A]"
         />
       </div>
 
@@ -390,7 +390,7 @@ export default function DashboardPage() {
                             Placed: {order.placedOn}
                           </span>
                           <span>·</span>
-                          <span className="flex items-center gap-1 text-emerald-700 font-semibold">
+                          <span className="flex items-center gap-1 text-[#7E153A] font-semibold">
                             <Truck size={11} className="shrink-0" />
                             Est. Delivery: {order.estimatedDelivery}
                           </span>
@@ -481,7 +481,7 @@ export default function DashboardPage() {
                           size={12}
                           className={
                             i < order.rating
-                              ? 'text-[#C9A84C] fill-[#C9A84C]'
+                              ? 'text-[#7E153A] fill-[#7E153A]'
                               : 'text-gray-200'
                           }
                         />
@@ -611,19 +611,19 @@ export default function DashboardPage() {
                   icon: Package,
                   label: 'Track All Orders',
                   href: '/orders',
-                  color: 'bg-blue-50 text-blue-700',
+                  color: 'bg-red-50 text-[#7E153A]',
                 },
                 {
                   icon: Ruler,
                   label: 'Update Measurements',
                   href: '/measurements',
-                  color: 'bg-emerald-50 text-emerald-700',
+                  color: 'bg-red-50 text-[#7E153A]',
                 },
                 {
                   icon: Gift,
                   label: 'Refer a Friend',
                   href: '/referral',
-                  color: 'bg-amber-50 text-amber-700',
+                  color: 'bg-red-50 text-[#7E153A]',
                 },
               ].map((action) => (
                 <Link key={action.label} href={action.href}>
@@ -640,7 +640,7 @@ export default function DashboardPage() {
           </section>
 
           {/* Referral Box ───────────────────────────────────── */}
-          <section className="relative overflow-hidden bg-gradient-to-br from-[#7E153A] to-[#C9A84C] rounded-2xl p-5 text-white">
+          <section className="relative overflow-hidden bg-[#7E153A] rounded-2xl p-5 text-white">
             <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/10 translate-x-8 -translate-y-8" />
             <Gift
               size={40}
@@ -652,7 +652,7 @@ export default function DashboardPage() {
                 Invite friends to TailorLink. Earn PKR 500 credit for each
                 successful referral.
               </p>
-              <button className="bg-white text-[#7E153A] text-xs font-bold px-4 py-2 rounded-lg hover:bg-white/90 transition-colors">
+              <button className="bg-white text-[#7E153A] text-xs font-bold px-4 py-2 rounded-lg hover:bg-red-50 transition-colors">
                 Share Referral Link
               </button>
             </div>
