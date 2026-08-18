@@ -1,17 +1,16 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
-const measurementField = z.number({
-  invalid_type_error: "Must be a number (ہندسہ ہونا چاہیے)",
-})
-.positive("Must be positive (مثبت ہونا چاہیے)")
-.min(10, "Minimum 10 cm (کم از کم 10 سم)")
-.max(200, "Maximum 200 cm (زیادہ سے زیادہ 200 سم)")
-.optional()
+const measurementField = z
+  .number()
+  .positive('Must be positive (مثبت ہونا چاہیے)')
+  .min(10, 'Minimum 10 cm (کم از کم 10 سم)')
+  .max(200, 'Maximum 200 cm (زیادہ سے زیادہ 200 سم)')
+  .optional();
 
 export const createMeasurementSchema = z.object({
   label: z.string().min(1, 'Label is required').default('My Measurements'),
   isDefault: z.boolean().default(false),
-  
+
   // Upper body
   chest: measurementField,
   waist: measurementField,
@@ -24,7 +23,7 @@ export const createMeasurementSchema = z.object({
   bicep: measurementField,
   wrist: measurementField,
   neckCircumference: measurementField,
-  
+
   // Lower body
   trouserLength: measurementField,
   thigh: measurementField,
@@ -33,12 +32,13 @@ export const createMeasurementSchema = z.object({
   ankle: measurementField,
   trouserWaist: measurementField,
   seat: measurementField,
-  
+
   // Style
   kameezLength: measurementField,
   galaDepth: measurementField,
-  
-  notes: z.string().optional(),
-})
 
-export const updateMeasurementSchema = createMeasurementSchema.partial()
+  photoUrls: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+});
+
+export const updateMeasurementSchema = createMeasurementSchema.partial();

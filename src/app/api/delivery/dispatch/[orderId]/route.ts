@@ -1,20 +1,21 @@
-import { NextRequest } from 'next/server'
-import { apiSuccess, handleApiError } from '@/lib/utils/response'
-import { requireAuth, requireRole } from '@/lib/utils/auth'
-import { DeliveryService } from '@/lib/services/delivery.service'
+import { NextRequest } from 'next/server';
+import { apiSuccess } from '@/lib/utils/response';
+import { handleApiError } from '@/lib/utils/errors';
+import { requireRole } from '@/lib/utils/auth';
+import { DeliveryService } from '@/lib/services/delivery.service';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { orderId: string } }
+  context: { params: Promise<{ orderId: string }> }
 ) {
   try {
-    const user = await requireRole(request, 'admin', 'super_admin')
-    const orderId = params.orderId
+    const user = await requireRole('admin', 'super_admin');
+    const { orderId } = await context.params;
 
-    const delivery = await DeliveryService.dispatchOrder(orderId, user.id)
+    const delivery = await DeliveryService.dispatchOrder(orderId, user.id);
 
-    return apiSuccess({ delivery }, 201)
+    return apiSuccess({ delivery }, 201);
   } catch (error) {
-    return handleApiError(error, request)
+    return handleApiError(error);
   }
 }
