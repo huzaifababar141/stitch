@@ -1,21 +1,22 @@
-import { NextRequest } from 'next/server'
-import { requireAuth } from '@/lib/utils/auth'
-import { apiSuccess } from '@/lib/utils/response'
-import { handleApiError } from '@/lib/utils/errors'
-import { getOrderById } from '@/lib/services/orders.service'
+import { NextRequest } from 'next/server';
+import { requireAuth } from '@/lib/utils/auth';
+import { apiSuccess } from '@/lib/utils/response';
+import { handleApiError } from '@/lib/utils/errors';
+import { getOrderById } from '@/lib/services/orders.service';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireAuth()
-    const orderId = params.id
+    const user = await requireAuth();
+    const { id: orderId } = await context.params;
+    const role = user.user_metadata?.role || 'customer';
 
-    const order = await getOrderById(orderId, user.id, user.role)
+    const order = await getOrderById(orderId, user.id, role);
 
-    return apiSuccess(order)
+    return apiSuccess(order);
   } catch (error) {
-    return handleApiError(error)
+    return handleApiError(error);
   }
 }
