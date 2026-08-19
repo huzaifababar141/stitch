@@ -34,60 +34,71 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const url = request.nextUrl.pathname;
-  const isAuthRoute = url.startsWith('/login') || url.startsWith('/register');
+
+  // Specific route classification
+  const isAdminLogin = url === '/admin/login';
+  const isAdminRoute = url.startsWith('/admin') && !isAdminLogin;
+  const isCustomerAuthRoute =
+    url.startsWith('/login') || url.startsWith('/register');
   const isPublicRoute =
-    url === '/' || url.startsWith('/api/webhooks') || url.startsWith('/track');
-  const isProtectedRoute = !isPublicRoute && !isAuthRoute;
+    url === '/' ||
+    url.startsWith('/api/webhooks') ||
+    url.startsWith('/track') ||
+    isAdminLogin;
 
-  // 1. Unauthenticated users trying to access protected routes
-  if (!user && isProtectedRoute) {
-    return NextResponse.redirect(
-      new URL(`/login?redirect=${encodeURIComponent(url)}`, request.url)
-    );
+  const isProtectedRoute = !isPublicRoute && !isCustomerAuthRoute;
+
+  // 1. Unauthenticated users handling
+  if (!user) {
+    if (isAdminRoute) {
+      return NextResponse.redirect(
+        new URL(`/admin/login?redirect=${encodeURIComponent(url)}`, request.url)
+      );
+    }
+    if (isProtectedRoute) {
+      return NextResponse.redirect(
+        new URL(`/login?redirect=${encodeURIComponent(url)}`, request.url)
+      );
+    }
   }
 
-  // 2. Authenticated users shouldn't access login/register
-  if (user && isAuthRoute) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
+  // 2. Authenticated users handling
+  if (user) {
+    const role =
+      (user.user_metadata?.role as string) ||
+      (user.app_metadata?.role as string) ||
+      'customer';
+    const isAdmin = role === 'admin' || role === 'super_admin';
 
-  // 3. Role-based route protection (enforced strictly in production)
-  if (user && isProtectedRoute && process.env.NODE_ENV !== 'development') {
-    const role = user.user_metadata?.role || 'customer';
+    // If logged-in admin tries to open admin login or customer login, send them to admin dashboard
+    if ((isAdminLogin || isCustomerAuthRoute) && isAdmin) {
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+    }
 
-    // Admin routes
-    if (
-      url.startsWith('/admin') &&
-      role !== 'super_admin' &&
-      role !== 'admin'
-    ) {
+    // If logged-in customer tries to open customer login/register, send them to customer dashboard
+    if (isCustomerAuthRoute && !isAdmin) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
+    // If logged-in user tries to access admin routes without admin permissions
+    if (isAdminRoute && !isAdmin) {
+      return NextResponse.redirect(
+        new URL('/admin/login?error=forbidden', request.url)
+      );
+    }
+
     // Tailor routes
-    if (
-      url.startsWith('/tailor') &&
-      role !== 'tailor' &&
-      role !== 'super_admin'
-    ) {
+    if (url.startsWith('/tailor') && role !== 'tailor' && !isAdmin) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
     // QC routes
-    if (
-      url.startsWith('/qc') &&
-      role !== 'qc_inspector' &&
-      role !== 'super_admin'
-    ) {
+    if (url.startsWith('/qc') && role !== 'qc_inspector' && !isAdmin) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
     // Delivery routes
-    if (
-      url.startsWith('/delivery') &&
-      role !== 'delivery_agent' &&
-      role !== 'super_admin'
-    ) {
+    if (url.startsWith('/delivery') && role !== 'delivery_agent' && !isAdmin) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }

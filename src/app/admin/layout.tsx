@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -17,8 +17,12 @@ import {
   Scissors,
   Menu,
   X,
+  Loader2,
+  ShieldAlert,
 } from 'lucide-react';
 import { useAdminRealtime } from '@/hooks/useAdminRealtime';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 const ADMIN_NAV = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
@@ -36,10 +40,126 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { toast } = useToast();
+  const { user, supabase, loading: authLoading } = useAuth();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [adminProfile, setAdminProfile] = useState<{
+    role: string;
+    fullName: string;
+    email: string;
+  } | null>(null);
+  const [verifyingRole, setVerifyingRole] = useState(true);
 
   // Live Supabase Realtime alerts for Admin
   const { newOrdersCount, resetNewOrdersCount } = useAdminRealtime();
+
+  // If on admin login page, render children directly without admin shell
+  const isAdminLoginPage = pathname === '/admin/login';
+
+  useEffect(() => {
+    if (isAdminLoginPage) {
+      return;
+    }
+
+    let isMounted = true;
+
+    async function verifyAdminAccess() {
+      if (authLoading) return;
+
+      if (!user) {
+        router.push(
+          `/admin/login?redirect=${encodeURIComponent(pathname || '/admin/dashboard')}`
+        );
+        return;
+      }
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('users')
+          .select('role, first_name, last_name, email')
+          .eq('id', user.id)
+          .single();
+
+        if (!isMounted) return;
+
+        const role = profile?.role || user.user_metadata?.role;
+
+        if (role !== 'admin' && role !== 'super_admin') {
+          toast({
+            title: 'Access Denied',
+            description: 'You do not have administrator permissions.',
+            variant: 'destructive',
+          });
+          router.push('/admin/login?error=forbidden');
+          return;
+        }
+
+        const firstName =
+          profile?.first_name || user.user_metadata?.first_name || '';
+        const lastName =
+          profile?.last_name || user.user_metadata?.last_name || '';
+        const fullName = `${firstName} ${lastName}`.trim() || 'Administrator';
+
+        setAdminProfile({
+          role: role === 'super_admin' ? 'Super Admin' : 'Operations Admin',
+          fullName,
+          email: profile?.email || user.email || 'admin@stitch.pk',
+        });
+      } catch (err) {
+        console.error('Error verifying admin access:', err);
+        if (isMounted) {
+          router.push('/admin/login?error=forbidden');
+        }
+      } finally {
+        if (isMounted) {
+          setVerifyingRole(false);
+        }
+      }
+    }
+
+    verifyAdminAccess();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user, authLoading, pathname, isAdminLoginPage, router, supabase, toast]);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: 'Logged Out',
+        description: 'You have been signed out of Admin Command.',
+      });
+      router.push('/admin/login');
+    } catch (err) {
+      router.push('/admin/login');
+    }
+  };
+
+  // If admin login page, bypass layout wrapper
+  if (isAdminLoginPage) {
+    return <>{children}</>;
+  }
+
+  // Loading state while verifying role
+  if (authLoading || verifyingRole) {
+    return (
+      <div className="min-h-screen bg-[#111315] flex flex-col items-center justify-center text-white font-sans">
+        <Loader2 size={36} className="animate-spin text-[#7E153A] mb-3" />
+        <p className="text-xs font-bold tracking-wider text-gray-400 uppercase">
+          Verifying Administrator Clearance...
+        </p>
+      </div>
+    );
+  }
+
+  // Not authorized fallback
+  if (!adminProfile) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex font-sans">
@@ -57,7 +177,7 @@ export default function AdminLayout({
                   TailorLink<span className="text-pink-200">.pk</span>
                 </h1>
                 <span className="inline-block mt-1 text-[9px] uppercase tracking-widest bg-white/15 px-2 py-0.5 rounded-full font-bold text-pink-100">
-                  Admin Command
+                  {adminProfile.role}
                 </span>
               </div>
             </div>
@@ -96,128 +216,76 @@ export default function AdminLayout({
           </nav>
         </div>
 
-        {/* Footer Admin Status */}
+        {/* Footer Admin Status & Sign Out */}
         <div className="p-4 border-t border-white/10 bg-[#630F2D]/50">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs text-white">
-                SA
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs text-white shrink-0">
+                {adminProfile.fullName.charAt(0).toUpperCase() || 'A'}
               </div>
-              <div>
-                <p className="text-xs font-bold text-white leading-none">
-                  Super Admin
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-white leading-none truncate">
+                  {adminProfile.fullName}
                 </p>
-                <p className="text-[10px] text-white/70 mt-0.5">
-                  admin@tailorlink.pk
+                <p className="text-[10px] text-white/70 mt-0.5 truncate max-w-[120px]">
+                  {adminProfile.email}
                 </p>
               </div>
             </div>
-            <Link
-              href="/login"
-              className="text-white/70 hover:text-white transition-colors"
-              title="Log Out"
+            <button
+              onClick={handleSignOut}
+              className="text-white/70 hover:text-white transition-colors cursor-pointer p-1 rounded-md hover:bg-white/10"
+              title="Sign Out of Admin Command"
             >
               <LogOut size={16} />
-            </Link>
+            </button>
           </div>
         </div>
       </aside>
 
-      {/* Main Content Body */}
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-        {/* Top Operational Header */}
-        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-6 lg:px-8 sticky top-0 z-20 shadow-xs">
-          {/* Mobile menu trigger */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 text-gray-600 hover:text-gray-900"
-          >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-
-          {/* Global Search Bar */}
-          <div className="relative w-64 sm:w-96 hidden sm:block">
-            <input
-              type="text"
-              placeholder="Search orders, tracking #, tailors, or customers..."
-              className="w-full h-10 pl-10 pr-4 rounded-xl bg-gray-50 border border-gray-200 text-xs font-medium text-gray-800 focus:outline-none focus:border-[#7E153A] focus:bg-white transition-all"
-            />
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={16}
-            />
+      {/* Main Content Area */}
+      <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
+        {/* Top Navbar */}
+        <header className="h-16 bg-white border-b border-gray-200/80 sticky top-0 z-20 px-4 sm:px-8 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+            <h2 className="text-sm font-extrabold text-gray-800 hidden sm:block">
+              TailorLink Operations Platform
+            </h2>
           </div>
 
-          {/* Live Status Indicator & Admin Profile */}
-          <div className="flex items-center gap-4">
-            {/* Realtime Badge */}
-            <div className="hidden sm:flex items-center gap-2 bg-emerald-50 text-emerald-800 border border-emerald-100 px-3 py-1.5 rounded-full text-xs font-bold">
-              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
-              <span>Realtime Control Active</span>
-            </div>
-
-            {/* Notification Bell */}
+          <div className="flex items-center gap-3">
             <button
               onClick={resetNewOrdersCount}
-              className="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors"
-              title="Notifications"
+              className="relative p-2 text-gray-500 hover:text-[#7E153A] hover:bg-red-50 rounded-xl transition-all"
+              title="Live Realtime Alerts"
             >
-              <Bell size={20} />
+              <Bell size={18} />
               {newOrdersCount > 0 && (
-                <span className="absolute top-1 right-1 bg-[#7E153A] text-white text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center">
-                  {newOrdersCount}
-                </span>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#7E153A] rounded-full ring-2 ring-white" />
               )}
             </button>
 
-            {/* Admin Avatar */}
-            <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-              <div className="w-10 h-10 rounded-xl bg-[#7E153A] text-white font-bold flex items-center justify-center shadow-sm">
-                HZ
-              </div>
-              <div className="hidden md:block">
-                <p className="text-xs font-bold text-gray-900 leading-none">
-                  Huzaifa Babar
-                </p>
-                <p className="text-[10px] text-[#7E153A] font-semibold mt-0.5">
-                  Super Administrator
-                </p>
-              </div>
+            <div className="h-6 w-px bg-gray-200" />
+
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-bold text-gray-700 hidden sm:inline">
+                Live System Active
+              </span>
             </div>
           </div>
         </header>
 
-        {/* Mobile Sidebar Overlay */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-xs flex">
-            <div className="w-64 bg-[#7E153A] text-white flex flex-col justify-between h-full p-6 shadow-2xl">
-              <div>
-                <div className="flex items-center justify-between pb-6 border-b border-white/10 mb-6">
-                  <h2 className="font-extrabold text-base">TailorLink Admin</h2>
-                  <button onClick={() => setMobileMenuOpen(false)}>
-                    <X size={20} />
-                  </button>
-                </div>
-                <nav className="space-y-2">
-                  {ADMIN_NAV.map((item) => (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-bold hover:bg-white/10"
-                    >
-                      <item.icon size={18} />
-                      {item.label}
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Page Body Container */}
-        <main className="flex-1 p-6 lg:p-8">{children}</main>
+        {/* Page Content */}
+        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+          {children}
+        </main>
       </div>
     </div>
   );
