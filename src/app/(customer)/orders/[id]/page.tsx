@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -18,15 +18,16 @@ import {
   User,
   Copy,
   ExternalLink,
-  Download,
-  Calendar,
-  Check,
+  Loader2,
+  AlertCircle,
+  XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useOrderRealtime } from '@/hooks/useOrderRealtime';
+import { useAuth } from '@/hooks/useAuth';
 
-// ─── Status Configuration ───────────────────────────────────────────────────
+// ─── Status Steps Configuration ──────────────────────────────────────────────
 
 const STATUS_STEPS = [
   {
@@ -38,13 +39,13 @@ const STATUS_STEPS = [
   {
     id: 'payment_confirmed',
     label: 'Payment Confirmed',
-    desc: 'Paid via JazzCash / EasyPaisa',
+    desc: 'Payment received & verified',
     icon: ShieldCheck,
   },
   {
-    id: 'assigned_tailor',
+    id: 'assigned',
     label: 'Assigned to Master',
-    desc: 'Allocated to Master Zubair',
+    desc: 'Master tailor allocated',
     icon: User,
   },
   {
@@ -77,188 +78,249 @@ export default function OrderTrackingPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
 
-  const orderId = (params?.id as string) || 'ORD-20240801-001';
+  const orderId = (params?.id as string) || '';
+
+  const [order, setOrder] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
 
   // Connect to Supabase Realtime for live updates
   const { orderStatus: realtimeStatus } = useOrderRealtime(orderId);
 
-  // Current order state
-  const [order] = useState({
-    id: orderId,
-    status: 'in_stitching',
-    statusLabel: 'In Stitching',
-    placedDate: 'Aug 01, 2026 at 02:45 PM',
-    estimatedDelivery: 'Aug 08, 2026',
-    daysRemaining: 3,
-    tcsTrackingNumber: 'TCS-9842104928',
-    stitchingTier: 'Premium Stitching (PKR 3,000)',
-    totalPrice: 7850,
-    paymentMethod: 'JazzCash / EasyPaisa (Paid)',
-    product: {
-      title: 'Mahay Lawn 3 Piece Unstitched',
-      brand: 'Sana Safinaz',
-      price: 4850,
-      imageUrl: '/login_bg.jpg',
-      url: 'https://www.sanasafinaz.com/pk/mahay-lawn-3-piece-unstitched',
-    },
-    tailor: {
-      name: 'Master Zubair Ahmad',
-      role: 'Head Master Tailor',
-      workshop: 'Lahore Workshop #4',
-      rating: '4.9 ★',
-      completedOrders: '1,240+',
-    },
-    address: {
-      name: 'Sarah Khan',
-      phone: '+92 300 1234567',
-      street: 'House #42, Block C-2, Gulberg III',
-      city: 'Lahore',
-      province: 'Punjab',
-      postalCode: '54600',
-    },
-    measurements: {
-      shoulder: '14"',
-      bust: '38"',
-      waist: '32"',
-      hip: '40"',
-      shirt_length: '44"',
-      sleeve_length: '22"',
-      neck_style: 'Round Neck with Patti',
-      sleeve_style: 'Full Sleeve',
-      fit: 'Regular Fit',
-      special_notes:
-        'Please add subtle lace bordering on sleeves and bottom hem.',
-    },
-  });
+  useEffect(() => {
+    async function fetchOrderDetail() {
+      if (!orderId) return;
+      try {
+        const res = await fetch(`/api/orders/${orderId}`);
+        if (res.ok) {
+          const json = await res.json();
+          setOrder(json.data || json);
+        } else {
+          toast({
+            title: 'Order Not Found',
+            description: 'Could not find the requested order in the database.',
+            variant: 'destructive',
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load order:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  // Derived status — combines base status with live Realtime status without useEffect setState
-  const activeStatus = realtimeStatus || order.status;
+    fetchOrderDetail();
+  }, [orderId, toast]);
 
-  // Get index of current status step
+  const activeStatus = realtimeStatus || order?.status || 'pending_payment';
+
   const getStepIndex = (status: string) => {
     switch (status) {
-      case 'placed':
+      case 'pending_payment':
         return 0;
       case 'payment_confirmed':
         return 1;
-      case 'assigned_tailor':
+      case 'assigned':
         return 2;
       case 'in_stitching':
         return 3;
-      case 'quality_check':
+      case 'stitching_complete':
+      case 'qc_pending':
+      case 'qc_approved':
         return 4;
       case 'dispatched':
+      case 'in_transit':
+      case 'out_for_delivery':
         return 5;
       case 'delivered':
         return 6;
       default:
-        return 3;
+        return 0;
     }
   };
 
   const currentStepIdx = getStepIndex(activeStatus);
 
-  const handleCopyTracking = () => {
-    navigator.clipboard.writeText(order.tcsTrackingNumber);
-    toast({ title: 'Tracking # Copied', description: order.tcsTrackingNumber });
+  const handleCancelOrder = async () => {
+    if (!confirm('Are you sure you want to cancel this stitching order?'))
+      return;
+    setCancelling(true);
+    try {
+      const res = await fetch(`/api/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Customer requested cancellation' }),
+      });
+      if (res.ok) {
+        toast({
+          title: 'Order Cancelled',
+          description: 'Your order has been cancelled successfully.',
+        });
+        setOrder((prev: any) => ({ ...prev, status: 'cancelled' }));
+      } else {
+        const json = await res.json();
+        toast({
+          title: 'Cannot Cancel',
+          description:
+            json.error?.message || 'Order cannot be cancelled at this stage.',
+          variant: 'destructive',
+        });
+      }
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: 'Failed to cancel order.',
+        variant: 'destructive',
+      });
+    } finally {
+      setCancelling(false);
+    }
   };
 
-  return (
-    <div className="max-w-6xl mx-auto space-y-8 py-2">
-      {/* Top Header & Breadcrumbs ────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-            <Link
-              href="/dashboard"
-              className="hover:text-[#7E153A] flex items-center gap-1"
-            >
-              <ArrowLeft size={14} /> Dashboard
-            </Link>
-            <span>/</span>
-            <Link href="/orders" className="hover:text-[#7E153A]">
-              Orders
-            </Link>
-            <span>/</span>
-            <span className="font-semibold text-gray-900">{order.id}</span>
-          </div>
+  if (loading || authLoading) {
+    return (
+      <div className="max-w-5xl mx-auto py-16 flex flex-col items-center justify-center text-center">
+        <Loader2 size={36} className="animate-spin text-[#7E153A] mb-3" />
+        <p className="text-sm font-medium text-gray-600">
+          Loading order details...
+        </p>
+      </div>
+    );
+  }
 
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">
-              Order #{order.id}
+  if (!order) {
+    return (
+      <div className="max-w-5xl mx-auto py-16 text-center bg-white rounded-2xl border border-gray-100 p-8">
+        <AlertCircle size={40} className="text-red-500 mx-auto mb-3" />
+        <h2 className="text-lg font-bold text-gray-900 mb-1">
+          Order Not Found
+        </h2>
+        <p className="text-xs text-gray-500 mb-6">
+          The order #{orderId} could not be located in our records.
+        </p>
+        <Link href="/orders">
+          <Button className="bg-[#7E153A] text-white text-xs font-bold px-6">
+            <ArrowLeft size={16} className="mr-2" /> Back to My Orders
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const delivery = order.deliveries?.[0];
+  const productSnapshot = order.productSnapshot || {};
+  const measurementSnapshot = order.measurementSnapshot || {};
+  const styleSnapshot = order.styleSnapshot || {};
+  const addressSnapshot = order.deliveryAddressSnapshot || {};
+
+  const placedDate = order.createdAt
+    ? new Date(order.createdAt).toLocaleDateString('en-PK', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'Recently';
+
+  const estDeliveryDate = order.estimatedDeliveryDate
+    ? new Date(order.estimatedDeliveryDate).toLocaleDateString('en-PK', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : '5 - 7 Business Days';
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-8 py-2">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Link
+              href="/orders"
+              className="text-gray-400 hover:text-gray-900 transition-colors mr-1"
+            >
+              <ArrowLeft size={18} />
+            </Link>
+            <h1 className="text-xl font-extrabold text-gray-900 font-mono tracking-tight">
+              {order.orderNumber || order.id.substring(0, 12).toUpperCase()}
             </h1>
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#7E153A]/10 text-[#7E153A]">
-              <span className="w-2 h-2 rounded-full bg-[#7E153A] animate-ping" />
-              Live Realtime Sync
+            <span className="bg-red-50 text-[#7E153A] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              {activeStatus.replace(/_/g, ' ')}
             </span>
           </div>
-
-          <p className="text-xs text-gray-500 flex items-center gap-2">
-            <Calendar size={13} /> Placed on {order.placedDate}
+          <p className="text-xs text-gray-500 pl-6">
+            Placed on {placedDate} · Est. Doorstep Delivery:{' '}
+            <span className="font-semibold text-gray-800">
+              {estDeliveryDate}
+            </span>
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={() =>
-              toast({
-                title: 'Invoice Downloaded',
-                description: 'PDF saved to your downloads.',
-              })
-            }
-            className="h-10 text-xs font-semibold"
-          >
-            <Download size={14} className="mr-1.5" /> PDF Invoice
-          </Button>
+          {activeStatus === 'pending_payment' && (
+            <Button
+              onClick={handleCancelOrder}
+              disabled={cancelling}
+              variant="outline"
+              className="h-10 text-xs font-semibold text-red-600 border-red-200 hover:bg-red-50"
+            >
+              {cancelling ? (
+                <Loader2 size={14} className="animate-spin mr-1" />
+              ) : (
+                <XCircle size={14} className="mr-1" />
+              )}
+              Cancel Order
+            </Button>
+          )}
 
-          <Button
-            onClick={() =>
-              window.open(
-                `https://wa.me/923001234567?text=Hi, I need an update on my order ${order.id}`,
-                '_blank'
-              )
-            }
-            className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold"
+          <a
+            href={`https://wa.me/923000000000?text=Hi%2C%20I%20have%20an%20inquiry%20regarding%20my%20TailorLink%20Order%20${order.orderNumber || order.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <MessageCircle size={14} className="mr-1.5" /> WhatsApp Support
-          </Button>
+            <Button className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold h-10 px-4 shadow-sm shadow-[#7E153A]/20">
+              <MessageCircle size={15} className="mr-1.5" /> WhatsApp Support
+            </Button>
+          </a>
         </div>
       </div>
 
-      {/* Main 6-Step Visual Timeline ────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
-        <div className="flex items-center justify-between mb-8">
+      {/* Real-time Order Timeline */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-sm">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-8">
           <div>
-            <h2 className="text-base font-bold text-gray-900">
-              Live Production Timeline
+            <h2 className="text-base font-extrabold text-gray-900">
+              Live Tailoring & Delivery Progression
             </h2>
-            <p className="text-xs text-gray-500">
-              Track your garment through master tailoring & inspection
+            <p className="text-xs text-gray-500 mt-0.5">
+              Connected to real-time workshop & courier tracking
             </p>
           </div>
-          <div className="bg-emerald-50 text-emerald-800 border border-emerald-100 rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-2">
-            <Truck size={16} className="text-emerald-600" />
-            <span>
-              Est. Delivery: {order.estimatedDelivery} ({order.daysRemaining}{' '}
-              days left)
+
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-bold text-emerald-600">
+              Live Realtime Active
             </span>
           </div>
         </div>
 
-        {/* Stepper Pipeline */}
+        {/* Stepper */}
         <div className="relative">
-          {/* Connecting Line */}
-          <div className="absolute top-6 left-6 right-6 h-1 bg-gray-100 -z-0 hidden md:block" />
-          <div
-            className="absolute top-6 left-6 h-1 bg-gradient-to-r from-[#7E153A] to-[#A01B4C] -z-0 transition-all duration-700 hidden md:block"
-            style={{
-              width: `${(currentStepIdx / (STATUS_STEPS.length - 1)) * 100}%`,
-            }}
-          />
+          <div className="hidden lg:flex items-start justify-between relative">
+            <div className="absolute top-5 left-8 right-8 h-1 bg-gray-100 -z-0">
+              <div
+                className="h-full bg-[#7E153A] transition-all duration-700 rounded-full"
+                style={{
+                  width: `${(currentStepIdx / (STATUS_STEPS.length - 1)) * 100}%`,
+                }}
+              />
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-4 relative z-10">
             {STATUS_STEPS.map((step, idx) => {
               const isCompleted = idx < currentStepIdx;
               const isCurrent = idx === currentStepIdx;
@@ -267,26 +329,22 @@ export default function OrderTrackingPage() {
               return (
                 <div
                   key={step.id}
-                  className="flex flex-col items-center text-center group"
+                  className="flex flex-col items-center text-center relative z-10 w-32"
                 >
                   <div
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm ${
-                      isCurrent
-                        ? 'bg-[#7E153A] text-white ring-4 ring-[#7E153A]/20 scale-110'
-                        : isCompleted
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-gray-100 text-gray-400 border border-gray-200'
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-sm ${
+                      isCompleted
+                        ? 'bg-[#7E153A] text-white'
+                        : isCurrent
+                          ? 'bg-white border-2 border-[#7E153A] text-[#7E153A] ring-4 ring-red-50'
+                          : 'bg-white border border-gray-200 text-gray-400'
                     }`}
                   >
-                    {isCompleted ? (
-                      <Check size={20} className="stroke-[3]" />
-                    ) : (
-                      <StepIcon size={20} />
-                    )}
+                    <StepIcon size={18} />
                   </div>
 
-                  <h3
-                    className={`text-xs font-bold mt-3 transition-colors ${
+                  <span
+                    className={`text-xs font-bold mt-3 leading-tight ${
                       isCurrent
                         ? 'text-[#7E153A]'
                         : isCompleted
@@ -295,10 +353,51 @@ export default function OrderTrackingPage() {
                     }`}
                   >
                     {step.label}
-                  </h3>
-                  <p className="text-[10px] text-gray-400 mt-1 max-w-[110px] leading-tight">
+                  </span>
+                  <span className="text-[10px] text-gray-400 mt-1 max-w-[110px] leading-relaxed">
                     {step.desc}
-                  </p>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Mobile Vertical Stepper */}
+          <div className="flex lg:hidden flex-col gap-6">
+            {STATUS_STEPS.map((step, idx) => {
+              const isCompleted = idx < currentStepIdx;
+              const isCurrent = idx === currentStepIdx;
+              const StepIcon = step.icon;
+
+              return (
+                <div key={step.id} className="flex gap-4 items-start">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+                      isCompleted
+                        ? 'bg-[#7E153A] text-white'
+                        : isCurrent
+                          ? 'bg-white border-2 border-[#7E153A] text-[#7E153A] ring-4 ring-red-50'
+                          : 'bg-white border border-gray-200 text-gray-400'
+                    }`}
+                  >
+                    <StepIcon size={14} />
+                  </div>
+                  <div>
+                    <h4
+                      className={`text-xs font-bold ${
+                        isCurrent
+                          ? 'text-[#7E153A]'
+                          : isCompleted
+                            ? 'text-gray-900'
+                            : 'text-gray-400'
+                      }`}
+                    >
+                      {step.label}
+                    </h4>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      {step.desc}
+                    </p>
+                  </div>
                 </div>
               );
             })}
@@ -306,230 +405,174 @@ export default function OrderTrackingPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT COLUMN: Suit & Measurements Snapshot ───────────────────────── */}
+      {/* Grid: Details */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left 2 Cols: Product & Tailoring Specs */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Product & Suit Snapshot */}
+          {/* Suit Spec Card */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <h2 className="text-base font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3">
-              Garment & Suit Details
-            </h2>
+            <h3 className="font-extrabold text-sm text-gray-900 mb-4">
+              Garment & Product Details
+            </h3>
 
-            <div className="flex flex-col sm:flex-row gap-6">
-              <div className="w-36 h-48 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-100">
+            <div className="flex gap-4 items-start">
+              <div className="w-24 h-32 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-100 relative">
                 <img
-                  src={order.product.imageUrl}
-                  alt={order.product.title}
+                  src={productSnapshot.images?.[0] || '/login_bg.jpg'}
+                  alt={productSnapshot.name || 'Suit'}
                   className="object-cover w-full h-full"
+                  onError={(e: any) => {
+                    e.currentTarget.src =
+                      'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300&auto=format&fit=crop&q=60';
+                  }}
                 />
               </div>
 
-              <div className="flex-1 space-y-3">
-                <div>
-                  <span className="text-[10px] font-bold text-[#7E153A] uppercase tracking-widest">
-                    {order.product.brand}
-                  </span>
-                  <h3 className="text-base font-bold text-gray-900 leading-snug">
-                    {order.product.title}
-                  </h3>
-                  <a
-                    href={order.product.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-1 font-medium"
-                  >
-                    View Original Brand Link <ExternalLink size={12} />
-                  </a>
-                </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#7E153A]">
+                  {productSnapshot.brand || 'Designer Brand'}
+                </span>
+                <h4 className="font-bold text-gray-900 text-base leading-tight mt-0.5">
+                  {productSnapshot.name ||
+                    order.garmentType?.replace(/_/g, ' ') ||
+                    'Custom Tailored Suit'}
+                </h4>
+                <p className="text-xs text-gray-500 mt-1 capitalize">
+                  Garment Type: {order.garmentType?.replace(/_/g, ' ')}
+                </p>
 
-                <div className="grid grid-cols-2 gap-3 text-xs bg-gray-50/70 p-3.5 rounded-xl border border-gray-100">
-                  <div>
-                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">
-                      Stitching Tier
-                    </span>
-                    <span className="font-bold text-gray-900">
-                      {order.stitchingTier}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">
-                      Payment Status
-                    </span>
-                    <span className="font-bold text-emerald-700">
-                      {order.paymentMethod}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">
-                      Suit Price
-                    </span>
-                    <span className="font-bold text-gray-900">
-                      PKR {order.product.price.toLocaleString()}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400 block text-[10px] uppercase font-semibold">
-                      Total Paid
-                    </span>
-                    <span className="font-extrabold text-[#7E153A]">
-                      PKR {order.totalPrice.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
+                {productSnapshot.source_url && (
+                  <a
+                    href={productSnapshot.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-[#7E153A] font-semibold mt-3 hover:underline"
+                  >
+                    <ExternalLink size={13} /> View Original Brand Link
+                  </a>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Formatted Measurements Snapshot */}
+          {/* Measurements Snapshot Card */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
-              <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <Scissors size={18} className="text-[#7E153A]" />
-                Tailoring Measurements Snapshot
-              </h2>
-              <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md">
-                Recorded in Inches
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-extrabold text-sm text-gray-900">
+                Measurement Snapshot (Inches)
+              </h3>
+              <span className="text-xs text-gray-400 font-medium">
+                Locked for Production
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-              {[
-                { label: 'Shoulder', val: order.measurements.shoulder },
-                { label: 'Bust / Chest', val: order.measurements.bust },
-                { label: 'Waist', val: order.measurements.waist },
-                { label: 'Hip', val: order.measurements.hip },
-                { label: 'Shirt Length', val: order.measurements.shirt_length },
-                {
-                  label: 'Sleeve Length',
-                  val: order.measurements.sleeve_length,
-                },
-              ].map((m) => (
-                <div
-                  key={m.label}
-                  className="bg-gray-50 p-3 rounded-xl text-center border border-gray-100"
-                >
-                  <p className="text-base font-extrabold text-gray-900">
-                    {m.val}
-                  </p>
-                  <p className="text-[10px] text-gray-500 font-semibold uppercase mt-0.5">
-                    {m.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Custom Preferences */}
-            <div className="bg-red-50/40 rounded-xl p-4 border border-red-100 space-y-2 text-xs">
-              <h4 className="font-bold text-[#7E153A]">
-                Selected Styles & Special Notes:
-              </h4>
-              <p>
-                <strong className="text-gray-900">Neckline:</strong>{' '}
-                {order.measurements.neck_style}
+            {Object.keys(measurementSnapshot).length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                {Object.entries(measurementSnapshot)
+                  .filter(
+                    ([key, val]) =>
+                      typeof val === 'number' || typeof val === 'string'
+                  )
+                  .slice(0, 8)
+                  .map(([key, val]) => (
+                    <div
+                      key={key}
+                      className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex flex-col justify-between"
+                    >
+                      <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+                        {key.replace(/_/g, ' ')}
+                      </span>
+                      <span className="font-extrabold text-gray-900 text-sm mt-1 font-mono">
+                        {String(val)}&quot;
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500">
+                Standard fit profile applied to this order.
               </p>
-              <p>
-                <strong className="text-gray-900">Sleeves:</strong>{' '}
-                {order.measurements.sleeve_style}
-              </p>
-              <p>
-                <strong className="text-gray-900">Fit:</strong>{' '}
-                {order.measurements.fit}
-              </p>
-              <p>
-                <strong className="text-gray-900">Notes for Tailor:</strong>{' '}
-                {order.measurements.special_notes}
-              </p>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Tailor, TCS Courier & Delivery Address ────────── */}
+        {/* Right Col: Price Breakdown & Delivery Address */}
         <div className="space-y-6">
-          {/* Assigned Tailor Card */}
+          {/* Price Summary */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <h2 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <User size={16} className="text-[#7E153A]" />
-              Assigned Master Tailor
-            </h2>
+            <h3 className="font-extrabold text-sm text-gray-900 mb-4">
+              Payment & Price Breakdown
+            </h3>
 
-            <div className="flex items-center gap-3.5 p-3 rounded-xl bg-gray-50 border border-gray-100 mb-4">
-              <div className="w-12 h-12 rounded-full bg-[#7E153A] text-white font-extrabold text-base flex items-center justify-center shadow-md">
-                Z
+            <div className="space-y-3 text-xs">
+              <div className="flex justify-between text-gray-600">
+                <span>Custom Stitching Fee</span>
+                <span className="font-semibold text-gray-900">
+                  PKR {Number(order.stitchingFee || 0).toLocaleString()}
+                </span>
               </div>
-              <div>
-                <h3 className="font-bold text-sm text-gray-900">
-                  {order.tailor.name}
-                </h3>
-                <p className="text-xs text-gray-500">
-                  {order.tailor.role} · {order.tailor.workshop}
-                </p>
-                <div className="flex items-center gap-2 text-[10px] font-bold text-[#7E153A] mt-1">
-                  <span>{order.tailor.rating}</span>
-                  <span>·</span>
-                  <span className="text-gray-500">
-                    {order.tailor.completedOrders} garments stitched
+              <div className="flex justify-between text-gray-600">
+                <span>Doorstep Courier Delivery</span>
+                <span className="font-semibold text-gray-900">
+                  PKR {Number(order.deliveryFee || 0).toLocaleString()}
+                </span>
+              </div>
+              {Number(order.discountAmount || 0) > 0 && (
+                <div className="flex justify-between text-emerald-600 font-semibold">
+                  <span>Referral / Coupon Discount</span>
+                  <span>
+                    - PKR {Number(order.discountAmount).toLocaleString()}
                   </span>
                 </div>
+              )}
+              <div className="border-t border-gray-100 pt-3 flex justify-between text-sm font-extrabold text-[#7E153A]">
+                <span>Total Amount</span>
+                <span>
+                  PKR {Number(order.totalAmount || 0).toLocaleString()}
+                </span>
               </div>
-            </div>
-
-            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-xs text-emerald-900 font-semibold flex items-center gap-2">
-              <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
-              <span>Garment is backed by 7-Day Free Alteration Guarantee</span>
             </div>
           </div>
 
-          {/* TCS Courier Tracking Card */}
+          {/* Doorstep Delivery Address */}
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <h2 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <Truck size={16} className="text-[#7E153A]" />
-              Courier Tracking (TCS)
-            </h2>
+            <h3 className="font-extrabold text-sm text-gray-900 mb-3 flex items-center gap-2">
+              <MapPin size={16} className="text-[#7E153A]" /> Delivery Address
+            </h3>
 
-            <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-100 mb-4 space-y-2">
-              <span className="text-[10px] uppercase font-bold text-gray-400 block">
-                TCS Air Express Tracking #
-              </span>
-              <div className="flex items-center justify-between font-mono font-bold text-sm text-gray-900">
-                <span>{order.tcsTrackingNumber}</span>
-                <button
-                  onClick={handleCopyTracking}
-                  className="p-1.5 rounded-md hover:bg-gray-200 text-gray-600 transition-colors"
-                  title="Copy Tracking #"
-                >
-                  <Copy size={14} />
-                </button>
+            {addressSnapshot.addressLine1 ? (
+              <div className="text-xs text-gray-600 space-y-1">
+                <p className="font-bold text-gray-900">
+                  {addressSnapshot.fullName || user?.user_metadata?.full_name}
+                </p>
+                <p>{addressSnapshot.addressLine1}</p>
+                {addressSnapshot.addressLine2 && (
+                  <p>{addressSnapshot.addressLine2}</p>
+                )}
+                <p>
+                  {addressSnapshot.city}, {addressSnapshot.province}
+                </p>
+                <p className="text-gray-500 pt-1">
+                  Phone: {addressSnapshot.phone || user?.phone || 'N/A'}
+                </p>
               </div>
-            </div>
-
-            <a
-              href={`https://www.tcsexpress.com/tracking?track=${order.tcsTrackingNumber}`}
-              target="_blank"
-              rel="noreferrer"
-              className="w-full flex items-center justify-center gap-2 text-xs font-bold text-white bg-[#7E153A] hover:bg-[#630f2d] py-3 rounded-xl transition-colors shadow-md shadow-[#7E153A]/20"
-            >
-              Track Live on TCS Courier ↗
-            </a>
-          </div>
-
-          {/* Delivery Address Card */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <h2 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <MapPin size={16} className="text-[#7E153A]" />
-              Doorstep Delivery Address
-            </h2>
-
-            <div className="space-y-1.5 text-xs text-gray-700">
-              <p className="font-bold text-gray-900">{order.address.name}</p>
-              <p className="flex items-center gap-1.5 text-gray-500">
-                <Phone size={12} /> {order.address.phone}
+            ) : (
+              <p className="text-xs text-gray-500">
+                Doorstep delivery to your default address on file.
               </p>
-              <p className="text-gray-600">{order.address.street}</p>
-              <p className="text-gray-600">
-                {order.address.city}, {order.address.province} -{' '}
-                {order.address.postalCode}
-              </p>
-            </div>
+            )}
+
+            {delivery && (
+              <div className="mt-4 pt-4 border-t border-gray-100 text-xs">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                  Courier Tracking
+                </span>
+                <p className="font-bold text-gray-900 mt-0.5">
+                  {delivery.courierName || 'TCS Express'}:{' '}
+                  {delivery.trackingNumber || 'Pending pickup'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

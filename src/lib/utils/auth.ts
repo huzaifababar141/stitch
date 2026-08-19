@@ -26,9 +26,31 @@ export async function requireRole(
   // Accept both requireRole('admin', 'tailor') and requireRole(['admin', 'tailor'])
   const roles: string[] = Array.isArray(args[0]) ? args[0] : (args as string[]);
   const user = await requireAuth();
-  const userRole = user.user_metadata?.role || 'customer';
+
+  let userRole = (user.user_metadata?.role ||
+    (user as any).app_metadata?.role) as string | undefined;
+
+  // If not found in JWT metadata or doesn't match required roles, query the database user profile
+  if (!userRole || (!roles.includes(userRole) && userRole !== 'super_admin')) {
+    try {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { role: true },
+      });
+      if (dbUser?.role) {
+        userRole = dbUser.role;
+      }
+    } catch (e) {
+      console.error('Error querying role from DB:', e);
+    }
+  }
+
+  userRole = userRole || 'customer';
+
   if (!roles.includes(userRole) && userRole !== 'super_admin') {
-    throw AppError.forbidden(`Requires one of roles: ${roles.join(', ')}`);
+    throw AppError.forbidden(
+      `Access restricted to: ${roles.join(', ')}. Your role is: ${userRole}`
+    );
   }
   return user;
 }
