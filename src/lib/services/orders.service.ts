@@ -75,28 +75,138 @@ export async function calculateTotal(
 }
 
 export async function createOrder(customerId: string, data: any) {
-  // Validate Address
-  const address = await prisma.address.findUnique({
-    where: { id: data.deliveryAddressId },
-  });
-  if (!address || address.userId !== customerId) {
-    throw AppError.badRequest('Invalid delivery address');
+  // 1. Resolve or Create Delivery Address from user input
+  let address = null;
+  if (data.deliveryAddressId) {
+    address = await prisma.address.findFirst({
+      where: {
+        id: data.deliveryAddressId,
+        userId: customerId,
+        deletedAt: null,
+      },
+    });
   }
 
-  // Validate Measurement Profile
-  const measurement = await prisma.measurementProfile.findUnique({
-    where: { id: data.measurementProfileId },
-  });
-  if (!measurement || measurement.userId !== customerId) {
-    throw AppError.badRequest('Invalid measurement profile');
+  if (!address && data.customAddress) {
+    const cAddr = data.customAddress;
+    if (!cAddr.fullName || !cAddr.phone || !cAddr.addressLine1 || !cAddr.city) {
+      throw AppError.badRequest(
+        'Complete delivery address (Name, Phone, Address, City) is required.'
+      );
+    }
+    address = await prisma.address.create({
+      data: {
+        userId: customerId,
+        fullName: cAddr.fullName.trim(),
+        phone: cAddr.phone.trim(),
+        addressLine1: cAddr.addressLine1.trim(),
+        city: cAddr.city.trim(),
+        province: cAddr.province ? cAddr.province.trim() : 'Punjab',
+        landmark: cAddr.landmark ? cAddr.landmark.trim() : null,
+        country: 'Pakistan',
+        isDefault: false,
+      },
+    });
   }
 
-  // Validate Style Config
-  const style = await prisma.styleConfiguration.findUnique({
-    where: { id: data.styleConfigId },
-  });
-  if (!style || (style.userId && style.userId !== customerId)) {
-    throw AppError.badRequest('Invalid style configuration');
+  if (!address) {
+    throw AppError.badRequest(
+      'Delivery address is required. Please select a saved address or enter delivery details.'
+    );
+  }
+
+  // 2. Resolve or Create Measurement Profile from user input
+  let measurement = null;
+  if (data.measurementProfileId) {
+    measurement = await prisma.measurementProfile.findFirst({
+      where: {
+        id: data.measurementProfileId,
+        userId: customerId,
+        deletedAt: null,
+      },
+    });
+  }
+
+  if (!measurement && data.customMeasurements) {
+    const rawM = data.customMeasurements;
+    const profileLabel =
+      (rawM.profileLabel && rawM.profileLabel.trim()) || 'Custom Fit Order';
+    measurement = await prisma.measurementProfile.create({
+      data: {
+        userId: customerId,
+        label: profileLabel,
+        isDefault: false,
+        chest: rawM.bust
+          ? parseFloat(rawM.bust)
+          : rawM.chest
+            ? parseFloat(rawM.chest)
+            : null,
+        waist: rawM.waist ? parseFloat(rawM.waist) : null,
+        hips: rawM.hip
+          ? parseFloat(rawM.hip)
+          : rawM.hips
+            ? parseFloat(rawM.hips)
+            : null,
+        shoulderWidth: rawM.shoulder
+          ? parseFloat(rawM.shoulder)
+          : rawM.shoulderWidth
+            ? parseFloat(rawM.shoulderWidth)
+            : null,
+        sleeveLength: rawM.sleeve_length
+          ? parseFloat(rawM.sleeve_length)
+          : rawM.sleeveLength
+            ? parseFloat(rawM.sleeveLength)
+            : null,
+        kameezLength: rawM.shirt_length
+          ? parseFloat(rawM.shirt_length)
+          : rawM.kameezLength
+            ? parseFloat(rawM.kameezLength)
+            : null,
+        trouserLength: rawM.trouser_length
+          ? parseFloat(rawM.trouser_length)
+          : rawM.trouserLength
+            ? parseFloat(rawM.trouserLength)
+            : null,
+        trouserWaist: rawM.waist_bottom
+          ? parseFloat(rawM.waist_bottom)
+          : rawM.trouserWaist
+            ? parseFloat(rawM.trouserWaist)
+            : null,
+        ankle: rawM.bottom_opening
+          ? parseFloat(rawM.bottom_opening)
+          : rawM.ankle
+            ? parseFloat(rawM.ankle)
+            : null,
+      },
+    });
+  }
+
+  if (!measurement) {
+    throw AppError.badRequest(
+      'Measurement profile is required. Please select a profile or enter custom measurements.'
+    );
+  }
+
+  // 3. Resolve or Create Style Configuration
+  let style = null;
+  if (data.styleConfigId) {
+    style = await prisma.styleConfiguration.findFirst({
+      where: { id: data.styleConfigId },
+    });
+  }
+
+  if (!style) {
+    const prefs = data.stylePreferences || {};
+    style = await prisma.styleConfiguration.create({
+      data: {
+        userId: customerId,
+        label: `${prefs.fitType || 'Standard'} Style Config`,
+        garmentType: (data.garmentType || 'full_suit') as GarmentType,
+        galaStyle: prefs.neckStyle || 'Round Neck with Slit',
+        sleeveStyle: prefs.sleeveStyle || 'Full Sleeve',
+        specialInstructions: prefs.specialInstructions,
+      },
+    });
   }
 
   // Calculate pricing
