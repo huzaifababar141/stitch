@@ -2,9 +2,9 @@ import { z } from 'zod';
 
 const measurementField = z
   .number()
-  .positive('Must be positive (مثبت ہونا چاہیے)')
-  .min(10, 'Minimum 10 cm (کم از کم 10 سم)')
-  .max(200, 'Maximum 200 cm (زیادہ سے زیادہ 200 سم)')
+  .positive('Must be positive')
+  .min(1, 'Minimum value is 1')
+  .max(250, 'Maximum value is 250')
   .optional();
 
 export const createMeasurementSchema = z.object({
