@@ -1,22 +1,23 @@
 import { NextRequest } from 'next/server';
 import { requireRole } from '@/lib/utils/auth';
 import { apiSuccess } from '@/lib/utils/response';
-import { handleApiError, AppError } from '@/lib/utils/errors';
-import { listTailors } from '@/lib/services/admin.service';
-import { prisma } from '@/lib/prisma';
+import { handleApiError } from '@/lib/utils/errors';
+import { listTailors, createTailor } from '@/lib/services/admin.service';
+import { validateBody } from '@/lib/utils/validation';
+import { createTailorSchema } from '@/lib/validations/tailor';
 
 export async function GET(request: NextRequest) {
   try {
-    await requireRole('admin', 'super_admin');
+    await requireRole(['admin', 'super_admin']);
 
     const { searchParams } = new URL(request.url);
     const isActive = searchParams.get('isActive');
-    const filters: any = {};
-    if (isActive !== null) {
-      filters.isActive = isActive === 'true';
-    }
+    const search = searchParams.get('search');
 
-    const tailors = await listTailors(filters);
+    const tailors = await listTailors({
+      isActive: isActive === null ? undefined : isActive === 'true',
+      search,
+    });
     return apiSuccess(tailors);
   } catch (error) {
     return handleApiError(error);
@@ -25,24 +26,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireRole('admin', 'super_admin');
-    const data = await request.json();
+    await requireRole(['admin', 'super_admin']);
+    const data = await validateBody(request, createTailorSchema);
 
-    if (!data.phone || !data.firstName) {
-      throw AppError.badRequest('Phone and first name are required');
-    }
-
-    const newTailor = await prisma.user.create({
-      data: {
-        phone: data.phone,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        role: 'tailor',
-        isActive: true,
-        metadata: data.metadata || {},
-      },
-    });
-
+    const newTailor = await createTailor(data);
     return apiSuccess(newTailor, 201, {
       message: 'Tailor created successfully',
     });

@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
           phone,
           password: internalPassword,
           phone_confirm: true,
+          app_metadata: { role: 'customer' },
           user_metadata: { role: 'customer' },
         });
 
@@ -113,12 +114,15 @@ export async function POST(request: NextRequest) {
           phone,
           password: internalPassword,
           phone_confirm: true,
+          app_metadata: { role: user.role },
           user_metadata: { role: user.role },
         });
       } else {
-        // Just in case password wasn't set or needs update
+        // Backfill the authoritative role into app_metadata and refresh the password.
         await supabaseAdmin.auth.admin.updateUserById(authUserId, {
           password: internalPassword,
+          app_metadata: { role: user.role },
+          user_metadata: { role: user.role },
         });
       }
     }

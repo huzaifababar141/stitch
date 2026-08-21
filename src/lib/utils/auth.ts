@@ -27,10 +27,13 @@ export async function requireRole(
   const roles: string[] = Array.isArray(args[0]) ? args[0] : (args as string[]);
   const user = await requireAuth();
 
-  let userRole = (user.user_metadata?.role ||
-    (user as any).app_metadata?.role) as string | undefined;
+  // Authoritative role lives in server-only app_metadata (not the user-editable
+  // user_metadata). If it's missing or doesn't grant access, fall back to the
+  // database record, which is also authoritative — so a legitimate admin whose
+  // app_metadata hasn't been backfilled yet is never locked out.
+  let userRole = (user as any).app_metadata?.role as string | undefined;
 
-  // If not found in JWT metadata or doesn't match required roles, query the database user profile
+  // If not found in app_metadata or it doesn't match, query the database user profile
   if (!userRole || (!roles.includes(userRole) && userRole !== 'super_admin')) {
     try {
       const dbUser = await prisma.user.findUnique({

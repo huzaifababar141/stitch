@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Gender } from '@prisma/client';
+import { Gender, UserRole } from '@prisma/client';
 
 export const updateProfileSchema = z.object({
   firstName: z
@@ -28,3 +28,14 @@ export const createAddressSchema = z.object({
 });
 
 export const updateAddressSchema = createAddressSchema.partial();
+
+// --- Admin: user management ---
+
+export const changeRoleSchema = z.object({
+  role: z.nativeEnum(UserRole),
+});
+
+export const blockUserSchema = z.object({
+  isBlocked: z.boolean(),
+  reason: z.string().optional(),
+});

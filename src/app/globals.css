@@ -1,28 +1,55 @@
 @import 'tailwindcss';
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
-    --primary: #7e153a;
-    --primary-foreground: 0 0% 98%;
-    --secondary: #9e1a48;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 340 71% 29%;
-    --radius: 0.5rem;
-  }
+/*
+ * Tailwind v4 CSS-first configuration.
+ * Brand: TailorLink.pk — maroon #7E153A on a near-white #FDFDFD canvas.
+ * These tokens generate the utility classes used by the UI primitives
+ * (bg-primary, border-input, ring-ring, text-muted-foreground, etc.).
+ * The default color palette (gray/red/green/…) remains available.
+ */
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #171717;
+
+  --color-primary: #7e153a;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #f3f4f6;
+  --color-secondary-foreground: #111827;
+
+  --color-muted: #f3f4f6;
+  --color-muted-foreground: #6b7280;
+
+  --color-accent: #fdf2f4;
+  --color-accent-foreground: #7e153a;
+
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #e5e7eb;
+  --color-input: #e5e7eb;
+  --color-ring: #7e153a;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #171717;
+
+  --color-popover: #ffffff;
+  --color-popover-foreground: #171717;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+:root {
+  --radius: 0.5rem;
+}
+
+body {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  color: #171717;
+  background: #fdfdfd;
+  margin: 0;
+  padding: 0;
 }
 
 /* Hide scrollbar utility */
@@ -34,19 +61,47 @@
   scrollbar-width: none;
 }
 
-body {
-  color: #171717;
-  background: #ffffff;
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    sans-serif;
-  margin: 0;
-  padding: 0;
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Enter animations for toasts / dialogs — no external plugin required. */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-in-toast {
+  animation: toast-in 0.18s ease-out;
+}
+.animate-in-fade {
+  animation: fade-in 0.2s ease-out;
+}
+.animate-in-dialog {
+  animation: dialog-in 0.18s ease-out;
 }

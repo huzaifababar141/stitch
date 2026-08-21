@@ -2,33 +2,24 @@ import { NextRequest } from 'next/server';
 import { requireRole } from '@/lib/utils/auth';
 import { apiSuccess } from '@/lib/utils/response';
 import { handleApiError, AppError } from '@/lib/utils/errors';
-import { prisma } from '@/lib/prisma';
+import { setTailorAvailability } from '@/lib/services/admin.service';
 
 export async function PATCH(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireRole('admin', 'super_admin');
-    const { id } = await context.params;
-    const { isActive } = await request.json();
+    await requireRole(['admin', 'super_admin']);
+    const { id } = await params;
+    const { isAvailable } = await request.json();
 
-    if (isActive === undefined || typeof isActive !== 'boolean') {
-      throw AppError.badRequest('isActive boolean is required');
+    if (isAvailable === undefined || typeof isAvailable !== 'boolean') {
+      throw AppError.badRequest('isAvailable boolean is required');
     }
 
-    const tailor = await prisma.user.findUnique({
-      where: { id, role: 'tailor' },
-    });
-    if (!tailor) throw AppError.notFound('Tailor not found');
-
-    const updatedTailor = await prisma.user.update({
-      where: { id },
-      data: { isActive },
-    });
-
-    return apiSuccess(updatedTailor, 200, {
-      message: 'Availability toggled successfully',
+    const tailor = await setTailorAvailability(id, isAvailable);
+    return apiSuccess(tailor, 200, {
+      message: 'Availability updated successfully',
     });
   } catch (error) {
     return handleApiError(error);

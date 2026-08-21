@@ -19,6 +19,7 @@ import {
   X,
   Loader2,
   ShieldAlert,
+  Ticket,
 } from 'lucide-react';
 import { useAdminRealtime } from '@/hooks/useAdminRealtime';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,10 +28,12 @@ import { useToast } from '@/hooks/use-toast';
 const ADMIN_NAV = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
   { icon: ShoppingBag, label: 'Orders Control', href: '/admin/orders' },
-  { icon: Users, label: 'Tailor Management', href: '/admin/tailors' },
+  { icon: Scissors, label: 'Tailor Management', href: '/admin/tailors' },
+  { icon: Users, label: 'Users & Roles', href: '/admin/users' },
   { icon: ShieldCheck, label: 'Quality Control', href: '/admin/qc' },
   { icon: Truck, label: 'TCS Delivery Sync', href: '/admin/delivery' },
   { icon: TrendingUp, label: 'Revenue Analytics', href: '/admin/analytics' },
+  { icon: Ticket, label: 'Coupons', href: '/admin/coupons' },
   { icon: Settings, label: 'System Settings', href: '/admin/settings' },
 ];
 
@@ -84,7 +87,9 @@ export default function AdminLayout({
 
         if (!isMounted) return;
 
-        const role = profile?.role || user.user_metadata?.role;
+        const role =
+          profile?.role ||
+          (user.app_metadata as { role?: string } | undefined)?.role;
 
         if (role !== 'admin' && role !== 'super_admin') {
           toast({

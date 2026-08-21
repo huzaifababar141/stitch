@@ -64,10 +64,10 @@ export async function middleware(request: NextRequest) {
 
   // 2. Authenticated users handling
   if (user) {
-    const role =
-      (user.user_metadata?.role as string) ||
-      (user.app_metadata?.role as string) ||
-      'customer';
+    // Routing role comes from server-only app_metadata (authoritative source).
+    // The real authorization gate is requireRole() on each /api/admin/* call and
+    // the admin layout's DB check; this only drives redirects.
+    const role = (user.app_metadata?.role as string) || 'customer';
     const isAdmin = role === 'admin' || role === 'super_admin';
 
     // If logged-in admin tries to open admin login or customer login, send them to admin dashboard
