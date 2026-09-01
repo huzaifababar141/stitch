@@ -22,6 +22,9 @@ import {
   Compass,
   AlertCircle,
   ShieldCheck,
+  Copy,
+  ExternalLink,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,6 +59,16 @@ const POPULAR_CITIES = [
   { name: 'Bahawalpur', province: 'Punjab' },
   { name: 'Sargodha', province: 'Punjab' },
   { name: 'Sukkur', province: 'Sindh' },
+  { name: 'Gujrat', province: 'Punjab' },
+  { name: 'Mardan', province: 'Khyber Pakhtunkhwa' },
+  { name: 'Kasur', province: 'Punjab' },
+  { name: 'Rahim Yar Khan', province: 'Punjab' },
+  { name: 'Sahiwal', province: 'Punjab' },
+  { name: 'Wah Cantt', province: 'Punjab' },
+  { name: 'Mirpur', province: 'Azad Kashmir' },
+  { name: 'Muzaffarabad', province: 'Azad Kashmir' },
+  { name: 'Gilgit', province: 'Gilgit-Baltistan' },
+  { name: 'Skardu', province: 'Gilgit-Baltistan' },
 ];
 
 const ADDRESS_TYPES = [
@@ -291,64 +304,128 @@ export default function AddressBookPage() {
     }
   };
 
+  // Copy full address text
+  const handleCopyAddress = (addr: any) => {
+    const formatted = `${addr.fullName}\n${addr.phone}\n${addr.addressLine1}${addr.addressLine2 ? ', ' + addr.addressLine2 : ''}${addr.landmark ? ' (Near: ' + addr.landmark + ')' : ''}\n${addr.city}, ${addr.province} ${addr.postalCode || ''}, Pakistan`;
+    navigator.clipboard.writeText(formatted);
+    toast({
+      title: 'Address Copied',
+      description: 'Full delivery address copied to clipboard.',
+    });
+  };
+
   return (
-    <div className="max-w-7xl mx-auto space-y-8 py-2 font-sans">
+    <div className="w-full min-w-0 max-w-7xl mx-auto space-y-5 sm:space-y-8 font-sans">
       {/* ── Top Header Banner ── */}
-      <div className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="space-y-1.5">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 md:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
+        <div className="space-y-1 sm:space-y-1.5 min-w-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-red-50 text-[#7E153A] flex items-center justify-center font-bold">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-red-50 text-[#7E153A] flex items-center justify-center font-bold shrink-0">
               <MapPin size={20} />
             </div>
-            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-              Address Book
-            </h1>
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">
+                Address Book
+              </h1>
+              {addresses.length > 0 && (
+                <span className="bg-gray-100 text-gray-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                  {addresses.length}{' '}
+                  {addresses.length === 1 ? 'saved' : 'saved'}
+                </span>
+              )}
+            </div>
           </div>
           <p className="text-xs text-gray-500 max-w-xl leading-relaxed">
-            Manage your delivery and fabric collection destinations for quick
-            doorstep service across Pakistan.
+            Manage your delivery and doorstep fabric pickup locations across
+            Pakistan for seamless order fulfillment.
           </p>
         </div>
 
         <Button
           onClick={handleOpenCreate}
-          className="h-11 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white px-6 rounded-xl shadow-md shadow-[#7E153A]/20 transition-all cursor-pointer shrink-0"
+          className="w-full sm:w-auto h-11 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white px-5 sm:px-6 rounded-xl shadow-md shadow-[#7E153A]/20 transition-all cursor-pointer shrink-0 flex items-center justify-center"
         >
-          <Plus size={16} className="mr-1.5" /> Add New Address
+          <Plus size={16} className="mr-1.5 shrink-0" /> Add New Address
         </Button>
+      </div>
+
+      {/* ── Nationwide Delivery Logistics Strip ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 flex items-center gap-3 shadow-xs">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <Truck size={18} />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-xs font-extrabold text-gray-900 truncate">
+              TCS & Leopards Courier
+            </h4>
+            <p className="text-[11px] text-gray-500 truncate">
+              Nationwide door-to-door transit
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 flex items-center gap-3 shadow-xs">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <Navigation size={18} />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-xs font-extrabold text-gray-900 truncate">
+              Doorstep Fabric Pickup
+            </h4>
+            <p className="text-[11px] text-gray-500 truncate">
+              Free rider pickup from saved address
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 flex items-center gap-3 shadow-xs sm:col-span-1 col-span-1">
+          <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <ShieldCheck size={18} />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-xs font-extrabold text-gray-900 truncate">
+              100% Insured Delivery
+            </h4>
+            <p className="text-[11px] text-gray-500 truncate">
+              Safe garment handling guarantee
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* ── Saved Addresses Grid ── */}
       {loading || authLoading ? (
-        <div className="bg-white rounded-3xl border border-gray-100 p-16 flex flex-col items-center justify-center text-center shadow-xs">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-12 sm:p-16 flex flex-col items-center justify-center text-center shadow-xs">
           <Loader2 size={32} className="animate-spin text-[#7E153A] mb-3" />
           <p className="text-sm font-medium text-gray-600">
             Loading your address book...
           </p>
         </div>
       ) : addresses.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-gray-100 p-12 sm:p-16 flex flex-col items-center justify-center text-center shadow-xs space-y-4">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-8 sm:p-14 flex flex-col items-center justify-center text-center shadow-xs space-y-4">
           <div className="w-16 h-16 rounded-full bg-red-50 text-[#7E153A] flex items-center justify-center shadow-inner">
             <MapPin size={32} />
           </div>
-          <div className="space-y-1 max-w-md">
+          <div className="space-y-1.5 max-w-md">
             <h3 className="text-base font-extrabold text-gray-900">
-              No Saved Addresses Found
+              No Saved Addresses Yet
             </h3>
             <p className="text-xs text-gray-500 leading-relaxed">
-              Add your home or office address to enable instant doorstep fabric
-              pickup and TCS tracked delivery on every tailoring order.
+              Add your home, office, or boutique address to enable instant
+              doorstep fabric pickup and TCS tracked delivery on every bespoke
+              tailoring order.
             </p>
           </div>
           <Button
             onClick={handleOpenCreate}
-            className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-6 h-11 rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer"
+            className="w-full sm:w-auto bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-6 h-11 rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer"
           >
             <Plus size={16} className="mr-1.5" /> Add Your First Address
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {addresses.map((addr) => {
             const isAddrDefault = addr.isDefault;
             const TypeIcon =
@@ -356,99 +433,126 @@ export default function AddressBookPage() {
                 ? Briefcase
                 : addr.label?.toLowerCase() === 'studio'
                   ? Building2
-                  : Home;
+                  : addr.label?.toLowerCase() === 'other'
+                    ? MapPin
+                    : Home;
 
             return (
               <div
                 key={addr.id}
-                className={`bg-white rounded-3xl border p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-6 ${
+                className={`bg-white rounded-2xl sm:rounded-3xl border p-4 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 sm:space-y-6 ${
                   isAddrDefault
-                    ? 'border-[#7E153A]/40 ring-2 ring-[#7E153A]/10'
+                    ? 'border-[#7E153A]/40 ring-2 ring-[#7E153A]/10 bg-gradient-to-b from-white to-red-50/20'
                     : 'border-gray-100'
                 }`}
               >
                 {/* Header & Badges */}
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-gray-50 border border-gray-200/80 text-gray-700 flex items-center justify-center">
-                        <TypeIcon size={16} className="text-[#7E153A]" />
+                <div className="space-y-3.5">
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-red-50 text-[#7E153A] flex items-center justify-center shrink-0 border border-red-100/50">
+                        <TypeIcon size={16} />
                       </div>
-                      <div>
-                        <h3 className="font-extrabold text-sm text-gray-900">
+                      <div className="min-w-0">
+                        <h3 className="font-extrabold text-sm text-gray-900 truncate">
                           {addr.label || 'Home'}
                         </h3>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block truncate">
                           {addr.city}, {addr.province}
                         </span>
                       </div>
                     </div>
 
                     {isAddrDefault && (
-                      <span className="bg-red-50 text-[#7E153A] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-red-100 uppercase tracking-wider flex items-center gap-1">
+                      <span className="bg-red-50 text-[#7E153A] text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-red-200/60 uppercase tracking-wider flex items-center gap-1 shrink-0">
                         <Star size={10} className="fill-[#7E153A]" /> Default
                       </span>
                     )}
                   </div>
 
-                  {/* Recipient Info */}
-                  <div className="space-y-1 bg-gray-50/70 p-3 rounded-2xl border border-gray-100">
-                    <div className="flex items-center gap-2 text-xs font-bold text-gray-900">
+                  {/* Recipient Info Pill */}
+                  <div className="space-y-1 bg-gray-50/80 p-3 rounded-xl sm:rounded-2xl border border-gray-100">
+                    <div className="flex items-center gap-2 text-xs font-bold text-gray-900 min-w-0">
                       <User size={13} className="text-gray-400 shrink-0" />
-                      <span>{addr.fullName}</span>
+                      <span className="truncate">{addr.fullName}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-600 font-mono">
                       <Phone size={13} className="text-gray-400 shrink-0" />
-                      <span>{addr.phone}</span>
+                      <a
+                        href={`tel:${addr.phone}`}
+                        className="hover:text-[#7E153A] hover:underline transition-colors truncate"
+                      >
+                        {addr.phone}
+                      </a>
                     </div>
                   </div>
 
                   {/* Physical Address Text */}
                   <div className="space-y-1.5 text-xs text-gray-700 leading-relaxed">
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-gray-900 break-words">
                       {addr.addressLine1}
                     </p>
                     {addr.addressLine2 && (
-                      <p className="text-gray-600">{addr.addressLine2}</p>
+                      <p className="text-gray-600 break-words">
+                        {addr.addressLine2}
+                      </p>
                     )}
                     {addr.landmark && (
-                      <p className="text-[11px] text-gray-500 bg-amber-50/70 border border-amber-200/60 p-2 rounded-xl">
-                        <span className="font-bold text-amber-900">
-                          Landmark:
-                        </span>{' '}
+                      <p className="text-[11px] text-amber-800 bg-amber-50/80 border border-amber-200/60 p-2 rounded-xl break-words">
+                        <span className="font-bold">Landmark:</span>{' '}
                         {addr.landmark}
                       </p>
                     )}
-                    <p className="text-gray-500 font-medium pt-1">
+                    <p className="text-gray-500 font-medium pt-0.5">
                       {addr.city}, {addr.province}{' '}
                       {addr.postalCode ? `· ${addr.postalCode}` : ''}
                     </p>
                   </div>
 
                   {/* TCS Courier Eligibility */}
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-3 py-1.5 rounded-xl">
-                    <Truck size={13} />
-                    <span>TCS Direct Doorstep Coverage</span>
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50/80 border border-emerald-200/60 px-2.5 py-1.5 rounded-xl">
+                    <Truck size={13} className="shrink-0" />
+                    <span className="truncate">
+                      TCS Direct Doorstep Coverage
+                    </span>
                   </div>
                 </div>
 
                 {/* Card Action Controls */}
-                <div className="border-t border-gray-100 pt-4 flex items-center justify-between gap-3">
+                <div className="border-t border-gray-100 pt-3.5 flex items-center justify-between gap-2 flex-wrap">
                   <div>
-                    {!isAddrDefault && (
+                    {!isAddrDefault ? (
                       <Button
                         onClick={() => handleSetDefault(addr.id, addr.label)}
                         variant="ghost"
                         size="sm"
-                        className="h-8 text-xs font-semibold text-gray-600 hover:text-[#7E153A] hover:bg-red-50 cursor-pointer rounded-lg px-2.5"
+                        className="h-8 text-xs font-semibold text-gray-600 hover:text-[#7E153A] hover:bg-red-50 cursor-pointer rounded-lg px-2"
                       >
-                        <Star size={13} className="mr-1 text-amber-500" /> Set
-                        as Default
+                        <Star
+                          size={13}
+                          className="mr-1 text-amber-500 shrink-0"
+                        />{' '}
+                        Set as Default
                       </Button>
+                    ) : (
+                      <span className="text-[11px] font-bold text-gray-400 flex items-center gap-1 pl-1">
+                        <Check size={12} className="text-emerald-500" /> Primary
+                        Address
+                      </span>
                     )}
                   </div>
 
                   <div className="flex items-center gap-1">
+                    <Button
+                      onClick={() => handleCopyAddress(addr)}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-gray-500 hover:text-[#7E153A] hover:bg-red-50 rounded-lg cursor-pointer"
+                      title="Copy Address"
+                    >
+                      <Copy size={13} />
+                    </Button>
+
                     <Button
                       onClick={() => handleOpenEdit(addr)}
                       variant="ghost"
@@ -456,7 +560,7 @@ export default function AddressBookPage() {
                       className="h-8 w-8 p-0 text-gray-500 hover:text-[#7E153A] hover:bg-red-50 rounded-lg cursor-pointer"
                       title="Edit address"
                     >
-                      <Edit2 size={14} />
+                      <Edit2 size={13} />
                     </Button>
 
                     <Button
@@ -466,7 +570,7 @@ export default function AddressBookPage() {
                       className="h-8 w-8 p-0 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
                       title="Delete address"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={13} />
                     </Button>
                   </div>
                 </div>
@@ -478,25 +582,28 @@ export default function AddressBookPage() {
 
       {/* ── Address Modal (Create / Edit) ── */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full my-8 p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] flex flex-col justify-between">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-6 md:p-8 shadow-2xl space-y-4 sm:space-y-6 max-h-[92vh] flex flex-col justify-between overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+            {/* Mobile Grab Bar */}
+            <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto sm:hidden shrink-0" />
+
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-              <div className="space-y-0.5">
-                <h2 className="text-xl font-extrabold text-gray-900">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 sm:pb-4 shrink-0">
+              <div className="space-y-0.5 min-w-0 pr-2">
+                <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 truncate">
                   {editingAddress
                     ? 'Edit Delivery Address'
                     : 'Add New Delivery Address'}
                 </h2>
-                <p className="text-xs text-gray-500">
-                  Enter complete address details for nationwide Pakistani
-                  courier delivery.
+                <p className="text-xs text-gray-500 truncate">
+                  Enter complete address details for nationwide courier
+                  delivery.
                 </p>
               </div>
 
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors cursor-pointer shrink-0"
               >
                 <X size={16} />
               </button>
@@ -506,7 +613,7 @@ export default function AddressBookPage() {
             <form
               id="addressForm"
               onSubmit={handleSaveAddress}
-              className="flex-1 overflow-y-auto px-2 py-1 pr-3 space-y-5"
+              className="flex-1 overflow-y-auto px-1 py-1 pr-2 space-y-4 sm:space-y-5"
             >
               {/* Address Label Pills */}
               <div className="space-y-2">
@@ -529,8 +636,8 @@ export default function AddressBookPage() {
                             : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
                         }`}
                       >
-                        <Icon size={14} />
-                        <span>{type.label}</span>
+                        <Icon size={14} className="shrink-0" />
+                        <span className="truncate">{type.label}</span>
                       </button>
                     );
                   })}
@@ -538,7 +645,7 @@ export default function AddressBookPage() {
               </div>
 
               {/* Recipient Full Name & Phone */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-700">
                     Recipient Full Name{' '}
@@ -549,7 +656,7 @@ export default function AddressBookPage() {
                     placeholder="e.g. Fatima Ali"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="h-10 text-xs bg-white rounded-xl border-gray-200"
+                    className="h-11 sm:h-10 text-xs bg-white rounded-xl border-gray-200"
                     required
                   />
                 </div>
@@ -564,9 +671,12 @@ export default function AddressBookPage() {
                     placeholder="e.g. 0300 1234567"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="h-10 text-xs bg-white rounded-xl border-gray-200 font-mono"
+                    className="h-11 sm:h-10 text-xs bg-white rounded-xl border-gray-200 font-mono"
                     required
                   />
+                  <p className="text-[10px] text-gray-400">
+                    Rider will contact before delivery / pickup
+                  </p>
                 </div>
               </div>
 
@@ -581,13 +691,13 @@ export default function AddressBookPage() {
                   placeholder="e.g. House # 14-B, Street 5, Sector F-8/2"
                   value={addressLine1}
                   onChange={(e) => setAddressLine1(e.target.value)}
-                  className="h-10 text-xs bg-white rounded-xl border-gray-200"
+                  className="h-11 sm:h-10 text-xs bg-white rounded-xl border-gray-200"
                   required
                 />
               </div>
 
               {/* Street Address Line 2 & Landmark */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-700">
                     Apartment / Suite / Floor (Optional)
@@ -597,26 +707,26 @@ export default function AddressBookPage() {
                     placeholder="e.g. Apartment 302, 3rd Floor"
                     value={addressLine2}
                     onChange={(e) => setAddressLine2(e.target.value)}
-                    className="h-10 text-xs bg-white rounded-xl border-gray-200"
+                    className="h-11 sm:h-10 text-xs bg-white rounded-xl border-gray-200"
                   />
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-700">
-                    Nearby Landmark / Instructions
+                    Nearby Landmark / Instructions (Optional)
                   </label>
                   <Input
                     type="text"
                     placeholder="e.g. Opposite Al-Fateh Mall, White Gate"
                     value={landmark}
                     onChange={(e) => setLandmark(e.target.value)}
-                    className="h-10 text-xs bg-white rounded-xl border-gray-200"
+                    className="h-11 sm:h-10 text-xs bg-white rounded-xl border-gray-200"
                   />
                 </div>
               </div>
 
               {/* City, Province & Postal Code */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-700">
                     City <span className="text-[#7E153A]">*</span>
@@ -624,7 +734,7 @@ export default function AddressBookPage() {
                   <select
                     value={city}
                     onChange={(e) => handleCityChange(e.target.value)}
-                    className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-hidden focus:border-[#7E153A] focus:ring-1 focus:ring-[#7E153A]"
+                    className="w-full h-11 sm:h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-hidden focus:border-[#7E153A] focus:ring-1 focus:ring-[#7E153A]"
                     required
                   >
                     {POPULAR_CITIES.map((c) => (
@@ -642,7 +752,7 @@ export default function AddressBookPage() {
                   <select
                     value={province}
                     onChange={(e) => setProvince(e.target.value)}
-                    className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-hidden focus:border-[#7E153A] focus:ring-1 focus:ring-[#7E153A]"
+                    className="w-full h-11 sm:h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-hidden focus:border-[#7E153A] focus:ring-1 focus:ring-[#7E153A]"
                     required
                   >
                     {PAKISTAN_PROVINCES.map((p) => (
@@ -662,36 +772,36 @@ export default function AddressBookPage() {
                     placeholder="e.g. 54000"
                     value={postalCode}
                     onChange={(e) => setPostalCode(e.target.value)}
-                    className="h-10 text-xs bg-white rounded-xl border-gray-200 font-mono"
+                    className="h-11 sm:h-10 text-xs bg-white rounded-xl border-gray-200 font-mono"
                   />
                 </div>
               </div>
 
               {/* Default Address Checkbox */}
-              <div className="flex items-center gap-2 pt-2 bg-gray-50 p-3 rounded-2xl border border-gray-100">
+              <div className="flex items-start sm:items-center gap-3 bg-gray-50 p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border border-gray-100">
                 <input
                   type="checkbox"
                   id="defaultAddressCheckbox"
                   checked={isDefault}
                   onChange={(e) => setIsDefault(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#7E153A] focus:ring-[#7E153A] border-gray-300 cursor-pointer"
+                  className="w-4 h-4 mt-0.5 sm:mt-0 rounded text-[#7E153A] focus:ring-[#7E153A] border-gray-300 cursor-pointer shrink-0"
                 />
                 <label
                   htmlFor="defaultAddressCheckbox"
-                  className="text-xs font-bold text-gray-700 cursor-pointer"
+                  className="text-xs font-semibold text-gray-700 cursor-pointer leading-tight"
                 >
-                  Set this as my default shipping and fabric pickup address
+                  Set this as my primary shipping and fabric pickup address
                 </label>
               </div>
             </form>
 
             {/* Modal Footer Controls */}
-            <div className="border-t border-gray-100 pt-4 flex items-center justify-between gap-3">
+            <div className="border-t border-gray-100 pt-3 sm:pt-4 flex flex-col-reverse sm:flex-row items-center justify-between gap-2.5 sm:gap-3 shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsModalOpen(false)}
-                className="h-11 px-6 rounded-xl text-xs font-semibold cursor-pointer"
+                className="w-full sm:w-auto h-11 px-6 rounded-xl text-xs font-semibold cursor-pointer border-gray-200 text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </Button>
@@ -700,7 +810,7 @@ export default function AddressBookPage() {
                 type="submit"
                 form="addressForm"
                 disabled={saving}
-                className="h-11 px-8 rounded-xl text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white shadow-md shadow-[#7E153A]/20 cursor-pointer"
+                className="w-full sm:w-auto h-11 px-8 rounded-xl text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white shadow-md shadow-[#7E153A]/20 cursor-pointer"
               >
                 {saving ? (
                   <>
