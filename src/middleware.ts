@@ -40,9 +40,12 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = url.startsWith('/admin') && !isAdminLogin;
   const isCustomerAuthRoute =
     url.startsWith('/login') || url.startsWith('/register');
+  const isApiRoute = url.startsWith('/api/');
   const isPublicRoute =
     url === '/' ||
     url.startsWith('/api/webhooks') ||
+    url.startsWith('/api/auth') ||
+    url.startsWith('/api/health') ||
     url.startsWith('/track') ||
     isAdminLogin;
 
@@ -55,7 +58,8 @@ export async function middleware(request: NextRequest) {
         new URL(`/admin/login?redirect=${encodeURIComponent(url)}`, request.url)
       );
     }
-    if (isProtectedRoute) {
+    // Only redirect page/document navigations to /login, never API routes
+    if (isProtectedRoute && !isApiRoute) {
       return NextResponse.redirect(
         new URL(`/login?redirect=${encodeURIComponent(url)}`, request.url)
       );
