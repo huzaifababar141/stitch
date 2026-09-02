@@ -15,11 +15,78 @@ import {
   CheckCircle2,
   X,
   BookOpen,
+  Shirt,
+  Layers,
+  Wand2,
+  Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+
+// ─── Popular Pakistani Tailoring Starter Templates ────────────────────────────
+
+const STYLE_TEMPLATES = [
+  {
+    name: 'Formal Ban Gala & Cigarette Pant',
+    garmentType: 'full_suit',
+    neckStyle: 'Chinese Ban Collar with Front Slit',
+    sleeveStyle: 'Straight Sleeves with Organza Border',
+    trouserStyle: 'Straight Cigarette Pants (Paicha 13")',
+    specialInstructions: 'Add subtle gotta piping on neckline and daman.',
+  },
+  {
+    name: 'Festive Angrakha & Churidar',
+    garmentType: 'full_suit',
+    neckStyle: 'Overlapping Angrakha with Dori Tassels',
+    sleeveStyle: 'Fitted Churidar Sleeves',
+    trouserStyle: 'Traditional Gathering Churidar Pajama',
+    specialInstructions: 'Lining attached under translucent chiffon fabric.',
+  },
+  {
+    name: 'Casual Lawn Kurti & Tulip Shalwar',
+    garmentType: 'two_piece_shirt_trouser',
+    neckStyle: 'Soft Boat Neck with V-Keyhole',
+    sleeveStyle: 'Bell Sleeve (3/4th length with Lace)',
+    trouserStyle: 'Pleated Tulip Shalwar',
+    specialInstructions: 'Loose comfort fit with side slits.',
+  },
+  {
+    name: "Men's Classic Kurta Shalwar",
+    garmentType: 'kurta_shalwar',
+    neckStyle: 'Sherwani Stand Collar with Hidden Placket',
+    sleeveStyle: 'Traditional Open Cuff Kurta Sleeves',
+    trouserStyle: 'Classic Pakistani Shalwar with 16" Paicha',
+    specialInstructions: 'Single front pocket and side seam pocket.',
+  },
+];
+
+const POPULAR_NECKLINES = [
+  'Ban Collar with Slit',
+  'Boat Neck (Kashti Gala)',
+  'V-Neck with Lace Border',
+  'Round Neck with Keyhole',
+  'Angrakha Overlap',
+  'Sweetheart Neckline',
+];
+
+const POPULAR_SLEEVES = [
+  'Bell Sleeve (3/4th)',
+  'Straight Fit with Organza',
+  'Cuff Sleeve with Pearls',
+  'Churidar Sleeves',
+  'Cape / Kaftan Sleeves',
+];
+
+const POPULAR_TROUSERS = [
+  'Straight Cigarette Pants',
+  'Classic Pakistani Shalwar',
+  'Tulip Shalwar',
+  'Flared Bootcut Trouser',
+  'Wide Leg Culottes / Palazzo',
+  'Churidar Pajama',
+];
 
 export default function MyDesignsPage() {
   const router = useRouter();
@@ -65,6 +132,20 @@ export default function MyDesignsPage() {
   useEffect(() => {
     loadDesigns();
   }, [loadDesigns]);
+
+  const handleApplyTemplate = (template: (typeof STYLE_TEMPLATES)[0]) => {
+    setName(template.name);
+    setGarmentType(template.garmentType);
+    setNeckStyle(template.neckStyle);
+    setSleeveStyle(template.sleeveStyle);
+    setTrouserStyle(template.trouserStyle);
+    setSpecialInstructions(template.specialInstructions);
+    setIsModalOpen(true);
+    toast({
+      title: 'Template Loaded',
+      description: `"${template.name}" specifications loaded into designer.`,
+    });
+  };
 
   const handleCreateDesign = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,7 +201,9 @@ export default function MyDesignsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, label: string) => {
+    if (!confirm(`Are you sure you want to delete preset "${label}"?`)) return;
+
     setDeletingId(id);
     try {
       const res = await fetch(`/api/designs/${id}`, {
@@ -130,7 +213,7 @@ export default function MyDesignsPage() {
       if (res.ok) {
         toast({
           title: 'Design Preset Removed',
-          description: 'The style preset was deleted.',
+          description: `"${label}" was deleted.`,
         });
         setDesigns((prev) => prev.filter((d) => d.id !== id));
       } else {
@@ -178,81 +261,142 @@ export default function MyDesignsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 font-sans">
-      {/* Top Banner */}
-      <div className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 text-[#7E153A] text-xs font-bold uppercase tracking-wider mb-2">
-            <Palette size={14} /> Saved Tailoring Styles
+    <div className="w-full min-w-0 max-w-7xl mx-auto space-y-5 sm:space-y-8 font-sans">
+      {/* ── Top Header Banner ── */}
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 md:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
+        <div className="space-y-1 sm:space-y-1.5 min-w-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-red-50 text-[#7E153A] flex items-center justify-center font-bold shrink-0">
+              <Palette size={20} />
+            </div>
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">
+                My Design Presets
+              </h1>
+              {designs.length > 0 && (
+                <span className="bg-gray-100 text-gray-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                  {designs.length} {designs.length === 1 ? 'preset' : 'presets'}
+                </span>
+              )}
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-            My Design Presets
-          </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 max-w-xl leading-relaxed">
             Save your favorite necklines, sleeve cuts, and trouser silhouettes
-            to apply to any new unstitched suit order.
+            to apply instantly to any new tailoring order.
           </p>
         </div>
 
         <Button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-6 h-11 rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer"
+          onClick={() => {
+            resetForm();
+            setIsModalOpen(true);
+          }}
+          className="w-full sm:w-auto h-11 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white px-5 sm:px-6 rounded-xl shadow-md shadow-[#7E153A]/20 transition-all cursor-pointer shrink-0 flex items-center justify-center"
         >
-          <Plus size={16} className="mr-1.5" /> Design New Style
+          <Plus size={16} className="mr-1.5 shrink-0" /> Design New Style
         </Button>
       </div>
 
-      {/* Loading State */}
-      {loading ? (
-        <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center shadow-xs">
-          <Loader2
-            size={36}
-            className="animate-spin text-[#7E153A] mx-auto mb-3"
-          />
+      {/* ── Quick Starter Inspiration Micro-Strip ── */}
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+            <Sparkles size={14} className="text-[#7E153A]" /> Popular Pakistani
+            Cut Templates
+          </h3>
+          <span className="text-[11px] text-gray-400">1-Tap to customize</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {STYLE_TEMPLATES.map((tmpl, idx) => (
+            <div
+              key={idx}
+              onClick={() => handleApplyTemplate(tmpl)}
+              className="bg-white rounded-2xl border border-gray-100 p-3.5 hover:border-[#7E153A]/30 hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-2"
+            >
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-[#7E153A] bg-red-50 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                    {tmpl.garmentType === 'full_suit'
+                      ? '3-Piece'
+                      : tmpl.garmentType === 'two_piece_shirt_trouser'
+                        ? '2-Piece'
+                        : tmpl.garmentType === 'kurta_shalwar'
+                          ? "Men's Kurta"
+                          : '1-Piece'}
+                  </span>
+                  <Wand2
+                    size={12}
+                    className="text-gray-400 group-hover:text-[#7E153A] transition-colors"
+                  />
+                </div>
+                <h4 className="text-xs font-bold text-gray-900 line-clamp-1 group-hover:text-[#7E153A] transition-colors">
+                  {tmpl.name}
+                </h4>
+                <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">
+                  {tmpl.neckStyle} · {tmpl.trouserStyle}
+                </p>
+              </div>
+
+              <span className="text-[10px] font-bold text-[#7E153A] flex items-center gap-1 pt-1">
+                Load Template <ArrowRight size={10} />
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Saved Designs Grid ── */}
+      {loading || authLoading ? (
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-12 sm:p-16 flex flex-col items-center justify-center text-center shadow-xs">
+          <Loader2 size={32} className="animate-spin text-[#7E153A] mb-3" />
           <p className="text-xs font-semibold text-gray-600">
             Loading your saved designs...
           </p>
         </div>
       ) : designs.length === 0 ? (
         /* Empty State */
-        <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center shadow-xs space-y-4">
-          <div className="w-16 h-16 rounded-full bg-red-50 text-[#7E153A] flex items-center justify-center mx-auto">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-8 sm:p-14 flex flex-col items-center justify-center text-center shadow-xs space-y-4">
+          <div className="w-16 h-16 rounded-full bg-red-50 text-[#7E153A] flex items-center justify-center shadow-inner">
             <Palette size={32} />
           </div>
-          <div>
+          <div className="space-y-1.5 max-w-md">
             <h3 className="text-base font-extrabold text-gray-900">
               No Custom Styles Saved Yet
             </h3>
-            <p className="text-xs text-gray-500 max-w-sm mx-auto mt-1">
-              Create and save your go-to neck cuts, sleeve styles, and trouser
-              measurements for 1-click order placement.
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Create and save your go-to neck cuts, sleeve cuts, and trouser
+              measurements for 1-click tailored order placement.
             </p>
           </div>
           <Button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-[#7E153A] text-white text-xs font-bold px-6 rounded-xl cursor-pointer"
+            onClick={() => {
+              resetForm();
+              setIsModalOpen(true);
+            }}
+            className="w-full sm:w-auto bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-6 h-11 rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer"
           >
-            <Plus size={14} className="mr-1.5" /> Create Your First Style Preset
+            <Plus size={16} className="mr-1.5" /> Create Your First Style Preset
           </Button>
         </div>
       ) : (
         /* Designs Grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {designs.map((style) => (
             <div
               key={style.id}
-              className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
             >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-[#7E153A] bg-red-50 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              <div className="space-y-3.5">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[10px] font-bold text-[#7E153A] bg-red-50 px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0 border border-red-100/60">
                     {formatGarmentType(style.garmentType)}
                   </span>
                   <button
-                    onClick={() => handleDelete(style.id)}
+                    onClick={() => handleDelete(style.id, style.label)}
                     disabled={deletingId === style.id}
                     aria-label="Delete style preset"
-                    className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                    className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer shrink-0"
                   >
                     {deletingId === style.id ? (
                       <Loader2
@@ -265,31 +409,37 @@ export default function MyDesignsPage() {
                   </button>
                 </div>
 
-                <h3 className="font-extrabold text-base text-gray-900">
+                <h3 className="font-extrabold text-base text-gray-900 break-words">
                   {style.label}
                 </h3>
 
-                <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 space-y-2 text-xs">
+                <div className="bg-gray-50/80 p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border border-gray-100 space-y-2 text-xs">
                   {style.galaStyle && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>Neck Style:</span>
-                      <span className="font-bold text-gray-900">
+                    <div className="flex items-start justify-between gap-2 text-gray-600">
+                      <span className="text-gray-400 font-medium shrink-0">
+                        Neck Style:
+                      </span>
+                      <span className="font-bold text-gray-900 text-right break-words">
                         {style.galaStyle}
                       </span>
                     </div>
                   )}
                   {style.sleeveStyle && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>Sleeve Style:</span>
-                      <span className="font-bold text-gray-900">
+                    <div className="flex items-start justify-between gap-2 text-gray-600">
+                      <span className="text-gray-400 font-medium shrink-0">
+                        Sleeves:
+                      </span>
+                      <span className="font-bold text-gray-900 text-right break-words">
                         {style.sleeveStyle}
                       </span>
                     </div>
                   )}
                   {style.trouserStyle && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>Trouser Cut:</span>
-                      <span className="font-bold text-gray-900">
+                    <div className="flex items-start justify-between gap-2 text-gray-600">
+                      <span className="text-gray-400 font-medium shrink-0">
+                        Trouser Cut:
+                      </span>
+                      <span className="font-bold text-gray-900 text-right break-words">
                         {style.trouserStyle}
                       </span>
                     </div>
@@ -297,16 +447,23 @@ export default function MyDesignsPage() {
                 </div>
 
                 {style.specialInstructions && (
-                  <p className="text-xs text-gray-500 italic">
+                  <p className="text-xs text-gray-500 italic bg-amber-50/60 p-2.5 rounded-xl border border-amber-200/50 break-words">
                     &quot;{style.specialInstructions}&quot;
                   </p>
                 )}
               </div>
 
-              <div className="border-t border-gray-100 pt-4 flex justify-end">
-                <Link href={`/new-order?styleConfigId=${style.id}`}>
-                  <Button className="h-9 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white rounded-xl shadow-xs cursor-pointer">
-                    <Scissors size={14} className="mr-1.5" /> Apply to Order
+              <div className="border-t border-gray-100 pt-3.5 flex items-center justify-between gap-2">
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md flex items-center gap-1">
+                  <Check size={11} /> Ready to stitch
+                </span>
+
+                <Link
+                  href={`/new-order?styleConfigId=${style.id}`}
+                  className="w-full sm:w-auto"
+                >
+                  <Button className="w-full sm:w-auto h-9 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white rounded-xl shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                    <Scissors size={13} /> Apply to Order
                   </Button>
                 </Link>
               </div>
@@ -315,49 +472,61 @@ export default function MyDesignsPage() {
         </div>
       )}
 
-      {/* Create Style Preset Modal */}
+      {/* ── Create Style Preset Modal (Bottom Sheet on Mobile) ── */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-              <div>
-                <h3 className="text-lg font-extrabold text-gray-900">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-xl w-full p-4 sm:p-6 md:p-8 shadow-2xl space-y-4 sm:space-y-6 max-h-[92vh] flex flex-col justify-between overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+            {/* Mobile Grab Bar */}
+            <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto sm:hidden shrink-0" />
+
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 sm:pb-4 shrink-0">
+              <div className="space-y-0.5 min-w-0 pr-2">
+                <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 truncate">
                   Design New Style Preset
-                </h3>
-                <p className="text-xs text-gray-500">
-                  Save custom cutting details for future orders
+                </h2>
+                <p className="text-xs text-gray-500 truncate">
+                  Save custom cutting details for 1-click tailored suit orders
                 </p>
               </div>
+
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors cursor-pointer shrink-0"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
 
-            <form onSubmit={handleCreateDesign} className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1">
-                  Preset Name *
+            {/* Modal Scrollable Form */}
+            <form
+              id="stylePresetForm"
+              onSubmit={handleCreateDesign}
+              className="flex-1 overflow-y-auto px-1 py-1 pr-2 space-y-4"
+            >
+              {/* Preset Name */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 block">
+                  Preset Name <span className="text-[#7E153A]">*</span>
                 </label>
                 <Input
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Formal Ban Gala with Cigarette Pant"
-                  className="h-11 bg-gray-50 border-gray-200 text-xs rounded-xl"
+                  className="h-11 sm:h-10 bg-gray-50/80 border-gray-200 text-xs rounded-xl"
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1">
-                  Garment Type
+              {/* Garment Type */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 block">
+                  Garment Type <span className="text-[#7E153A]">*</span>
                 </label>
                 <select
                   value={garmentType}
                   onChange={(e) => setGarmentType(e.target.value)}
-                  className="w-full h-11 bg-gray-50 border border-gray-200 text-xs rounded-xl px-3 font-semibold text-gray-800"
+                  className="w-full h-11 sm:h-10 bg-gray-50/80 border border-gray-200 text-xs rounded-xl px-3 font-semibold text-gray-800 focus:outline-hidden focus:border-[#7E153A]"
                 >
                   <option value="full_suit">3-Piece Shalwar Kameez</option>
                   <option value="two_piece_shirt_trouser">
@@ -367,79 +536,126 @@ export default function MyDesignsPage() {
                   <option value="kurta_shalwar">
                     Men&apos;s Kurta Shalwar
                   </option>
+                  <option value="sherwani">Designer Sherwani</option>
                 </select>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-gray-700 block mb-1">
-                    Neckline Style
-                  </label>
-                  <Input
-                    value={neckStyle}
-                    onChange={(e) => setNeckStyle(e.target.value)}
-                    placeholder="e.g. Ban Collar with Placket"
-                    className="h-10 bg-gray-50 border-gray-200 text-xs rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-700 block mb-1">
-                    Sleeve Style
-                  </label>
-                  <Input
-                    value={sleeveStyle}
-                    onChange={(e) => setSleeveStyle(e.target.value)}
-                    placeholder="e.g. Bell Sleeve with Lace"
-                    className="h-10 bg-gray-50 border-gray-200 text-xs rounded-xl"
-                  />
+              {/* Neckline / Gala Style */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 block">
+                  Neckline Style (Gala)
+                </label>
+                <Input
+                  value={neckStyle}
+                  onChange={(e) => setNeckStyle(e.target.value)}
+                  placeholder="e.g. Ban Collar with Placket"
+                  className="h-11 sm:h-10 bg-gray-50/80 border-gray-200 text-xs rounded-xl"
+                />
+                <div className="flex items-center gap-1.5 overflow-x-auto py-1 no-scrollbar">
+                  {POPULAR_NECKLINES.map((neck) => (
+                    <button
+                      key={neck}
+                      type="button"
+                      onClick={() => setNeckStyle(neck)}
+                      className="text-[10px] font-semibold bg-gray-100 hover:bg-red-50 hover:text-[#7E153A] text-gray-700 px-2 py-1 rounded-lg shrink-0 transition-colors"
+                    >
+                      {neck}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1">
-                  Trouser Silhouette
+              {/* Sleeve Style */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 block">
+                  Sleeve Style (Asteen)
+                </label>
+                <Input
+                  value={sleeveStyle}
+                  onChange={(e) => setSleeveStyle(e.target.value)}
+                  placeholder="e.g. Bell Sleeve with Lace"
+                  className="h-11 sm:h-10 bg-gray-50/80 border-gray-200 text-xs rounded-xl"
+                />
+                <div className="flex items-center gap-1.5 overflow-x-auto py-1 no-scrollbar">
+                  {POPULAR_SLEEVES.map((slv) => (
+                    <button
+                      key={slv}
+                      type="button"
+                      onClick={() => setSleeveStyle(slv)}
+                      className="text-[10px] font-semibold bg-gray-100 hover:bg-red-50 hover:text-[#7E153A] text-gray-700 px-2 py-1 rounded-lg shrink-0 transition-colors"
+                    >
+                      {slv}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Trouser Silhouette */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 block">
+                  Trouser Silhouette (Shalwar / Pajama)
                 </label>
                 <Input
                   value={trouserStyle}
                   onChange={(e) => setTrouserStyle(e.target.value)}
                   placeholder="e.g. Straight Cigarette Pants (Paicha 13 inches)"
-                  className="h-10 bg-gray-50 border-gray-200 text-xs rounded-xl"
+                  className="h-11 sm:h-10 bg-gray-50/80 border-gray-200 text-xs rounded-xl"
                 />
+                <div className="flex items-center gap-1.5 overflow-x-auto py-1 no-scrollbar">
+                  {POPULAR_TROUSERS.map((tr) => (
+                    <button
+                      key={tr}
+                      type="button"
+                      onClick={() => setTrouserStyle(tr)}
+                      className="text-[10px] font-semibold bg-gray-100 hover:bg-red-50 hover:text-[#7E153A] text-gray-700 px-2 py-1 rounded-lg shrink-0 transition-colors"
+                    >
+                      {tr}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1">
-                  Finishing / Lace Notes
+              {/* Finishing Notes */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 block">
+                  Finishing / Lace / Piping Notes (Optional)
                 </label>
                 <Input
                   value={specialInstructions}
                   onChange={(e) => setSpecialInstructions(e.target.value)}
-                  placeholder="e.g. Add organza trims on daman and sleeves"
-                  className="h-10 bg-gray-50 border-gray-200 text-xs rounded-xl"
+                  placeholder="e.g. Add organza trims on daman, gotta patti on neckline"
+                  className="h-11 sm:h-10 bg-gray-50/80 border-gray-200 text-xs rounded-xl"
                 />
               </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setIsModalOpen(false)}
-                  className="h-10 text-xs font-bold text-gray-600 rounded-xl"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={saving}
-                  className="h-10 bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-6 rounded-xl shadow-xs"
-                >
-                  {saving ? (
-                    <Loader2 size={14} className="animate-spin mr-1.5" />
-                  ) : null}
-                  Save Preset
-                </Button>
-              </div>
             </form>
+
+            {/* Modal Footer Controls */}
+            <div className="border-t border-gray-100 pt-3 sm:pt-4 flex flex-col-reverse sm:flex-row items-center justify-between gap-2.5 sm:gap-3 shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsModalOpen(false)}
+                className="w-full sm:w-auto h-11 px-6 rounded-xl text-xs font-semibold cursor-pointer border-gray-200 text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </Button>
+
+              <Button
+                type="submit"
+                form="stylePresetForm"
+                disabled={saving}
+                className="w-full sm:w-auto h-11 px-8 rounded-xl text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white shadow-md shadow-[#7E153A]/20 cursor-pointer"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin mr-2" />
+                    Saving Preset...
+                  </>
+                ) : (
+                  'Save Style Preset'
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       )}
