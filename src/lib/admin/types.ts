@@ -1,15 +1,40 @@
-import type {
-  OrderStatus,
-  UserRole,
-  TailorSkillLevel,
-  CouponType,
-  PaymentStatus,
-  PaymentMethod,
-  DeliveryStatus,
-  Gender,
-  GarmentType,
-  QcResult,
-} from '@prisma/client';
+export type OrderStatus =
+  | 'pending_payment'
+  | 'payment_confirmed'
+  | 'assigned'
+  | 'in_stitching'
+  | 'stitching_complete'
+  | 'qc_pending'
+  | 'qc_approved'
+  | 'qc_rejected'
+  | 'dispatched'
+  | 'in_transit'
+  | 'out_for_delivery'
+  | 'delivered'
+  | 'return_requested'
+  | 'returned'
+  | 'cancelled'
+  | 'refunded';
+
+export type UserRole =
+  | 'customer'
+  | 'admin'
+  | 'tailor'
+  | 'qc_inspector'
+  | 'delivery_agent'
+  | 'super_admin';
+
+export type TailorSkillLevel = 'junior' | 'mid' | 'master';
+export type CouponType = 'percentage' | 'fixed_amount' | 'free_delivery';
+export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
+export type PaymentMethod =
+  'cod' | 'card' | 'jazzcash' | 'easypaisa' | 'bank_transfer';
+export type DeliveryStatus =
+  'assigned' | 'in_transit' | 'delivered' | 'failed' | 'returned';
+export type Gender = 'male' | 'female' | 'other';
+export type GarmentType =
+  'full_suit' | 'shirt_only' | 'trouser_only' | 'dupatta_only';
+export type QcResult = 'pass' | 'fail' | 'rework';
 
 /**
  * DTOs for the admin panel — the JSON-serialized shapes returned by the

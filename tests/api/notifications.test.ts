@@ -41,7 +41,7 @@ describe('NotificationsService', () => {
     expect(prisma.notification.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          type: 'ORDER_CONFIRMED',
+          templateKey: 'ORDER_CONFIRMED',
           status: 'pending',
         }),
       })
@@ -64,7 +64,7 @@ describe('NotificationsService', () => {
         userId: 'user-1',
       },
       data: expect.objectContaining({
-        isRead: true,
+        status: 'read',
       }),
     });
   });
@@ -76,7 +76,7 @@ describe('NotificationsService', () => {
 
     expect(count).toBe(5);
     expect(prisma.notification.count).toHaveBeenCalledWith({
-      where: { userId: 'user-1', isRead: false },
+      where: { userId: 'user-1', status: { not: 'read' } },
     });
   });
 });

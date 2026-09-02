@@ -14,7 +14,10 @@ import { Button } from '@/components/ui/button';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-gray-900 font-sans flex flex-col justify-between">
+    <div
+      className="min-h-screen bg-[#FAFAFA] text-gray-900 font-sans flex flex-col justify-between"
+      suppressHydrationWarning
+    >
       {/* HEADER / NAVIGATION BAR */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">

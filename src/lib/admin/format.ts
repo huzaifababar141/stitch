@@ -1,5 +1,3 @@
-import { OrderStatus, UserRole } from '@prisma/client';
-
 type BadgeVariant =
   | 'default'
   | 'secondary'
@@ -43,7 +41,26 @@ export function statusVariant(status: string): BadgeVariant {
   return STATUS_META[status]?.variant ?? 'secondary';
 }
 
-export const ORDER_STATUSES = Object.values(OrderStatus);
+export const ORDER_STATUSES = [
+  'pending_payment',
+  'payment_confirmed',
+  'assigned',
+  'in_stitching',
+  'stitching_complete',
+  'qc_pending',
+  'qc_approved',
+  'qc_rejected',
+  'dispatched',
+  'in_transit',
+  'out_for_delivery',
+  'delivered',
+  'return_requested',
+  'returned',
+  'cancelled',
+  'refunded',
+] as const;
+
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 /** Distinct, on-brand hues per status so donut/segmented charts stay legible
  * even when many statuses are present at once. */
@@ -87,7 +104,16 @@ export function roleVariant(role: string): BadgeVariant {
   return ROLE_META[role]?.variant ?? 'secondary';
 }
 
-export const USER_ROLES = Object.values(UserRole);
+export const USER_ROLES = [
+  'customer',
+  'admin',
+  'tailor',
+  'qc_inspector',
+  'delivery_agent',
+  'super_admin',
+] as const;
+
+export type UserRole = (typeof USER_ROLES)[number];
 
 const currencyFmt = new Intl.NumberFormat('en-PK', {
   maximumFractionDigits: 0,
