@@ -23,6 +23,7 @@ import {
   Check,
   Tag,
   AlertCircle,
+  User,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -70,7 +71,8 @@ export default function NewOrderPage() {
   // Wizard Step Control (1: Product -> 2: Style -> 3: Measurements -> 4: Address -> 5: Review)
   const [currentStep, setCurrentStep] = useState(1);
 
-  // ── Step 1: Product / Fabric Link ──
+  // ── Step 1: Product / Fabric Link & Gender ──
+  const [gender, setGender] = useState<'female' | 'male'>('female');
   const [productUrl, setProductUrl] = useState('');
   const [parsing, setParsing] = useState(false);
   const [parsedProduct, setParsedProduct] = useState<any | null>(null);
@@ -84,7 +86,14 @@ export default function NewOrderPage() {
     'standard' | 'premium' | 'luxury'
   >('standard');
   const [garmentType, setGarmentType] = useState('full_suit');
+  // Women's Styles
   const [neckStyle, setNeckStyle] = useState('Round Neck with Slit');
+  // Men's Styles
+  const [collarStyle, setCollarStyle] = useState('Sherwani Ban Collar (Hard)');
+  const [pocketStyle, setPocketStyle] = useState(
+    '1 Chest Pocket + 2 Side Pockets'
+  );
+  // Shared / General Styles
   const [sleeveStyle, setSleeveStyle] = useState('Full Sleeve with Lace Trim');
   const [fitType, setFitType] = useState('Regular Fit');
   const [damanStyle, setDamanStyle] = useState('Straight Cut Daman');
@@ -92,6 +101,39 @@ export default function NewOrderPage() {
     'Straight Trouser / Cigarette Pants'
   );
   const [specialInstructions, setSpecialInstructions] = useState('');
+
+  // Handler for Gender Switching
+  const handleGenderChange = (newGender: 'female' | 'male') => {
+    setGender(newGender);
+    if (newGender === 'male') {
+      setGarmentType('full_suit');
+      setCollarStyle('Sherwani Ban Collar (Hard)');
+      setSleeveStyle('Straight Open Sleeves');
+      setPocketStyle('1 Chest Pocket + 2 Side Pockets');
+      setDamanStyle('Round / Gol Daman');
+      setTrouserStyle('Traditional Wide Shalwar');
+      setFitType('Regular Fit');
+      if (!manualTitle || manualTitle === 'Mahay Lawn 3-Piece') {
+        setManualTitle("Men's Traditional Shalwar Kameez");
+      }
+      if (!manualBrand || manualBrand === 'Sana Safinaz') {
+        setManualBrand('J. (Junaid Jamshed)');
+      }
+    } else {
+      setGarmentType('full_suit');
+      setNeckStyle('Round Neck with Slit');
+      setSleeveStyle('Full Sleeve with Lace Trim');
+      setDamanStyle('Straight Cut Daman');
+      setTrouserStyle('Straight Trouser / Cigarette Pants');
+      setFitType('Regular Fit');
+      if (!manualTitle || manualTitle === "Men's Traditional Shalwar Kameez") {
+        setManualTitle('Mahay Lawn 3-Piece');
+      }
+      if (!manualBrand || manualBrand === 'J. (Junaid Jamshed)') {
+        setManualBrand('Sana Safinaz');
+      }
+    }
+  };
 
   // ── Step 3: Measurement Profile ──
   const [savedProfiles, setSavedProfiles] = useState<any[]>([]);
@@ -196,6 +238,15 @@ export default function NewOrderPage() {
   // ── Validation Guards for Each Step ──
 
   const validateStep1 = (): boolean => {
+    if (!gender) {
+      toast({
+        title: 'Gender Required',
+        description:
+          'Please select whether this order is for Women or Men tailoring.',
+        variant: 'destructive',
+      });
+      return false;
+    }
     if (!manualTitle || manualTitle.trim().length < 2) {
       toast({
         title: 'Suit Title Required',
@@ -233,11 +284,20 @@ export default function NewOrderPage() {
       });
       return false;
     }
-    if (!neckStyle || !sleeveStyle || !fitType) {
+    if (gender === 'female' && (!neckStyle || !sleeveStyle || !fitType)) {
       toast({
         title: 'Style Options Required',
         description:
           'Please select your desired neckline cut, sleeve design, and fitting.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    if (gender === 'male' && (!collarStyle || !sleeveStyle || !pocketStyle)) {
+      toast({
+        title: 'Style Options Required',
+        description:
+          'Please select your desired collar style, sleeve finish, and pocket configuration.',
         variant: 'destructive',
       });
       return false;
@@ -252,16 +312,26 @@ export default function NewOrderPage() {
     }
 
     // If custom measurements, verify all key body measurements are filled
-    const requiredDims: { key: string; label: string }[] = [
-      { key: 'bust', label: 'Bust / Chest' },
-      { key: 'waist', label: 'Waist' },
-      { key: 'hip', label: 'Hips' },
-      { key: 'shoulder', label: 'Shoulder Width' },
-      { key: 'sleeve_length', label: 'Sleeve Length' },
-      { key: 'shirt_length', label: 'Kameez Length' },
-      { key: 'trouser_length', label: 'Trouser Length' },
-      { key: 'waist_bottom', label: 'Trouser Waist' },
-    ];
+    const requiredDims =
+      gender === 'male'
+        ? [
+            { key: 'bust', label: 'Chest' },
+            { key: 'waist', label: 'Waist' },
+            { key: 'shoulder', label: 'Shoulder (Teera)' },
+            { key: 'sleeve_length', label: 'Sleeve Length' },
+            { key: 'shirt_length', label: 'Kurta / Kameez Length' },
+            { key: 'trouser_length', label: 'Shalwar Length' },
+          ]
+        : [
+            { key: 'bust', label: 'Bust / Chest' },
+            { key: 'waist', label: 'Waist' },
+            { key: 'hip', label: 'Hips' },
+            { key: 'shoulder', label: 'Shoulder Width' },
+            { key: 'sleeve_length', label: 'Sleeve Length' },
+            { key: 'shirt_length', label: 'Kameez Length' },
+            { key: 'trouser_length', label: 'Trouser Length' },
+            { key: 'waist_bottom', label: 'Trouser Waist' },
+          ];
 
     for (const item of requiredDims) {
       const val = parseFloat(measurements[item.key] || '');
@@ -463,6 +533,7 @@ export default function NewOrderPage() {
 
     try {
       const payload: Record<string, any> = {
+        gender,
         garmentType,
         stitchingTier,
         couponCode: couponCode.trim() || undefined,
@@ -476,7 +547,10 @@ export default function NewOrderPage() {
 
       // 2. Style Preferences
       payload.stylePreferences = {
-        neckStyle,
+        gender,
+        neckStyle: gender === 'female' ? neckStyle : undefined,
+        collarStyle: gender === 'male' ? collarStyle : undefined,
+        pocketStyle: gender === 'male' ? pocketStyle : undefined,
         sleeveStyle,
         fitType,
         damanStyle,
@@ -616,12 +690,151 @@ export default function NewOrderPage() {
           <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xs space-y-6">
             <div className="space-y-1">
               <h2 className="text-lg font-extrabold text-gray-900">
-                1. Unstitched Fabric & Store Link
+                1. Unstitched Fabric & Tailoring Details
               </h2>
               <p className="text-xs text-gray-500">
-                Paste any product URL from Sana Safinaz, Khaadi, Sapphire, Gul
-                Ahmed, or Maria.B to fetch details automatically.
+                Select who this suit is for, paste a store link from any
+                Pakistani brand, or enter fabric details manually.
               </p>
+            </div>
+
+            {/* Gender Selection Cards */}
+            <div className="space-y-3 pb-3 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-gray-900 block">
+                  Select Tailoring Category{' '}
+                  <span className="text-[#7E153A]">*</span>
+                </label>
+                <span className="text-[11px] font-bold text-[#7E153A] uppercase tracking-wider bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">
+                  {gender === 'female'
+                    ? "Women's Collection"
+                    : "Men's Collection"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div
+                  onClick={() => handleGenderChange('female')}
+                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-3.5 ${
+                    gender === 'female'
+                      ? 'border-[#7E153A] bg-red-50/40 shadow-xs ring-2 ring-[#7E153A]/10'
+                      : 'border-gray-200 hover:border-gray-300 bg-white opacity-85 hover:opacity-100'
+                  }`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 ${
+                      gender === 'female'
+                        ? 'bg-[#7E153A] text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-500'
+                    }`}
+                  >
+                    👗
+                  </div>
+                  <div className="space-y-0.5 flex-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-extrabold text-gray-900">
+                        Women's Tailoring
+                      </h3>
+                      {gender === 'female' && (
+                        <Check
+                          size={14}
+                          className="text-[#7E153A]"
+                          strokeWidth={3}
+                        />
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-500 leading-relaxed">
+                      Lawn, Chiffon, 3-Pc suits, Kurtis, custom necklines &
+                      trousers.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => handleGenderChange('male')}
+                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-3.5 ${
+                    gender === 'male'
+                      ? 'border-[#7E153A] bg-red-50/40 shadow-xs ring-2 ring-[#7E153A]/10'
+                      : 'border-gray-200 hover:border-gray-300 bg-white opacity-85 hover:opacity-100'
+                  }`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 ${
+                      gender === 'male'
+                        ? 'bg-[#7E153A] text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-500'
+                    }`}
+                  >
+                    👔
+                  </div>
+                  <div className="space-y-0.5 flex-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-extrabold text-gray-900">
+                        Men's Tailoring
+                      </h3>
+                      {gender === 'male' && (
+                        <Check
+                          size={14}
+                          className="text-[#7E153A]"
+                          strokeWidth={3}
+                        />
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-500 leading-relaxed">
+                      Traditional Shalwar Kameez, Kurta Pajama, Sherwani ban &
+                      cuffs.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Garment Type Selector Pills */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-700 block">
+                Garment Type <span className="text-[#7E153A]">*</span>
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {gender === 'male'
+                  ? [
+                      { key: 'full_suit', label: 'Shalwar Kameez (2-Pc)' },
+                      { key: 'kurta', label: 'Kurta Pajama' },
+                      { key: 'kameez_only', label: 'Kurta Only' },
+                      { key: 'other', label: 'Sadri / Waistcoat' },
+                    ].map((g) => (
+                      <button
+                        key={g.key}
+                        type="button"
+                        onClick={() => setGarmentType(g.key)}
+                        className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                          garmentType === g.key
+                            ? 'border-[#7E153A] bg-red-50/60 text-[#7E153A] ring-1 ring-[#7E153A]'
+                            : 'border-gray-200 hover:border-gray-300 bg-white text-gray-700'
+                        }`}
+                      >
+                        {g.label}
+                      </button>
+                    ))
+                  : [
+                      { key: 'full_suit', label: '3-Piece Full Suit' },
+                      { key: 'kameez_only', label: 'Kurti / Kameez Only' },
+                      { key: 'trouser_only', label: 'Trouser Only' },
+                      { key: 'other', label: 'Formal / Maxi / Frock' },
+                    ].map((g) => (
+                      <button
+                        key={g.key}
+                        type="button"
+                        onClick={() => setGarmentType(g.key)}
+                        className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                          garmentType === g.key
+                            ? 'border-[#7E153A] bg-red-50/60 text-[#7E153A] ring-1 ring-[#7E153A]'
+                            : 'border-gray-200 hover:border-gray-300 bg-white text-gray-700'
+                        }`}
+                      >
+                        {g.label}
+                      </button>
+                    ))}
+              </div>
             </div>
 
             {/* URL Input Box */}
@@ -633,7 +846,11 @@ export default function NewOrderPage() {
                 <div className="relative flex-1">
                   <Input
                     type="url"
-                    placeholder="https://www.sanasafinaz.com/pk/mahay-lawn-3-piece..."
+                    placeholder={
+                      gender === 'male'
+                        ? 'https://www.junaidjamshed.com/products/jj-unstitched-latha...'
+                        : 'https://www.sanasafinaz.com/pk/mahay-lawn-3-piece...'
+                    }
                     value={productUrl}
                     onChange={(e) => setProductUrl(e.target.value)}
                     className="h-11 text-xs bg-gray-50/60 rounded-xl pr-10 border-gray-200"
@@ -864,91 +1081,193 @@ export default function NewOrderPage() {
           </div>
 
           {/* Style Configuration Dropdowns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700">
-                Neckline Cut
-              </label>
-              <select
-                value={neckStyle}
-                onChange={(e) => setNeckStyle(e.target.value)}
-                className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-              >
-                <option>Round Neck with Slit</option>
-                <option>V-Neck with Patti</option>
-                <option>Ban Collar / Chinese Collar</option>
-                <option>Boat Neck (Wide)</option>
-                <option>Square Neckline</option>
-                <option>Angrakha Style Overlap</option>
-              </select>
-            </div>
+          {gender === 'male' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700">
+                  Collar / Neck Style <span className="text-[#7E153A]">*</span>
+                </label>
+                <select
+                  value={collarStyle}
+                  onChange={(e) => setCollarStyle(e.target.value)}
+                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
+                >
+                  <option>Sherwani Ban Collar (Hard)</option>
+                  <option>Sherwani Ban Collar (Soft)</option>
+                  <option>Shirt Collar (Semi-Stiff)</option>
+                  <option>Open Kurta Placket (Gol Gala)</option>
+                  <option>Mandarin Collar</option>
+                </select>
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700">
-                Sleeve Design
-              </label>
-              <select
-                value={sleeveStyle}
-                onChange={(e) => setSleeveStyle(e.target.value)}
-                className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-              >
-                <option>Full Sleeve with Lace Trim</option>
-                <option>Straight 3/4 Sleeve</option>
-                <option>Bell Sleeve (Flared)</option>
-                <option>Cuff Sleeve with Buttons</option>
-                <option>Sleeveless with Piping</option>
-              </select>
-            </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700">
+                  Sleeve Finish <span className="text-[#7E153A]">*</span>
+                </label>
+                <select
+                  value={sleeveStyle}
+                  onChange={(e) => setSleeveStyle(e.target.value)}
+                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
+                >
+                  <option>Straight Open Sleeves</option>
+                  <option>Cuffed Kurta Sleeves (Single Button)</option>
+                  <option>Double French Cuffs (for Cufflinks)</option>
+                  <option>Half Sleeves</option>
+                </select>
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700">
-                Garment Fitting
-              </label>
-              <select
-                value={fitType}
-                onChange={(e) => setFitType(e.target.value)}
-                className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-              >
-                <option>Regular Fit</option>
-                <option>Relaxed / Loose Fit</option>
-                <option>Smart Fitted</option>
-                <option>A-Line Flare</option>
-              </select>
-            </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700">
+                  Pocket Configuration <span className="text-[#7E153A]">*</span>
+                </label>
+                <select
+                  value={pocketStyle}
+                  onChange={(e) => setPocketStyle(e.target.value)}
+                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
+                >
+                  <option>1 Chest Pocket + 2 Side Pockets</option>
+                  <option>2 Side Pockets Only</option>
+                  <option>1 Chest Pocket Only</option>
+                  <option>Hidden Mobile Zipper Pocket</option>
+                  <option>No Pockets (Minimalist)</option>
+                </select>
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700">
-                Kameez Daman Style
-              </label>
-              <select
-                value={damanStyle}
-                onChange={(e) => setDamanStyle(e.target.value)}
-                className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-              >
-                <option>Straight Cut Daman</option>
-                <option>Round / Curved Daman</option>
-                <option>Chak Patti & Interlock</option>
-                <option>Side Slits Closed</option>
-              </select>
-            </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700">
+                  Daman / Ghera Cut <span className="text-[#7E153A]">*</span>
+                </label>
+                <select
+                  value={damanStyle}
+                  onChange={(e) => setDamanStyle(e.target.value)}
+                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
+                >
+                  <option>Round / Gol Daman</option>
+                  <option>Straight Square Daman</option>
+                  <option>Short Kurta Daman</option>
+                </select>
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700">
-                Trouser / Shalwar Cut
-              </label>
-              <select
-                value={trouserStyle}
-                onChange={(e) => setTrouserStyle(e.target.value)}
-                className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-              >
-                <option>Straight Trouser / Cigarette Pants</option>
-                <option>Traditional Pleated Shalwar</option>
-                <option>Culottes / Wide Bottom Pants</option>
-                <option>Tulip Shalwar</option>
-                <option>Capri with Slits</option>
-              </select>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700">
+                  Shalwar / Trouser Cut{' '}
+                  <span className="text-[#7E153A]">*</span>
+                </label>
+                <select
+                  value={trouserStyle}
+                  onChange={(e) => setTrouserStyle(e.target.value)}
+                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
+                >
+                  <option>Traditional Wide Shalwar (Pakistani Ghera)</option>
+                  <option>Straight Trouser / Pajama</option>
+                  <option>Narrow Bottom Pajama</option>
+                  <option>Churidar Pajama</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700">
+                  Fitting Silhouette <span className="text-[#7E153A]">*</span>
+                </label>
+                <select
+                  value={fitType}
+                  onChange={(e) => setFitType(e.target.value)}
+                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
+                >
+                  <option>Regular Fit</option>
+                  <option>Smart / Slim Fit</option>
+                  <option>Relaxed / Traditional Fit</option>
+                </select>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700">
+                  Neckline Cut <span className="text-[#7E153A]">*</span>
+                </label>
+                <select
+                  value={neckStyle}
+                  onChange={(e) => setNeckStyle(e.target.value)}
+                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
+                >
+                  <option>Round Neck with Slit</option>
+                  <option>V-Neck with Patti</option>
+                  <option>Ban Collar / Chinese Collar</option>
+                  <option>Boat Neck (Wide)</option>
+                  <option>Square Neckline</option>
+                  <option>Angrakha Style Overlap</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700">
+                  Sleeve Design <span className="text-[#7E153A]">*</span>
+                </label>
+                <select
+                  value={sleeveStyle}
+                  onChange={(e) => setSleeveStyle(e.target.value)}
+                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
+                >
+                  <option>Full Sleeve with Lace Trim</option>
+                  <option>Straight 3/4 Sleeve</option>
+                  <option>Bell Sleeve (Flared)</option>
+                  <option>Cuff Sleeve with Buttons</option>
+                  <option>Sleeveless with Piping</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700">
+                  Garment Fitting <span className="text-[#7E153A]">*</span>
+                </label>
+                <select
+                  value={fitType}
+                  onChange={(e) => setFitType(e.target.value)}
+                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
+                >
+                  <option>Regular Fit</option>
+                  <option>Relaxed / Loose Fit</option>
+                  <option>Smart Fitted</option>
+                  <option>A-Line Flare</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700">
+                  Kameez Daman Style <span className="text-[#7E153A]">*</span>
+                </label>
+                <select
+                  value={damanStyle}
+                  onChange={(e) => setDamanStyle(e.target.value)}
+                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
+                >
+                  <option>Straight Cut Daman</option>
+                  <option>Round / Curved Daman</option>
+                  <option>Chak Patti & Interlock</option>
+                  <option>Side Slits Closed</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700">
+                  Trouser / Shalwar Cut{' '}
+                  <span className="text-[#7E153A]">*</span>
+                </label>
+                <select
+                  value={trouserStyle}
+                  onChange={(e) => setTrouserStyle(e.target.value)}
+                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
+                >
+                  <option>Straight Trouser / Cigarette Pants</option>
+                  <option>Traditional Pleated Shalwar</option>
+                  <option>Culottes / Wide Bottom Pants</option>
+                  <option>Tulip Shalwar</option>
+                  <option>Capri with Slits</option>
+                </select>
+              </div>
+            </div>
+          )}
 
           {/* Master Tailor Notes */}
           <div className="space-y-1.5">
@@ -1163,7 +1482,9 @@ export default function NewOrderPage() {
                         : 'text-gray-500'
                     }`}
                   >
-                    Kameez Dimensions
+                    {gender === 'male'
+                      ? 'Kurta / Kameez Dimensions'
+                      : 'Kameez Dimensions'}
                   </button>
                   <button
                     onClick={() => setActiveTab('trouser')}
@@ -1173,7 +1494,9 @@ export default function NewOrderPage() {
                         : 'text-gray-500'
                     }`}
                   >
-                    Trouser Dimensions
+                    {gender === 'male'
+                      ? 'Shalwar / Trouser Dimensions'
+                      : 'Trouser Dimensions'}
                   </button>
                 </div>
 
@@ -1193,26 +1516,70 @@ export default function NewOrderPage() {
                 <div className="md:col-span-2 grid grid-cols-2 gap-3 text-xs">
                   {activeTab === 'shirt' && (
                     <>
-                      {[
-                        {
-                          id: 'shirt_length',
-                          name: 'Kameez Length',
-                          defaultVal: '42',
-                        },
-                        { id: 'bust', name: 'Chest / Bust', defaultVal: '38' },
-                        { id: 'waist', name: 'Waist', defaultVal: '32' },
-                        { id: 'hip', name: 'Hips', defaultVal: '40' },
-                        {
-                          id: 'shoulder',
-                          name: 'Shoulder Width',
-                          defaultVal: '14.5',
-                        },
-                        {
-                          id: 'sleeve_length',
-                          name: 'Sleeve Length',
-                          defaultVal: '22',
-                        },
-                      ].map((field) => (
+                      {(gender === 'male'
+                        ? [
+                            {
+                              id: 'shirt_length',
+                              name: 'Kurta / Kameez Length',
+                              defaultVal: '42',
+                            },
+                            {
+                              id: 'bust',
+                              name: 'Chest Width',
+                              defaultVal: '40',
+                            },
+                            { id: 'waist', name: 'Waist', defaultVal: '36' },
+                            {
+                              id: 'neck',
+                              name: 'Collar / Neck Size',
+                              defaultVal: '15',
+                            },
+                            {
+                              id: 'shoulder',
+                              name: 'Shoulder (Teera)',
+                              defaultVal: '18',
+                            },
+                            {
+                              id: 'sleeve_length',
+                              name: 'Sleeve Length',
+                              defaultVal: '24',
+                            },
+                            {
+                              id: 'armhole',
+                              name: 'Bicep / Armhole',
+                              defaultVal: '9',
+                            },
+                            {
+                              id: 'cuff',
+                              name: 'Wrist / Cuff Opening',
+                              defaultVal: '9.5',
+                            },
+                          ]
+                        : [
+                            {
+                              id: 'shirt_length',
+                              name: 'Kameez Length',
+                              defaultVal: '42',
+                            },
+                            {
+                              id: 'bust',
+                              name: 'Chest / Bust',
+                              defaultVal: '38',
+                            },
+                            { id: 'waist', name: 'Waist', defaultVal: '32' },
+                            { id: 'hip', name: 'Hips', defaultVal: '40' },
+                            {
+                              id: 'shoulder',
+                              name: 'Shoulder Width',
+                              defaultVal: '14.5',
+                            },
+                            {
+                              id: 'sleeve_length',
+                              name: 'Sleeve Length',
+                              defaultVal: '22',
+                            },
+                          ]
+                      ).map((field) => (
                         <div key={field.id} className="space-y-1">
                           <label className="text-[11px] font-bold text-gray-700 block">
                             {field.name} (in){' '}
@@ -1236,28 +1603,52 @@ export default function NewOrderPage() {
 
                   {activeTab === 'trouser' && (
                     <>
-                      {[
-                        {
-                          id: 'trouser_length',
-                          name: 'Trouser Length',
-                          defaultVal: '39',
-                        },
-                        {
-                          id: 'waist_bottom',
-                          name: 'Trouser Waist',
-                          defaultVal: '30',
-                        },
-                        {
-                          id: 'bottom_opening',
-                          name: 'Ankle Opening (Paicha)',
-                          defaultVal: '14',
-                        },
-                        {
-                          id: 'hip_bottom',
-                          name: 'Hips / Seat',
-                          defaultVal: '42',
-                        },
-                      ].map((field) => (
+                      {(gender === 'male'
+                        ? [
+                            {
+                              id: 'trouser_length',
+                              name: 'Shalwar Length',
+                              defaultVal: '40',
+                            },
+                            {
+                              id: 'waist_bottom',
+                              name: 'Inseam / Asan Depth',
+                              defaultVal: '34',
+                            },
+                            {
+                              id: 'bottom_opening',
+                              name: 'Paicha (Bottom Opening)',
+                              defaultVal: '16',
+                            },
+                            {
+                              id: 'hip_bottom',
+                              name: 'Ghera / Seat Width',
+                              defaultVal: '24',
+                            },
+                          ]
+                        : [
+                            {
+                              id: 'trouser_length',
+                              name: 'Trouser Length',
+                              defaultVal: '39',
+                            },
+                            {
+                              id: 'waist_bottom',
+                              name: 'Trouser Waist',
+                              defaultVal: '30',
+                            },
+                            {
+                              id: 'bottom_opening',
+                              name: 'Ankle Opening (Paicha)',
+                              defaultVal: '14',
+                            },
+                            {
+                              id: 'hip_bottom',
+                              name: 'Hips / Seat',
+                              defaultVal: '42',
+                            },
+                          ]
+                      ).map((field) => (
                         <div key={field.id} className="space-y-1">
                           <label className="text-[11px] font-bold text-gray-700 block">
                             {field.name} (in){' '}
@@ -1281,7 +1672,7 @@ export default function NewOrderPage() {
                 </div>
 
                 <div className="flex flex-col items-center justify-center p-2 bg-white rounded-xl border border-gray-100">
-                  <BodyDiagram activeField={activeField} gender="female" />
+                  <BodyDiagram activeField={activeField} gender={gender} />
                 </div>
               </div>
             </div>
@@ -1564,12 +1955,19 @@ export default function NewOrderPage() {
             {/* Spec Matrix */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-1.5">
-                <span className="text-[10px] uppercase font-bold text-gray-400">
-                  Garment & Brand
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold text-gray-400">
+                    Category & Brand
+                  </span>
+                  <span className="text-[10px] font-bold text-[#7E153A] bg-red-50 px-2 py-0.5 rounded-full">
+                    {gender === 'male'
+                      ? "Men's Tailoring"
+                      : "Women's Tailoring"}
+                  </span>
+                </div>
                 <p className="font-extrabold text-gray-900">{manualTitle}</p>
                 <p className="text-gray-500">
-                  {manualBrand} · {manualFabric}
+                  {manualBrand} · {manualFabric || 'Unstitched Fabric'}
                 </p>
               </div>
 
@@ -1589,9 +1987,13 @@ export default function NewOrderPage() {
                 <span className="text-[10px] uppercase font-bold text-gray-400">
                   Style Configurations
                 </span>
-                <p className="font-semibold text-gray-900">{neckStyle}</p>
+                <p className="font-semibold text-gray-900">
+                  {gender === 'male' ? collarStyle : neckStyle}
+                </p>
                 <p className="text-gray-500">
-                  {sleeveStyle} · {fitType}
+                  {gender === 'male'
+                    ? `${sleeveStyle} · ${pocketStyle} · ${trouserStyle}`
+                    : `${sleeveStyle} · ${trouserStyle} · ${fitType}`}
                 </p>
               </div>
 
@@ -1742,6 +2144,7 @@ export default function NewOrderPage() {
         isOpen={showSizeChart}
         onClose={() => setShowSizeChart(false)}
         onSelectSize={applyPreset}
+        gender={gender}
       />
       <HowToMeasureModal
         isOpen={showHowToMeasure}

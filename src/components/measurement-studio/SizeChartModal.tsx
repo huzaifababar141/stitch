@@ -8,9 +8,16 @@ interface SizeChartModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectSize: (measurements: Record<string, string>) => void;
+  gender?: 'female' | 'male';
 }
 
-const SIZE_PRESETS = [
+interface SizePreset {
+  name: string;
+  tag: string;
+  measurements: Record<string, string>;
+}
+
+const WOMEN_SIZE_PRESETS: SizePreset[] = [
   {
     name: 'Small (S)',
     tag: '36"',
@@ -23,6 +30,7 @@ const SIZE_PRESETS = [
       shirt_length: '42',
       trouser_length: '38',
       waist_bottom: '28',
+      bottom_opening: '13',
     },
   },
   {
@@ -37,6 +45,7 @@ const SIZE_PRESETS = [
       shirt_length: '44',
       trouser_length: '39',
       waist_bottom: '30',
+      bottom_opening: '14',
     },
   },
   {
@@ -51,6 +60,7 @@ const SIZE_PRESETS = [
       shirt_length: '45',
       trouser_length: '40',
       waist_bottom: '34',
+      bottom_opening: '15',
     },
   },
   {
@@ -65,6 +75,70 @@ const SIZE_PRESETS = [
       shirt_length: '46',
       trouser_length: '41',
       waist_bottom: '38',
+      bottom_opening: '16',
+    },
+  },
+];
+
+const MEN_SIZE_PRESETS: SizePreset[] = [
+  {
+    name: 'Small (S)',
+    tag: '38" Chest / 14.5" Collar',
+    measurements: {
+      neck: '14.5',
+      shoulder: '17.5',
+      bust: '38',
+      waist: '34',
+      sleeve_length: '23',
+      shirt_length: '40',
+      trouser_length: '39',
+      bottom_opening: '15',
+      waist_bottom: '32',
+    },
+  },
+  {
+    name: 'Medium (M)',
+    tag: '40" Chest / 15" Collar',
+    measurements: {
+      neck: '15',
+      shoulder: '18.5',
+      bust: '40',
+      waist: '36',
+      sleeve_length: '24',
+      shirt_length: '42',
+      trouser_length: '40',
+      bottom_opening: '16',
+      waist_bottom: '34',
+    },
+  },
+  {
+    name: 'Large (L)',
+    tag: '43" Chest / 16" Collar',
+    measurements: {
+      neck: '16',
+      shoulder: '19.5',
+      bust: '43',
+      waist: '39',
+      sleeve_length: '25',
+      shirt_length: '44',
+      trouser_length: '41',
+      bottom_opening: '17',
+      waist_bottom: '36',
+    },
+  },
+  {
+    name: 'Extra Large (XL)',
+    tag: '46" Chest / 17" Collar',
+    measurements: {
+      neck: '17',
+      shoulder: '20.5',
+      bust: '46',
+      waist: '43',
+      sleeve_length: '25.5',
+      shirt_length: '45',
+      trouser_length: '42',
+      bottom_opening: '18',
+      waist_bottom: '40',
     },
   },
 ];
@@ -73,7 +147,18 @@ export function SizeChartModal({
   isOpen,
   onClose,
   onSelectSize,
+  gender = 'female',
 }: SizeChartModalProps) {
+  const [activeGender, setActiveGender] = React.useState<'female' | 'male'>(
+    gender
+  );
+
+  React.useEffect(() => {
+    setActiveGender(gender);
+  }, [gender]);
+
+  const presets =
+    activeGender === 'male' ? MEN_SIZE_PRESETS : WOMEN_SIZE_PRESETS;
   if (!isOpen) return null;
 
   return (
@@ -97,6 +182,32 @@ export function SizeChartModal({
           </button>
         </div>
 
+        {/* Gender Toggle */}
+        <div className="flex px-6 pt-4 gap-2 bg-gray-50/50">
+          <button
+            type="button"
+            onClick={() => setActiveGender('female')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeGender === 'female'
+                ? 'bg-[#7E153A] text-white shadow-sm'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+            }`}
+          >
+            Women's Standard Sizes (3-Pc / Kurti)
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveGender('male')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeGender === 'male'
+                ? 'bg-[#7E153A] text-white shadow-sm'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+            }`}
+          >
+            Men's Standard Sizes (Kameez Shalwar / Kurta)
+          </button>
+        </div>
+
         {/* Content Table */}
         <div className="p-6 overflow-y-auto space-y-6">
           <div className="overflow-x-auto rounded-xl border border-gray-200">
@@ -104,17 +215,31 @@ export function SizeChartModal({
               <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
                 <tr>
                   <th className="p-3">Size</th>
-                  <th className="p-3">Shoulder</th>
-                  <th className="p-3">Bust</th>
-                  <th className="p-3">Waist</th>
-                  <th className="p-3">Hip</th>
-                  <th className="p-3">Sleeve</th>
-                  <th className="p-3">Length</th>
+                  {activeGender === 'male' ? (
+                    <>
+                      <th className="p-3">Collar</th>
+                      <th className="p-3">Teera (Shoulder)</th>
+                      <th className="p-3">Chest</th>
+                      <th className="p-3">Kurta Length</th>
+                      <th className="p-3">Sleeve</th>
+                      <th className="p-3">Shalwar Length</th>
+                      <th className="p-3">Paicha</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="p-3">Shoulder</th>
+                      <th className="p-3">Bust</th>
+                      <th className="p-3">Waist</th>
+                      <th className="p-3">Hip</th>
+                      <th className="p-3">Sleeve</th>
+                      <th className="p-3">Length</th>
+                    </>
+                  )}
                   <th className="p-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-gray-600">
-                {SIZE_PRESETS.map((preset) => (
+                {presets.map((preset) => (
                   <tr
                     key={preset.name}
                     className="hover:bg-red-50/30 transition-colors"
@@ -125,18 +250,50 @@ export function SizeChartModal({
                       </span>
                       {preset.name}
                     </td>
-                    <td className="p-3">
-                      {preset.measurements.shoulder}&quot;
-                    </td>
-                    <td className="p-3">{preset.measurements.bust}&quot;</td>
-                    <td className="p-3">{preset.measurements.waist}&quot;</td>
-                    <td className="p-3">{preset.measurements.hip}&quot;</td>
-                    <td className="p-3">
-                      {preset.measurements.sleeve_length}&quot;
-                    </td>
-                    <td className="p-3">
-                      {preset.measurements.shirt_length}&quot;
-                    </td>
+                    {activeGender === 'male' ? (
+                      <>
+                        <td className="p-3">
+                          {preset.measurements.neck}&quot;
+                        </td>
+                        <td className="p-3">
+                          {preset.measurements.shoulder}&quot;
+                        </td>
+                        <td className="p-3">
+                          {preset.measurements.bust}&quot;
+                        </td>
+                        <td className="p-3">
+                          {preset.measurements.shirt_length}&quot;
+                        </td>
+                        <td className="p-3">
+                          {preset.measurements.sleeve_length}&quot;
+                        </td>
+                        <td className="p-3">
+                          {preset.measurements.trouser_length}&quot;
+                        </td>
+                        <td className="p-3">
+                          {preset.measurements.bottom_opening}&quot;
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="p-3">
+                          {preset.measurements.shoulder}&quot;
+                        </td>
+                        <td className="p-3">
+                          {preset.measurements.bust}&quot;
+                        </td>
+                        <td className="p-3">
+                          {preset.measurements.waist}&quot;
+                        </td>
+                        <td className="p-3">{preset.measurements.hip}&quot;</td>
+                        <td className="p-3">
+                          {preset.measurements.sleeve_length}&quot;
+                        </td>
+                        <td className="p-3">
+                          {preset.measurements.shirt_length}&quot;
+                        </td>
+                      </>
+                    )}
                     <td className="p-3 text-right">
                       <Button
                         onClick={() => {

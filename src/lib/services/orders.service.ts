@@ -200,10 +200,20 @@ export async function createOrder(customerId: string, data: any) {
     style = await prisma.styleConfiguration.create({
       data: {
         userId: customerId,
-        label: `${prefs.fitType || 'Standard'} Style Config`,
+        label: `${prefs.fitType || 'Standard'} ${data.gender === 'male' ? "Men's" : "Women's"} Style`,
         garmentType: (data.garmentType || 'full_suit') as GarmentType,
-        galaStyle: prefs.neckStyle || 'Round Neck with Slit',
-        sleeveStyle: prefs.sleeveStyle || 'Full Sleeve',
+        galaStyle:
+          prefs.neckStyle ||
+          prefs.collarStyle ||
+          (data.gender === 'male'
+            ? 'Sherwani Ban Collar'
+            : 'Round Neck with Slit'),
+        sleeveStyle:
+          prefs.sleeveStyle ||
+          (data.gender === 'male' ? 'Straight Open Sleeves' : 'Full Sleeve'),
+        trouserStyle: prefs.trouserStyle || null,
+        kameezHemStyle: prefs.damanStyle || null,
+        pocketPreference: prefs.pocketStyle || null,
         specialInstructions: prefs.specialInstructions,
       },
     });
@@ -217,6 +227,18 @@ export async function createOrder(customerId: string, data: any) {
   );
   const orderNumber = genOrderNum();
 
+  const fullStyleSnapshot = {
+    ...style,
+    gender: data.gender || data.stylePreferences?.gender || 'female',
+    collarStyle: data.stylePreferences?.collarStyle,
+    pocketStyle: data.stylePreferences?.pocketStyle,
+    damanStyle: data.stylePreferences?.damanStyle,
+    trouserStyle: data.stylePreferences?.trouserStyle,
+    neckStyle: data.stylePreferences?.neckStyle,
+    sleeveStyle: data.stylePreferences?.sleeveStyle,
+    fitType: data.stylePreferences?.fitType,
+  };
+
   // Create Order
   const order = await prisma.order.create({
     data: {
@@ -227,7 +249,7 @@ export async function createOrder(customerId: string, data: any) {
       measurementProfileId: measurement.id,
       measurementSnapshot: measurement as any,
       styleConfigId: style.id,
-      styleSnapshot: style as any,
+      styleSnapshot: fullStyleSnapshot as any,
       deliveryAddressId: address.id,
       deliveryAddressSnapshot: address as any,
       stitchingFee: pricing.stitchingFee,
