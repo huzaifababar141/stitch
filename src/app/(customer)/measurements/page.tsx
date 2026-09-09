@@ -503,31 +503,30 @@ export default function MeasurementsStudioPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 py-2 font-sans">
+    <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 py-1 sm:py-2 font-sans min-w-0 w-full">
       {/* ── Top Header Banner ── */}
-      <div className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="space-y-1.5">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 lg:p-8 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 min-w-0 w-full">
+        <div className="space-y-1.5 min-w-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-red-50 text-[#7E153A] flex items-center justify-center font-bold">
-              <Ruler size={20} />
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-red-50 text-[#7E153A] flex items-center justify-center font-bold shrink-0">
+              <Ruler size={18} className="sm:w-5 sm:h-5" />
             </div>
-            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">
               Measurement Studio
             </h1>
           </div>
           <p className="text-xs text-gray-500 max-w-xl leading-relaxed">
-            Create, manage and AI-validate your custom fitting profiles. Once
-            saved, you can apply any profile to any unstitched suit order in one
-            click.
+            Create, manage and AI-validate your custom fitting profiles. Apply
+            any profile to any unstitched suit order in one click.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-3 shrink-0">
           {/* Unit Toggle */}
-          <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200/60">
+          <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200/60 justify-center">
             <button
               onClick={() => setUnit('inches')}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-none px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 unit === 'inches'
                   ? 'bg-white text-[#7E153A] shadow-xs'
                   : 'text-gray-500 hover:text-gray-900'
@@ -537,7 +536,7 @@ export default function MeasurementsStudioPage() {
             </button>
             <button
               onClick={() => setUnit('cm')}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-none px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 unit === 'cm'
                   ? 'bg-white text-[#7E153A] shadow-xs'
                   : 'text-gray-500 hover:text-gray-900'
@@ -547,28 +546,31 @@ export default function MeasurementsStudioPage() {
             </button>
           </div>
 
-          {/* Guide Buttons */}
-          <Button
-            onClick={() => setShowHowToMeasure(true)}
-            variant="outline"
-            className="h-10 text-xs font-semibold border-gray-200 text-gray-700 hover:bg-gray-50 cursor-pointer rounded-xl"
-          >
-            <BookOpen size={14} className="mr-1.5 text-[#7E153A]" /> How to
-            Measure
-          </Button>
+          <div className="grid grid-cols-2 sm:flex items-center gap-2">
+            {/* Guide Buttons */}
+            <Button
+              onClick={() => setShowHowToMeasure(true)}
+              variant="outline"
+              className="h-9 sm:h-10 text-xs font-semibold border-gray-200 text-gray-700 hover:bg-gray-50 cursor-pointer rounded-xl px-2.5 sm:px-3.5"
+            >
+              <BookOpen size={14} className="mr-1.5 text-[#7E153A] shrink-0" />{' '}
+              How to Measure
+            </Button>
 
-          <Button
-            onClick={() => setShowSizeChart(true)}
-            variant="outline"
-            className="h-10 text-xs font-semibold border-gray-200 text-gray-700 hover:bg-gray-50 cursor-pointer rounded-xl"
-          >
-            <Sliders size={14} className="mr-1.5 text-[#7E153A]" /> Size Chart
-          </Button>
+            <Button
+              onClick={() => setShowSizeChart(true)}
+              variant="outline"
+              className="h-9 sm:h-10 text-xs font-semibold border-gray-200 text-gray-700 hover:bg-gray-50 cursor-pointer rounded-xl px-2.5 sm:px-3.5"
+            >
+              <Sliders size={14} className="mr-1.5 text-[#7E153A] shrink-0" />{' '}
+              Size Chart
+            </Button>
+          </div>
 
           {/* New Profile CTA */}
           <Button
             onClick={handleOpenCreate}
-            className="h-10 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white px-5 rounded-xl shadow-md shadow-[#7E153A]/20 transition-all cursor-pointer"
+            className="w-full sm:w-auto h-10 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white px-5 rounded-xl shadow-md shadow-[#7E153A]/20 transition-all cursor-pointer"
           >
             <Plus size={16} className="mr-1.5" /> Add New Profile
           </Button>
@@ -577,19 +579,19 @@ export default function MeasurementsStudioPage() {
 
       {/* ── Saved Profiles List ── */}
       {loading || authLoading ? (
-        <div className="bg-white rounded-3xl border border-gray-100 p-16 flex flex-col items-center justify-center text-center shadow-xs">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-12 sm:p-16 flex flex-col items-center justify-center text-center shadow-xs min-w-0 w-full">
           <Loader2 size={32} className="animate-spin text-[#7E153A] mb-3" />
-          <p className="text-sm font-medium text-gray-600">
+          <p className="text-xs sm:text-sm font-medium text-gray-600">
             Loading your measurement profiles...
           </p>
         </div>
       ) : profiles.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-gray-100 p-12 sm:p-16 flex flex-col items-center justify-center text-center shadow-xs space-y-4">
-          <div className="w-16 h-16 rounded-full bg-red-50 text-[#7E153A] flex items-center justify-center shadow-inner">
-            <Ruler size={32} />
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-8 sm:p-16 flex flex-col items-center justify-center text-center shadow-xs space-y-4 min-w-0 w-full">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-50 text-[#7E153A] flex items-center justify-center shadow-inner">
+            <Ruler size={28} className="sm:w-8 sm:h-8" />
           </div>
           <div className="space-y-1 max-w-md">
-            <h3 className="text-base font-extrabold text-gray-900">
+            <h3 className="text-sm sm:text-base font-extrabold text-gray-900">
               No Measurement Profiles Saved
             </h3>
             <p className="text-xs text-gray-500 leading-relaxed">
@@ -599,45 +601,43 @@ export default function MeasurementsStudioPage() {
           </div>
           <Button
             onClick={handleOpenCreate}
-            className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-6 h-11 rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer"
+            className="w-full sm:w-auto bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-6 h-11 rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer"
           >
             <Plus size={16} className="mr-1.5" /> Create Your First Profile
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 min-w-0 w-full">
           {profiles.map((profile) => {
             const isDefault = profile.isDefault;
             const score = profile.aiValidationScore || 96;
-            const isValidated =
-              !!profile.aiValidatedAt || !!profile.aiValidationScore;
 
             return (
               <div
                 key={profile.id}
-                className={`bg-white rounded-3xl border p-6 sm:p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-6 ${
+                className={`bg-white rounded-2xl sm:rounded-3xl border p-4 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 sm:space-y-5 min-w-0 w-full ${
                   isDefault
                     ? 'border-[#7E153A]/40 ring-2 ring-[#7E153A]/10'
                     : 'border-gray-100'
                 }`}
               >
                 {/* Profile Card Header */}
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-extrabold text-base text-gray-900">
+                <div className="space-y-3 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 min-w-0">
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-extrabold text-sm sm:text-base text-gray-900 truncate">
                           {profile.label}
                         </h3>
                         {isDefault && (
-                          <span className="bg-red-50 text-[#7E153A] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-red-100 uppercase tracking-wider flex items-center gap-1">
+                          <span className="bg-red-50 text-[#7E153A] text-[9px] sm:text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-red-100 uppercase tracking-wider flex items-center gap-1 shrink-0">
                             <Star size={10} className="fill-[#7E153A]" />{' '}
-                            Default Fit
+                            Default
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-gray-400">
-                        Profile Version v{profile.version || 1} · Last updated{' '}
+                      <p className="text-[10px] sm:text-[11px] text-gray-400">
+                        Version v{profile.version || 1} · Updated{' '}
                         {profile.updatedAt
                           ? new Date(profile.updatedAt).toLocaleDateString(
                               'en-PK',
@@ -652,8 +652,8 @@ export default function MeasurementsStudioPage() {
                     </div>
 
                     {/* AI Score Badge */}
-                    <div className="flex flex-col items-end">
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                    <div className="flex items-center sm:flex-col sm:items-end shrink-0">
+                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 sm:py-1 rounded-full flex items-center gap-1">
                         <Sparkles size={11} className="text-emerald-600" /> AI
                         Verified {score}%
                       </span>
@@ -661,90 +661,90 @@ export default function MeasurementsStudioPage() {
                   </div>
 
                   {/* Quick Spec Matrix */}
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-2 text-xs">
-                    <div className="bg-gray-50 rounded-xl p-2.5 border border-gray-100/80">
-                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                  <div className="grid grid-cols-2 min-[420px]:grid-cols-4 gap-1.5 sm:gap-2 pt-1 text-xs">
+                    <div className="bg-gray-50 rounded-xl p-2 sm:p-2.5 border border-gray-100/80">
+                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider truncate">
                         Kameez L.
                       </span>
-                      <span className="font-extrabold text-gray-900 font-mono text-sm mt-0.5 block">
+                      <span className="font-extrabold text-gray-900 font-mono text-xs sm:text-sm mt-0.5 block truncate">
                         {displayVal(profile.kameezLength)}
                       </span>
                     </div>
 
-                    <div className="bg-gray-50 rounded-xl p-2.5 border border-gray-100/80">
-                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                    <div className="bg-gray-50 rounded-xl p-2 sm:p-2.5 border border-gray-100/80">
+                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider truncate">
                         Chest / Bust
                       </span>
-                      <span className="font-extrabold text-gray-900 font-mono text-sm mt-0.5 block">
+                      <span className="font-extrabold text-gray-900 font-mono text-xs sm:text-sm mt-0.5 block truncate">
                         {displayVal(profile.chest)}
                       </span>
                     </div>
 
-                    <div className="bg-gray-50 rounded-xl p-2.5 border border-gray-100/80">
-                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                    <div className="bg-gray-50 rounded-xl p-2 sm:p-2.5 border border-gray-100/80">
+                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider truncate">
                         Waist
                       </span>
-                      <span className="font-extrabold text-gray-900 font-mono text-sm mt-0.5 block">
+                      <span className="font-extrabold text-gray-900 font-mono text-xs sm:text-sm mt-0.5 block truncate">
                         {displayVal(profile.waist)}
                       </span>
                     </div>
 
-                    <div className="bg-gray-50 rounded-xl p-2.5 border border-gray-100/80">
-                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                    <div className="bg-gray-50 rounded-xl p-2 sm:p-2.5 border border-gray-100/80">
+                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider truncate">
                         Hips
                       </span>
-                      <span className="font-extrabold text-gray-900 font-mono text-sm mt-0.5 block">
+                      <span className="font-extrabold text-gray-900 font-mono text-xs sm:text-sm mt-0.5 block truncate">
                         {displayVal(profile.hips)}
                       </span>
                     </div>
 
-                    <div className="bg-gray-50 rounded-xl p-2.5 border border-gray-100/80">
-                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                    <div className="bg-gray-50 rounded-xl p-2 sm:p-2.5 border border-gray-100/80">
+                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider truncate">
                         Shoulder
                       </span>
-                      <span className="font-extrabold text-gray-900 font-mono text-sm mt-0.5 block">
+                      <span className="font-extrabold text-gray-900 font-mono text-xs sm:text-sm mt-0.5 block truncate">
                         {displayVal(profile.shoulderWidth)}
                       </span>
                     </div>
 
-                    <div className="bg-gray-50 rounded-xl p-2.5 border border-gray-100/80">
-                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                    <div className="bg-gray-50 rounded-xl p-2 sm:p-2.5 border border-gray-100/80">
+                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider truncate">
                         Sleeve
                       </span>
-                      <span className="font-extrabold text-gray-900 font-mono text-sm mt-0.5 block">
+                      <span className="font-extrabold text-gray-900 font-mono text-xs sm:text-sm mt-0.5 block truncate">
                         {displayVal(profile.sleeveLength)}
                       </span>
                     </div>
 
-                    <div className="bg-gray-50 rounded-xl p-2.5 border border-gray-100/80">
-                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                    <div className="bg-gray-50 rounded-xl p-2 sm:p-2.5 border border-gray-100/80">
+                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider truncate">
                         Trouser L.
                       </span>
-                      <span className="font-extrabold text-gray-900 font-mono text-sm mt-0.5 block">
+                      <span className="font-extrabold text-gray-900 font-mono text-xs sm:text-sm mt-0.5 block truncate">
                         {displayVal(profile.trouserLength)}
                       </span>
                     </div>
 
-                    <div className="bg-gray-50 rounded-xl p-2.5 border border-gray-100/80">
-                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider">
+                    <div className="bg-gray-50 rounded-xl p-2 sm:p-2.5 border border-gray-100/80">
+                      <span className="text-[9px] uppercase font-bold text-gray-400 block tracking-wider truncate">
                         Ankle (Paicha)
                       </span>
-                      <span className="font-extrabold text-gray-900 font-mono text-sm mt-0.5 block">
+                      <span className="font-extrabold text-gray-900 font-mono text-xs sm:text-sm mt-0.5 block truncate">
                         {displayVal(profile.ankle)}
                       </span>
                     </div>
                   </div>
 
                   {profile.notes && (
-                    <p className="text-xs text-gray-500 bg-red-50/40 border border-red-100/60 p-3 rounded-xl leading-relaxed italic">
+                    <p className="text-[11px] sm:text-xs text-gray-500 bg-red-50/40 border border-red-100/60 p-2.5 sm:p-3 rounded-xl leading-relaxed italic">
                       &quot;{profile.notes}&quot;
                     </p>
                   )}
                 </div>
 
                 {/* Card Action Controls */}
-                <div className="border-t border-gray-100 pt-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
+                <div className="border-t border-gray-100 pt-3 sm:pt-4 flex flex-wrap items-center justify-between gap-2 min-w-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     {!isDefault && (
                       <Button
                         onClick={() =>
@@ -752,10 +752,13 @@ export default function MeasurementsStudioPage() {
                         }
                         variant="ghost"
                         size="sm"
-                        className="h-8 text-xs font-semibold text-gray-600 hover:text-[#7E153A] hover:bg-red-50 cursor-pointer rounded-lg"
+                        className="h-8 text-[11px] sm:text-xs font-semibold text-gray-600 hover:text-[#7E153A] hover:bg-red-50 cursor-pointer rounded-lg px-2 sm:px-2.5"
                       >
-                        <Star size={13} className="mr-1 text-amber-500" /> Set
-                        Default
+                        <Star
+                          size={12}
+                          className="mr-1 text-amber-500 shrink-0"
+                        />{' '}
+                        Set Default
                       </Button>
                     )}
 
@@ -764,15 +767,18 @@ export default function MeasurementsStudioPage() {
                       disabled={validatingAI === profile.id}
                       variant="ghost"
                       size="sm"
-                      className="h-8 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 cursor-pointer rounded-lg"
+                      className="h-8 text-[11px] sm:text-xs font-semibold text-emerald-700 hover:bg-emerald-50 cursor-pointer rounded-lg px-2 sm:px-2.5"
                     >
                       {validatingAI === profile.id ? (
                         <Loader2
-                          size={13}
-                          className="animate-spin mr-1 text-emerald-600"
+                          size={12}
+                          className="animate-spin mr-1 text-emerald-600 shrink-0"
                         />
                       ) : (
-                        <Sparkles size={13} className="mr-1 text-emerald-600" />
+                        <Sparkles
+                          size={12}
+                          className="mr-1 text-emerald-600 shrink-0"
+                        />
                       )}
                       Check AI Fit
                     </Button>
@@ -786,7 +792,7 @@ export default function MeasurementsStudioPage() {
                       className="h-8 w-8 p-0 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg cursor-pointer"
                       title="Duplicate profile"
                     >
-                      <Copy size={14} />
+                      <Copy size={13} />
                     </Button>
 
                     <Button
@@ -796,7 +802,7 @@ export default function MeasurementsStudioPage() {
                       className="h-8 w-8 p-0 text-gray-500 hover:text-[#7E153A] hover:bg-red-50 rounded-lg cursor-pointer"
                       title="Edit profile"
                     >
-                      <Edit2 size={14} />
+                      <Edit2 size={13} />
                     </Button>
 
                     <Button
@@ -808,7 +814,7 @@ export default function MeasurementsStudioPage() {
                       className="h-8 w-8 p-0 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
                       title="Delete profile"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={13} />
                     </Button>
                   </div>
                 </div>
@@ -820,12 +826,12 @@ export default function MeasurementsStudioPage() {
 
       {/* ── Studio Modal (Create / Edit Profile) ── */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-4xl w-full my-8 p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] flex flex-col justify-between">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-4xl w-full my-4 sm:my-8 p-4 sm:p-6 lg:p-8 shadow-2xl space-y-4 sm:space-y-6 max-h-[92vh] flex flex-col justify-between overflow-hidden">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 sm:pb-4 shrink-0">
               <div className="space-y-0.5">
-                <h2 className="text-xl font-extrabold text-gray-900">
+                <h2 className="text-base sm:text-xl font-extrabold text-gray-900">
                   {editingProfile
                     ? 'Edit Measurement Profile'
                     : 'New Measurement Studio Profile'}
@@ -848,11 +854,11 @@ export default function MeasurementsStudioPage() {
             <form
               id="profileForm"
               onSubmit={handleSaveProfile}
-              className="flex-1 overflow-y-auto px-2 py-1 pr-3 space-y-6"
+              className="flex-1 overflow-y-auto px-1 py-1 space-y-4 sm:space-y-6"
             >
               {/* Profile Label & Default Toggle */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                <div className="sm:col-span-2 space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 items-end bg-gray-50 p-3.5 sm:p-4 rounded-2xl border border-gray-100">
+                <div className="sm:col-span-2 space-y-1">
                   <label className="text-xs font-bold text-gray-700">
                     Profile Label / Name
                   </label>
@@ -866,7 +872,7 @@ export default function MeasurementsStudioPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-2 pb-2">
+                <div className="flex items-center gap-2 pb-1.5 sm:pb-2">
                   <input
                     type="checkbox"
                     id="isDefaultCheckbox"
@@ -889,17 +895,17 @@ export default function MeasurementsStudioPage() {
                   <span className="text-xs font-bold text-gray-700">
                     Load Standard Pakistani Size Preset:
                   </span>
-                  <span className="text-[11px] text-gray-400">
-                    Click any size to prefill
+                  <span className="text-[10px] sm:text-[11px] text-gray-400">
+                    Tap to prefill
                   </span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2">
                   {Object.entries(STANDARD_PRESETS).map(([key, preset]) => (
                     <button
                       key={key}
                       type="button"
                       onClick={() => handleApplyPreset(key)}
-                      className="p-2 bg-gray-50 hover:bg-red-50 hover:border-[#7E153A]/40 border border-gray-200 rounded-xl text-center transition-all cursor-pointer"
+                      className="p-1.5 sm:p-2 bg-gray-50 hover:bg-red-50 hover:border-[#7E153A]/40 border border-gray-200 rounded-xl text-center transition-all cursor-pointer"
                     >
                       <span className="text-xs font-extrabold text-[#7E153A] uppercase block">
                         {key.toUpperCase()}
@@ -913,48 +919,50 @@ export default function MeasurementsStudioPage() {
               </div>
 
               {/* Category Tabs */}
-              <div className="flex bg-gray-100 p-1 rounded-xl w-max">
-                <button
-                  type="button"
-                  onClick={() => setFormCategory('upper')}
-                  className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                    formCategory === 'upper'
-                      ? 'bg-white text-[#7E153A] shadow-xs'
-                      : 'text-gray-500 hover:text-gray-900'
-                  }`}
-                >
-                  <Scissors size={14} /> Upper Body (Kameez / Shirt)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormCategory('lower')}
-                  className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                    formCategory === 'lower'
-                      ? 'bg-white text-[#7E153A] shadow-xs'
-                      : 'text-gray-500 hover:text-gray-900'
-                  }`}
-                >
-                  <Ruler size={14} /> Lower Body (Trouser / Shalwar)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormCategory('notes')}
-                  className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                    formCategory === 'notes'
-                      ? 'bg-white text-[#7E153A] shadow-xs'
-                      : 'text-gray-500 hover:text-gray-900'
-                  }`}
-                >
-                  <FileText size={14} /> Fitting Notes
-                </button>
+              <div className="w-full overflow-x-auto scrollbar-none pb-1">
+                <div className="inline-flex bg-gray-100 p-1 rounded-xl gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setFormCategory('upper')}
+                    className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                      formCategory === 'upper'
+                        ? 'bg-white text-[#7E153A] shadow-xs'
+                        : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                  >
+                    <Scissors size={14} /> Upper (Kameez / Shirt)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormCategory('lower')}
+                    className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                      formCategory === 'lower'
+                        ? 'bg-white text-[#7E153A] shadow-xs'
+                        : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                  >
+                    <Ruler size={14} /> Lower (Trouser / Shalwar)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormCategory('notes')}
+                    className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                      formCategory === 'notes'
+                        ? 'bg-white text-[#7E153A] shadow-xs'
+                        : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                  >
+                    <FileText size={14} /> Fitting Notes
+                  </button>
+                </div>
               </div>
 
               {/* Grid: Inputs + Body Diagram */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Inputs Column (2 Cols) */}
-                <div className="md:col-span-2 space-y-4">
+                <div className="lg:col-span-2 space-y-3 sm:space-y-4">
                   {formCategory === 'upper' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 text-xs">
                       {[
                         {
                           key: 'kameezLength',
@@ -963,17 +971,17 @@ export default function MeasurementsStudioPage() {
                         },
                         {
                           key: 'chest',
-                          label: 'Chest / Bust Circumference',
+                          label: 'Chest / Bust',
                           defaultVal: '38',
                         },
                         {
                           key: 'waist',
-                          label: 'Waist Circumference',
+                          label: 'Waist',
                           defaultVal: '32',
                         },
                         {
                           key: 'hips',
-                          label: 'Hips Circumference',
+                          label: 'Hips',
                           defaultVal: '40',
                         },
                         {
@@ -989,7 +997,7 @@ export default function MeasurementsStudioPage() {
                         { key: 'armhole', label: 'Armhole', defaultVal: '8.5' },
                         {
                           key: 'neckCircumference',
-                          label: 'Neck Circumference',
+                          label: 'Neck / Gala Circumference',
                           defaultVal: '15',
                         },
                         {
@@ -1010,7 +1018,7 @@ export default function MeasurementsStudioPage() {
                       ].map((field) => (
                         <div
                           key={field.key}
-                          className={`p-3.5 rounded-2xl border transition-all ${
+                          className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all ${
                             activeField === field.key
                               ? 'bg-red-50/50 border-[#7E153A] border-2 shadow-xs shadow-[#7E153A]/10'
                               : 'bg-white border-gray-200 hover:border-gray-300'
@@ -1042,7 +1050,7 @@ export default function MeasurementsStudioPage() {
                   )}
 
                   {formCategory === 'lower' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 text-xs">
                       {[
                         {
                           key: 'trouserLength',
@@ -1082,7 +1090,7 @@ export default function MeasurementsStudioPage() {
                       ].map((field) => (
                         <div
                           key={field.key}
-                          className={`p-3.5 rounded-2xl border transition-all ${
+                          className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all ${
                             activeField === field.key
                               ? 'bg-red-50/50 border-[#7E153A] border-2 shadow-xs shadow-[#7E153A]/10'
                               : 'bg-white border-gray-200 hover:border-gray-300'
@@ -1114,26 +1122,26 @@ export default function MeasurementsStudioPage() {
                   )}
 
                   {formCategory === 'notes' && (
-                    <div className="space-y-4">
-                      <div className="space-y-2">
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="space-y-1.5">
                         <label className="text-xs font-bold text-gray-700">
                           Custom Tailoring & Fitting Instructions
                         </label>
                         <textarea
-                          rows={5}
+                          rows={4}
                           placeholder="e.g. Please leave 2 inches extra fabric inside seams for future alterations. I prefer straight-cut daman and loose sleeves."
                           value={formNotes}
                           onChange={(e) => setFormNotes(e.target.value)}
-                          className="w-full text-xs p-4 rounded-2xl border border-gray-200 focus:outline-hidden focus:border-[#7E153A] focus:ring-1 focus:ring-[#7E153A] text-gray-900 leading-relaxed"
+                          className="w-full text-xs p-3.5 sm:p-4 rounded-2xl border border-gray-200 focus:outline-hidden focus:border-[#7E153A] focus:ring-1 focus:ring-[#7E153A] text-gray-900 leading-relaxed"
                         />
                       </div>
 
-                      <div className="bg-red-50/60 p-4 rounded-2xl border border-red-100 flex items-start gap-3 text-xs text-gray-700">
+                      <div className="bg-red-50/60 p-3 sm:p-4 rounded-2xl border border-red-100 flex items-start gap-2.5 text-xs text-gray-700">
                         <Info
                           size={16}
                           className="text-[#7E153A] shrink-0 mt-0.5"
                         />
-                        <p className="leading-relaxed">
+                        <p className="leading-relaxed text-[11px] sm:text-xs">
                           These notes will be displayed directly on the Master
                           Tailor’s stitching job card for all orders assigned
                           with this profile.
@@ -1144,11 +1152,13 @@ export default function MeasurementsStudioPage() {
                 </div>
 
                 {/* Body Diagram Column (1 Col) */}
-                <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
+                <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-2">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400">
                     Live Visual Locator
                   </span>
-                  <BodyDiagram activeField={activeField} />
+                  <div className="max-h-[180px] sm:max-h-[220px] flex items-center justify-center">
+                    <BodyDiagram activeField={activeField} />
+                  </div>
                   <div className="text-center">
                     <span className="text-xs font-bold text-[#7E153A] capitalize block">
                       Active: {activeField.replace(/([A-Z])/g, ' $1')}
@@ -1162,12 +1172,12 @@ export default function MeasurementsStudioPage() {
             </form>
 
             {/* Modal Footer Controls */}
-            <div className="border-t border-gray-100 pt-4 flex items-center justify-between gap-3">
+            <div className="border-t border-gray-100 pt-3 sm:pt-4 flex flex-col-reverse sm:flex-row items-center justify-between gap-2.5 shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsModalOpen(false)}
-                className="h-11 px-6 rounded-xl text-xs font-semibold cursor-pointer"
+                className="w-full sm:w-auto h-10 sm:h-11 px-6 rounded-xl text-xs font-semibold cursor-pointer"
               >
                 Cancel
               </Button>
@@ -1176,7 +1186,7 @@ export default function MeasurementsStudioPage() {
                 type="submit"
                 form="profileForm"
                 disabled={saving}
-                className="h-11 px-8 rounded-xl text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white shadow-md shadow-[#7E153A]/20 cursor-pointer"
+                className="w-full sm:w-auto h-10 sm:h-11 px-8 rounded-xl text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white shadow-md shadow-[#7E153A]/20 cursor-pointer"
               >
                 {saving ? (
                   <>
