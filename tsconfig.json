@@ -20,7 +20,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["jest", "node"],
+    "types": ["jest", "node", "react"],
     "target": "ES2022"
   },
   "include": [

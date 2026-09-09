@@ -12,7 +12,8 @@ function genOrderNum() {
 export async function calculateTotal(
   garmentType: GarmentType,
   deliveryCity: string,
-  couponCode?: string
+  couponCode?: string,
+  customerId?: string
 ) {
   // Read system settings for pricing or use standard defaults
   const basePrices: Record<string, number> = {
@@ -41,10 +42,12 @@ export async function calculateTotal(
 
   let discountAmount = 0;
   let couponId = null;
+  let referrerId = null;
 
   if (couponCode) {
+    const formattedCode = couponCode.trim().toUpperCase();
     const coupon = await prisma.coupon.findUnique({
-      where: { code: couponCode },
+      where: { code: formattedCode },
     });
     const now = new Date();
     const isValidDate = !coupon?.validUntil || now < coupon.validUntil;
@@ -54,11 +57,30 @@ export async function calculateTotal(
     if (coupon && coupon.isActive && isValidDate && isUnderLimit) {
       if (coupon.discountType === 'percentage') {
         discountAmount = (stitchingFee * Number(coupon.discountValue)) / 100;
+        if (coupon.maxDiscountAmount) {
+          discountAmount = Math.min(
+            discountAmount,
+            Number(coupon.maxDiscountAmount)
+          );
+        }
       } else {
         discountAmount = Number(coupon.discountValue);
       }
       discountAmount = Math.min(discountAmount, stitchingFee);
       couponId = coupon.id;
+    } else if (formattedCode === 'FIRST500') {
+      discountAmount = 500;
+    } else if (formattedCode === 'STITCH10') {
+      discountAmount = Math.round(stitchingFee * 0.1);
+    } else {
+      // Check if it is a friend's referral code
+      const referrerUser = await prisma.user.findUnique({
+        where: { referralCode: formattedCode },
+      });
+      if (referrerUser && referrerUser.id !== customerId) {
+        discountAmount = 500;
+        referrerId = referrerUser.id;
+      }
     }
   }
 
@@ -71,6 +93,7 @@ export async function calculateTotal(
     discountAmount,
     totalAmount,
     couponId,
+    referrerId,
   };
 }
 
@@ -223,7 +246,8 @@ export async function createOrder(customerId: string, data: any) {
   const pricing = await calculateTotal(
     data.garmentType,
     address.city,
-    data.couponCode
+    data.couponCode,
+    customerId
   );
   const orderNumber = genOrderNum();
 
@@ -275,6 +299,45 @@ export async function createOrder(customerId: string, data: any) {
     await prisma.coupon.update({
       where: { id: pricing.couponId },
       data: { usedCount: { increment: 1 } },
+    });
+  }
+
+  if (pricing.referrerId) {
+    // Record referral in database
+    await prisma.referral.upsert({
+      where: { refereeId: customerId },
+      update: {
+        qualifyingOrderId: order.id,
+        rewardAmount: 500,
+        rewardGiven: true,
+        rewardGivenAt: new Date(),
+      },
+      create: {
+        referrerId: pricing.referrerId,
+        refereeId: customerId,
+        referralCode: data.couponCode.trim().toUpperCase(),
+        qualifyingOrderId: order.id,
+        rewardAmount: 500,
+        rewardGiven: true,
+        rewardGivenAt: new Date(),
+      },
+    });
+
+    // Award tailoring credit to referrer metadata
+    const referrer = await prisma.user.findUnique({
+      where: { id: pricing.referrerId },
+      select: { metadata: true },
+    });
+    const meta = (referrer?.metadata as Record<string, any>) || {};
+    const currentCredit = Number(meta.referralCredit || 0);
+    await prisma.user.update({
+      where: { id: pricing.referrerId },
+      data: {
+        metadata: {
+          ...meta,
+          referralCredit: currentCredit + 500,
+        },
+      },
     });
   }
 

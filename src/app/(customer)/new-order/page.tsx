@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   Link2,
@@ -61,10 +61,11 @@ const STITCHING_TIERS = [
   },
 ];
 
-// ─── Main New Order Page Component ──────────────────────────────────────────
+// ─── Main New Order Wizard Content ──────────────────────────────────────────
 
-export default function NewOrderPage() {
+function NewOrderContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -235,6 +236,58 @@ export default function NewOrderPage() {
     loadUserData();
   }, [loadUserData]);
 
+  // Load URL query parameters (e.g. from Wishlist "Stitch This", Designs "Apply to Order", etc.)
+  useEffect(() => {
+    const urlParam = searchParams.get('productUrl');
+    const styleConfigIdParam = searchParams.get('styleConfigId');
+    const titleParam = searchParams.get('title');
+    const brandParam = searchParams.get('brand');
+    const priceParam = searchParams.get('price');
+    const genderParam = searchParams.get('gender');
+
+    if (urlParam) {
+      setProductUrl(urlParam);
+    }
+    if (titleParam) {
+      setManualTitle(titleParam);
+    }
+    if (brandParam) {
+      setManualBrand(brandParam);
+    }
+    if (priceParam && !isNaN(Number(priceParam))) {
+      setManualPrice(Number(priceParam));
+    }
+    if (genderParam === 'male' || genderParam === 'female') {
+      handleGenderChange(genderParam);
+    }
+
+    if (styleConfigIdParam) {
+      fetch(`/api/designs/${styleConfigIdParam}`)
+        .then((res) => res.json())
+        .then((data) => {
+          const style = data.data || data;
+          if (style) {
+            if (style.gender) handleGenderChange(style.gender);
+            if (style.stitchingTier) setStitchingTier(style.stitchingTier);
+            if (style.neckStyle) setNeckStyle(style.neckStyle);
+            if (style.collarStyle) setCollarStyle(style.collarStyle);
+            if (style.sleeveStyle) setSleeveStyle(style.sleeveStyle);
+            if (style.pocketStyle) setPocketStyle(style.pocketStyle);
+            if (style.damanStyle) setDamanStyle(style.damanStyle);
+            if (style.trouserStyle) setTrouserStyle(style.trouserStyle);
+            if (style.fitType) setFitType(style.fitType);
+            if (style.specialInstructions)
+              setSpecialInstructions(style.specialInstructions);
+            toast({
+              title: 'Design Preset Loaded',
+              description: `Applied styles from "${style.label || 'Saved Design'}"`,
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [searchParams]);
+
   // ── Validation Guards for Each Step ──
 
   const validateStep1 = (): boolean => {
@@ -306,6 +359,9 @@ export default function NewOrderPage() {
   };
 
   const validateStep3 = (): boolean => {
+    if (selectedProfileId === 'sample_suit') {
+      return true;
+    }
     if (selectedProfileId && selectedProfileId !== 'custom') {
       const exists = savedProfiles.some((p) => p.id === selectedProfileId);
       if (exists) return true;
@@ -480,31 +536,45 @@ export default function NewOrderPage() {
   const grandTotal =
     suitFabricPrice + stitchingFee + deliveryFee - discountApplied;
 
-  // Apply Promo Coupon
+  // Apply Promo / Referral Coupon via Backend API
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
     setApplyingCoupon(true);
     try {
-      if (couponCode.toUpperCase() === 'FIRST500') {
-        setDiscountApplied(500);
+      const res = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCode.trim(),
+          stitchingFee,
+        }),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.data?.valid) {
+        setDiscountApplied(json.data.discountAmount);
         toast({
-          title: 'Coupon Applied',
-          description: 'PKR 500 discount added to your order.',
-        });
-      } else if (couponCode.toUpperCase() === 'STITCH10') {
-        const disc = Math.round(stitchingFee * 0.1);
-        setDiscountApplied(disc);
-        toast({
-          title: 'Coupon Applied',
-          description: `10% stitching discount (-PKR ${disc}) applied.`,
+          title: 'Discount Applied',
+          description:
+            json.data.message ||
+            `PKR ${json.data.discountAmount} discount applied to your order.`,
         });
       } else {
+        setDiscountApplied(0);
         toast({
-          title: 'Invalid Coupon Code',
-          description: 'Please check your promo code and try again.',
+          title: 'Invalid Code',
+          description:
+            json.error?.message ||
+            'Could not validate this promo or referral code.',
           variant: 'destructive',
         });
       }
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: 'Failed to validate coupon with server.',
+        variant: 'destructive',
+      });
     } finally {
       setApplyingCoupon(false);
     }
@@ -559,7 +629,13 @@ export default function NewOrderPage() {
       };
 
       // 3. Measurement Profile
-      if (selectedProfileId && selectedProfileId !== 'custom') {
+      if (selectedProfileId === 'sample_suit') {
+        payload.customMeasurements = {
+          mode: 'sample_suit_pickup',
+          instructions:
+            'Rider will collect physical sample suit for measurement copying',
+        };
+      } else if (selectedProfileId && selectedProfileId !== 'custom') {
         payload.measurementProfileId = selectedProfileId;
       } else {
         payload.customMeasurements = measurements;
@@ -1317,160 +1393,285 @@ export default function NewOrderPage() {
             </p>
           </div>
 
-          {/* Saved Profiles Selector */}
-          {savedProfiles.length > 0 && (
-            <div className="space-y-3">
-              <label className="text-xs font-bold text-gray-700 block">
-                Select Measurement Profile{' '}
-                <span className="text-[#7E153A]">*</span>
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {savedProfiles.map((p) => {
-                  const isSelected = selectedProfileId === p.id;
-                  return (
-                    <div
-                      key={p.id}
-                      onClick={() => setSelectedProfileId(p.id)}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
-                        isSelected
-                          ? 'border-[#7E153A] bg-red-50/40 ring-2 ring-[#7E153A]/10'
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-extrabold text-sm text-gray-900">
-                          {p.label}
-                        </h4>
-                        {p.isDefault && (
-                          <span className="bg-red-50 text-[#7E153A] text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-red-100 uppercase">
-                            Default
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-gray-500">
-                        Kameez: {p.kameezLength}&quot; · Chest: {p.chest}&quot;
-                        · Waist: {p.waist}&quot; · Trouser: {p.trouserLength}
-                        &quot;
-                      </p>
-                    </div>
-                  );
-                })}
-
-                <div
-                  onClick={() => setSelectedProfileId('custom')}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                    selectedProfileId === 'custom'
-                      ? 'border-[#7E153A] bg-red-50/40 ring-2 ring-[#7E153A]/10'
-                      : 'border-dashed border-gray-300 hover:border-gray-400 bg-gray-50/50'
-                  }`}
-                >
-                  <Plus size={16} className="text-[#7E153A]" />
-                  <span className="text-xs font-bold text-gray-700">
-                    Enter Custom Measurements
+          {/* 3 Measurement Modes */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                const def =
+                  savedProfiles.find((p) => p.isDefault) || savedProfiles[0];
+                if (def) setSelectedProfileId(def.id);
+                else setSelectedProfileId('custom');
+              }}
+              className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                selectedProfileId &&
+                selectedProfileId !== 'custom' &&
+                selectedProfileId !== 'sample_suit'
+                  ? 'border-[#7E153A] bg-red-50/40 ring-2 ring-[#7E153A]/10'
+                  : 'border-gray-200 bg-white hover:border-gray-300'
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Ruler size={20} className="text-[#7E153A]" />
+                  <span className="text-[10px] uppercase font-bold text-gray-400">
+                    Saved Size
                   </span>
+                </div>
+                <h4 className="text-xs font-extrabold text-gray-900">
+                  Saved Fit Profile
+                </h4>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Use your pre-saved digital measurements.
+                </p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedProfileId('sample_suit')}
+              className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                selectedProfileId === 'sample_suit'
+                  ? 'border-[#7E153A] bg-red-50/40 ring-2 ring-[#7E153A]/10'
+                  : 'border-gray-200 bg-white hover:border-gray-300'
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Truck size={20} className="text-[#7E153A]" />
+                  <span className="text-[10px] uppercase font-extrabold text-[#7E153A] bg-red-100 px-2 py-0.5 rounded-full">
+                    Most Popular
+                  </span>
+                </div>
+                <h4 className="text-xs font-extrabold text-gray-900">
+                  Send Sample Suit
+                </h4>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Rider collects your fitted sample suit for copy.
+                </p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedProfileId('custom')}
+              className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                selectedProfileId === 'custom'
+                  ? 'border-[#7E153A] bg-red-50/40 ring-2 ring-[#7E153A]/10'
+                  : 'border-gray-200 bg-white hover:border-gray-300'
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Sliders size={20} className="text-[#7E153A]" />
+                  <span className="text-[10px] uppercase font-bold text-gray-400">
+                    Studio
+                  </span>
+                </div>
+                <h4 className="text-xs font-extrabold text-gray-900">
+                  Custom Studio
+                </h4>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Enter manual dimensions in cm or inches.
+                </p>
+              </div>
+            </button>
+          </div>
+
+          {/* Sample Suit Reassurance Banner */}
+          {selectedProfileId === 'sample_suit' && (
+            <div className="bg-gradient-to-r from-red-50 via-pink-50/40 to-red-50 border border-red-100 rounded-3xl p-6 sm:p-8 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#7E153A] text-white flex items-center justify-center shadow-md shadow-[#7E153A]/20 shrink-0">
+                  <Truck size={24} />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-gray-900">
+                    Doorstep Sample Suit Pickup Selected
+                  </h3>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    No measuring tape required! Our master tailor will copy the
+                    exact fit of your favorite suit.
+                  </p>
                 </div>
               </div>
 
-              {/* Selected Profile Detailed Specs Banner */}
-              {selectedProfileId && selectedProfileId !== 'custom' && (
-                <div className="bg-red-50/40 border border-red-100 rounded-2xl p-4 sm:p-5 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs font-bold text-[#7E153A]">
-                      <Ruler size={16} />
-                      <span>
-                        Attached Fit Profile:{' '}
-                        <span className="underline font-extrabold">
-                          {savedProfiles.find((p) => p.id === selectedProfileId)
-                            ?.label || 'Selected Profile'}
-                        </span>
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-white px-2.5 py-1 rounded-full text-[#7E153A] border border-red-100">
-                      Auto-Attached to Order
-                    </span>
-                  </div>
-
-                  {(() => {
-                    const prof = savedProfiles.find(
-                      (p) => p.id === selectedProfileId
-                    );
-                    if (!prof) return null;
-                    return (
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Kameez Length
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.kameezLength}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Chest / Bust
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.chest}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Waist
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.waist}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Hips / Seat
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.hips}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Shoulder Width
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.shoulderWidth}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Sleeve Length
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.sleeveLength}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Trouser Length
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.trouserLength}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Ankle Opening
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.ankle}&quot;
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })()}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
+                <div className="bg-white p-4 rounded-2xl border border-red-100/70 space-y-1">
+                  <span className="font-bold text-[#7E153A] block">
+                    1. Pack Suit & Fabric
+                  </span>
+                  <p className="text-gray-500 text-[11px] leading-relaxed">
+                    Place your fitted sample suit along with your unstitched
+                    fabric into one bag.
+                  </p>
                 </div>
-              )}
+                <div className="bg-white p-4 rounded-2xl border border-red-100/70 space-y-1">
+                  <span className="font-bold text-[#7E153A] block">
+                    2. Courier Rider Pickup
+                  </span>
+                  <p className="text-gray-500 text-[11px] leading-relaxed">
+                    Our courier rider will collect the package from your
+                    doorstep.
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-red-100/70 space-y-1">
+                  <span className="font-bold text-[#7E153A] block">
+                    3. Exact Copy Tailored
+                  </span>
+                  <p className="text-gray-500 text-[11px] leading-relaxed">
+                    Tailor precisely matches all dimensions and returns both
+                    suits safely back to you.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Custom Studio Inputs Grid (when custom selected or no profile) */}
-          {(selectedProfileId === 'custom' || savedProfiles.length === 0) && (
+          {/* Saved Profiles Selector */}
+          {selectedProfileId !== 'sample_suit' &&
+            selectedProfileId !== 'custom' &&
+            savedProfiles.length > 0 && (
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-gray-700 block">
+                  Choose Saved Measurement Profile{' '}
+                  <span className="text-[#7E153A]">*</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {savedProfiles.map((p) => {
+                    const isSelected = selectedProfileId === p.id;
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => setSelectedProfileId(p.id)}
+                        className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
+                          isSelected
+                            ? 'border-[#7E153A] bg-red-50/40 ring-2 ring-[#7E153A]/10'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-extrabold text-sm text-gray-900">
+                            {p.label}
+                          </h4>
+                          {p.isDefault && (
+                            <span className="bg-red-50 text-[#7E153A] text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-red-100 uppercase">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-gray-500">
+                          Kameez: {p.kameezLength}&quot; · Chest: {p.chest}
+                          &quot; · Waist: {p.waist}&quot; · Trouser:{' '}
+                          {p.trouserLength}
+                          &quot;
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Selected Profile Detailed Specs Banner */}
+                {selectedProfileId && selectedProfileId !== 'custom' && (
+                  <div className="bg-red-50/40 border border-red-100 rounded-2xl p-4 sm:p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-bold text-[#7E153A]">
+                        <Ruler size={16} />
+                        <span>
+                          Attached Fit Profile:{' '}
+                          <span className="underline font-extrabold">
+                            {savedProfiles.find(
+                              (p) => p.id === selectedProfileId
+                            )?.label || 'Selected Profile'}
+                          </span>
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-white px-2.5 py-1 rounded-full text-[#7E153A] border border-red-100">
+                        Auto-Attached to Order
+                      </span>
+                    </div>
+
+                    {(() => {
+                      const prof = savedProfiles.find(
+                        (p) => p.id === selectedProfileId
+                      );
+                      if (!prof) return null;
+                      return (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                              Kameez Length
+                            </span>
+                            <span className="font-extrabold text-gray-900 font-mono">
+                              {prof.kameezLength}&quot;
+                            </span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                              Chest / Bust
+                            </span>
+                            <span className="font-extrabold text-gray-900 font-mono">
+                              {prof.chest}&quot;
+                            </span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                              Waist
+                            </span>
+                            <span className="font-extrabold text-gray-900 font-mono">
+                              {prof.waist}&quot;
+                            </span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                              Hips / Seat
+                            </span>
+                            <span className="font-extrabold text-gray-900 font-mono">
+                              {prof.hips}&quot;
+                            </span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                              Shoulder Width
+                            </span>
+                            <span className="font-extrabold text-gray-900 font-mono">
+                              {prof.shoulderWidth}&quot;
+                            </span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                              Sleeve Length
+                            </span>
+                            <span className="font-extrabold text-gray-900 font-mono">
+                              {prof.sleeveLength}&quot;
+                            </span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                              Trouser Length
+                            </span>
+                            <span className="font-extrabold text-gray-900 font-mono">
+                              {prof.trouserLength}&quot;
+                            </span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                              Ankle Opening
+                            </span>
+                            <span className="font-extrabold text-gray-900 font-mono">
+                              {prof.ankle}&quot;
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+            )}
+
+          {/* Custom Studio Inputs Grid (when custom selected) */}
+          {selectedProfileId === 'custom' && (
             <div className="border border-gray-100 rounded-2xl p-6 bg-gray-50/50 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex bg-gray-100 p-1 rounded-xl">
@@ -1999,6 +2200,27 @@ export default function NewOrderPage() {
 
               <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-1.5">
                 <span className="text-[10px] uppercase font-bold text-gray-400">
+                  Fitting & Measurements
+                </span>
+                <p className="font-semibold text-gray-900">
+                  {selectedProfileId === 'sample_suit'
+                    ? 'Sample Suit Pickup'
+                    : selectedProfileId && selectedProfileId !== 'custom'
+                      ? savedProfiles.find((p) => p.id === selectedProfileId)
+                          ?.label || 'Saved Profile'
+                      : 'Custom Measurement Studio'}
+                </p>
+                <p className="text-gray-500">
+                  {selectedProfileId === 'sample_suit'
+                    ? 'Rider will collect fitted suit from doorstep'
+                    : selectedProfileId && selectedProfileId !== 'custom'
+                      ? 'Pre-saved tailoring dimensions'
+                      : 'Custom entered inches / cm'}
+                </p>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-1.5">
+                <span className="text-[10px] uppercase font-bold text-gray-400">
                   Delivery Destination
                 </span>
                 <p className="font-semibold text-gray-900">
@@ -2151,5 +2373,20 @@ export default function NewOrderPage() {
         onClose={() => setShowHowToMeasure(false)}
       />
     </div>
+  );
+}
+
+export default function NewOrderPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[400px] text-gray-500">
+          <Loader2 size={36} className="animate-spin text-[#7E153A] mb-3" />
+          <p className="text-sm font-medium">Loading tailoring wizard...</p>
+        </div>
+      }
+    >
+      <NewOrderContent />
+    </Suspense>
   );
 }

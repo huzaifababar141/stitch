@@ -7,8 +7,10 @@ export const updateProfileSchema = z.object({
     .min(2, 'First name must be at least 2 characters')
     .optional(),
   lastName: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
   gender: z.nativeEnum(Gender).optional(),
   dateOfBirth: z.string().datetime().optional().or(z.date().optional()),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export const createAddressSchema = z.object({

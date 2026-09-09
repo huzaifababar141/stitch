@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Settings,
   User,
@@ -26,20 +26,54 @@ export default function SettingsPage() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [saving, setSaving] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
   // Notification toggles
   const [whatsappNotifications, setWhatsappNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      const meta = user.user_metadata || {};
-      setFirstName(meta.first_name || meta.name || '');
-      setLastName(meta.last_name || '');
-      setPhone(user.phone || meta.phone || '');
-      setEmail(user.email || '');
+  const loadProfile = useCallback(async () => {
+    if (!user) {
+      setLoadingProfile(false);
+      return;
+    }
+
+    try {
+      setLoadingProfile(true);
+      const res = await fetch('/api/users/profile');
+      if (res.ok) {
+        const json = await res.json();
+        const profile = json.data || json;
+        if (profile) {
+          setFirstName(profile.firstName || '');
+          setLastName(profile.lastName || '');
+          setPhone(profile.phone || user.phone || '');
+          setEmail(profile.email || user.email || '');
+
+          const meta = profile.metadata || {};
+          if (meta.notifications) {
+            setWhatsappNotifications(meta.notifications.whatsapp !== false);
+            setSmsNotifications(meta.notifications.sms !== false);
+          }
+        }
+      } else {
+        // Fallback to auth session metadata
+        const meta = user.user_metadata || {};
+        setFirstName(meta.first_name || meta.name || '');
+        setLastName(meta.last_name || '');
+        setPhone(user.phone || meta.phone || '');
+        setEmail(user.email || '');
+      }
+    } catch (err) {
+      console.error('Failed to load profile:', err);
+    } finally {
+      setLoadingProfile(false);
     }
   }, [user]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,37 +84,48 @@ export default function SettingsPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          firstName,
-          lastName,
+          firstName: firstName.trim(),
+          lastName: lastName.trim() || undefined,
+          email: email.trim() || undefined,
+          metadata: {
+            notifications: {
+              whatsapp: whatsappNotifications,
+              sms: smsNotifications,
+            },
+          },
         }),
       });
 
       if (res.ok) {
         toast({
-          title: 'Profile Updated',
-          description: 'Your personal preferences have been saved.',
+          title: 'Profile Updated 🎉',
+          description:
+            'Your personal preferences and notification settings have been saved.',
         });
       } else {
+        const json = await res.json();
         toast({
-          title: 'Update Saved',
-          description: 'Settings saved locally.',
+          title: 'Update Error',
+          description: json.error?.message || 'Could not save profile changes.',
+          variant: 'destructive',
         });
       }
     } catch (err) {
       toast({
-        title: 'Settings Saved',
-        description: 'Profile updated.',
+        title: 'Error Saving Settings',
+        description: 'Network error. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
     }
   };
 
-  if (authLoading) {
+  if (authLoading || loadingProfile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 size={36} className="animate-spin text-[#7E153A] mb-3" />
-        <p className="text-sm font-semibold text-gray-600">
+        <p className="text-xs font-semibold text-gray-600">
           Loading settings...
         </p>
       </div>
@@ -122,9 +167,10 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-1.5">
-                First Name
+                First Name *
               </label>
               <Input
+                required
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 className="h-11 bg-gray-50 border-gray-200 text-xs rounded-xl"
@@ -162,9 +208,10 @@ export default function SettingsPage() {
 
             <div>
               <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-1.5">
-                Email Address (Optional)
+                Email Address
               </label>
               <Input
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-11 bg-gray-50 border-gray-200 text-xs rounded-xl"
