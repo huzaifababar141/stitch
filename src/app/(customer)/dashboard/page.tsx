@@ -387,7 +387,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 font-sans">
+    <div className="max-w-7xl mx-auto space-y-4 sm:space-y-8 font-sans min-w-0 w-full">
       {/* Welcome Banner ───────────────────────────────────────────────────── */}
       <div className="relative overflow-hidden bg-gradient-to-r from-[#7E153A] to-[#911642] rounded-3xl p-5 sm:p-8 text-white shadow-xl shadow-[#7E153A]/15 z-0">
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 translate-x-24 -translate-y-24 pointer-events-none" />

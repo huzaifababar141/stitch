@@ -221,7 +221,7 @@ export default function CustomerLayout({
   );
 
   return (
-    <div className="flex min-h-screen bg-[#FDFDFD] font-sans">
+    <div className="flex min-h-screen bg-[#FDFDFD] font-sans w-full max-w-full overflow-x-hidden">
       {/* Desktop Fixed Sidebar */}
       <aside className="hidden md:flex w-64 bg-white border-r border-gray-100 flex-col justify-between flex-shrink-0 fixed h-full z-40 overflow-y-auto">
         {sidebarContent}
@@ -241,50 +241,49 @@ export default function CustomerLayout({
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 ml-0 md:ml-64 flex flex-col min-h-screen">
+      <div className="flex-1 ml-0 md:ml-64 flex flex-col min-h-screen min-w-0 w-full max-w-full overflow-x-hidden">
         {/* Header */}
-        <header className="h-16 md:h-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center gap-3">
+        <header className="h-14 sm:h-16 md:h-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 flex items-center justify-between px-3 sm:px-6 lg:px-8 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)] min-w-0 w-full max-w-full">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100 focus:outline-none"
+              className="md:hidden p-1.5 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100 focus:outline-none shrink-0 cursor-pointer"
               aria-label="Open Navigation Menu"
             >
-              <Menu size={22} />
+              <Menu size={20} />
             </button>
-            <div className="md:hidden flex items-center gap-1.5">
-              <span className="font-bold text-gray-900 text-sm tracking-tight">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="font-bold text-gray-900 text-sm tracking-tight truncate">
                 TailorLink<span className="text-[#7E153A]">.pk</span>
               </span>
             </div>
-            <div className="hidden md:block flex-1" id="header-stepper"></div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-6">
+          <div className="flex items-center gap-1 sm:gap-4 shrink-0">
             <Link
               href="/wishlist"
-              className="relative text-gray-500 hover:text-[#7E153A] transition-colors p-1"
+              className="hidden sm:flex relative text-gray-500 hover:text-[#7E153A] transition-colors p-1.5 rounded-lg hover:bg-gray-50"
               title="Saved Suit Wishlist"
             >
-              <Heart size={20} />
+              <Heart size={18} />
             </Link>
             <Link
               href="/orders"
-              className="relative text-gray-500 hover:text-gray-900 transition-colors p-1"
+              className="relative text-gray-500 hover:text-gray-900 transition-colors p-1.5 rounded-lg hover:bg-gray-50"
               title="My Orders"
             >
-              <ShoppingCart size={20} />
+              <ShoppingCart size={18} />
             </Link>
             <button
-              className="relative text-gray-500 hover:text-gray-900 transition-colors p-1"
+              className="relative text-gray-500 hover:text-gray-900 transition-colors p-1.5 rounded-lg hover:bg-gray-50 cursor-pointer"
               title="Notifications"
             >
-              <Bell size={20} />
+              <Bell size={18} />
             </button>
 
-            <div className="flex items-center gap-2 sm:gap-3 pl-3 sm:pl-6 border-l border-gray-200">
+            <div className="flex items-center gap-2 pl-1.5 sm:pl-3 border-l border-gray-200">
               <Link href="/settings" className="flex items-center gap-2 group">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#7E153A] text-white font-bold flex items-center justify-center overflow-hidden relative shadow-sm group-hover:ring-2 group-hover:ring-[#7E153A]/30 transition-all">
+                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-[#7E153A] text-white font-bold flex items-center justify-center overflow-hidden relative shadow-xs group-hover:ring-2 group-hover:ring-[#7E153A]/30 transition-all shrink-0">
                   {profile?.profileImageUrl ? (
                     <img
                       src={profile.profileImageUrl}
@@ -292,14 +291,14 @@ export default function CustomerLayout({
                       className="object-cover w-full h-full"
                     />
                   ) : (
-                    <span className="text-xs sm:text-sm">{userInitial}</span>
+                    <span className="text-xs">{userInitial}</span>
                   )}
                 </div>
                 <div className="hidden sm:block text-left">
-                  <p className="text-sm font-semibold text-gray-900 leading-none mb-1 group-hover:text-[#7E153A] transition-colors">
+                  <p className="text-xs font-semibold text-gray-900 leading-none mb-0.5 group-hover:text-[#7E153A] transition-colors">
                     {userName}
                   </p>
-                  <p className="text-[10px] text-gray-500 font-medium capitalize">
+                  <p className="text-[9px] text-gray-500 font-medium capitalize">
                     {profile?.role || 'Customer'}
                   </p>
                 </div>
@@ -309,7 +308,7 @@ export default function CustomerLayout({
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 pb-24 md:pb-8 min-w-0 w-full max-w-full">
           {children}
         </main>
 
