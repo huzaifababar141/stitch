@@ -21,8 +21,14 @@ import {
   Loader2,
   AlertCircle,
   XCircle,
+  RotateCcw,
+  Star,
+  X,
+  Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useOrderRealtime } from '@/hooks/useOrderRealtime';
 import { useAuth } from '@/hooks/useAuth';
@@ -74,6 +80,15 @@ const STATUS_STEPS = [
   },
 ];
 
+const ALTERATION_AREAS = [
+  { id: 'sleeves', label: 'Sleeves Length / Fitting' },
+  { id: 'waist', label: 'Waist Fitting / Chhati (Chest)' },
+  { id: 'daman', label: 'Daman / Kameez Total Length' },
+  { id: 'neckline', label: 'Gala / Neckline Cut' },
+  { id: 'trouser_waist', label: 'Trouser / Shalwar Waist' },
+  { id: 'trouser_length', label: 'Trouser Length / Paicha (Ankle)' },
+];
+
 export default function OrderTrackingPage() {
   const params = useParams();
   const router = useRouter();
@@ -85,6 +100,21 @@ export default function OrderTrackingPage() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+
+  // Alteration Modal State
+  const [isAlterationModalOpen, setIsAlterationModalOpen] = useState(false);
+  const [selectedAlterationItems, setSelectedAlterationItems] = useState<
+    string[]
+  >([]);
+  const [alterationNotes, setAlterationNotes] = useState('');
+  const [submittingAlteration, setSubmittingAlteration] = useState(false);
+
+  // Feedback Modal State
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [overallRating, setOverallRating] = useState(5);
+  const [fitRating, setFitRating] = useState(5);
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   // Connect to Supabase Realtime for live updates
   const { orderStatus: realtimeStatus } = useOrderRealtime(orderId);
@@ -136,6 +166,9 @@ export default function OrderTrackingPage() {
         return 5;
       case 'delivered':
         return 6;
+      case 'return_requested':
+      case 'returned':
+        return 6;
       default:
         return 0;
     }
@@ -144,15 +177,22 @@ export default function OrderTrackingPage() {
   const currentStepIdx = getStepIndex(activeStatus);
 
   const handleCancelOrder = async () => {
-    if (!confirm('Are you sure you want to cancel this stitching order?'))
+    if (
+      !confirm(
+        'Are you sure you want to cancel this order? This action cannot be undone.'
+      )
+    ) {
       return;
-    setCancelling(true);
+    }
+
     try {
+      setCancelling(true);
       const res = await fetch(`/api/orders/${orderId}/cancel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: 'Customer requested cancellation' }),
+        body: JSON.stringify({ reason: 'Customer cancelled from portal' }),
       });
+
       if (res.ok) {
         toast({
           title: 'Order Cancelled',
@@ -160,18 +200,17 @@ export default function OrderTrackingPage() {
         });
         setOrder((prev: any) => ({ ...prev, status: 'cancelled' }));
       } else {
-        const json = await res.json();
+        const err = await res.json();
         toast({
-          title: 'Cannot Cancel',
-          description:
-            json.error?.message || 'Order cannot be cancelled at this stage.',
+          title: 'Cancellation Failed',
+          description: err.error?.message || 'Could not cancel the order.',
           variant: 'destructive',
         });
       }
     } catch (err) {
       toast({
         title: 'Error',
-        description: 'Failed to cancel order.',
+        description: 'Failed to reach server.',
         variant: 'destructive',
       });
     } finally {
@@ -179,12 +218,117 @@ export default function OrderTrackingPage() {
     }
   };
 
+  const handleToggleAlterationItem = (item: string) => {
+    setSelectedAlterationItems((prev) =>
+      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
+    );
+  };
+
+  const handleSubmitAlteration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!alterationNotes.trim()) {
+      toast({
+        title: 'Instructions Required',
+        description: 'Please describe the alterations needed for your suit.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setSubmittingAlteration(true);
+      const res = await fetch(`/api/orders/${orderId}/alteration`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: selectedAlterationItems,
+          notes: alterationNotes,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        toast({
+          title: 'Alteration Request Submitted',
+          description:
+            'Our rider will arrive for doorstep suit pickup. Free of charge under 7-Day Guarantee!',
+        });
+        setIsAlterationModalOpen(false);
+        setOrder((prev: any) => ({
+          ...prev,
+          status: 'return_requested',
+          metadata: {
+            ...prev.metadata,
+            alterationRequest: json.data?.alteration,
+          },
+        }));
+      } else {
+        const err = await res.json();
+        toast({
+          title: 'Request Failed',
+          description:
+            err.error?.message || 'Could not submit alteration request.',
+          variant: 'destructive',
+        });
+      }
+    } catch (err) {
+      toast({
+        title: 'Network Error',
+        description: 'Failed to submit alteration request.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSubmittingAlteration(false);
+    }
+  };
+
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setSubmittingFeedback(true);
+      const res = await fetch(`/api/orders/${orderId}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          overallRating,
+          fitRating,
+          qualityRating: overallRating,
+          deliveryRating: 5,
+          comment: feedbackComment,
+        }),
+      });
+
+      if (res.ok) {
+        toast({
+          title: 'Review Submitted!',
+          description: 'Thank you for rating your custom tailored suit.',
+        });
+        setIsFeedbackModalOpen(false);
+      } else {
+        const err = await res.json();
+        toast({
+          title: 'Submission Failed',
+          description: err.error?.message || 'Could not submit feedback.',
+          variant: 'destructive',
+        });
+      }
+    } catch (err) {
+      toast({
+        title: 'Network Error',
+        description: 'Failed to submit feedback.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
+
   if (loading || authLoading) {
     return (
-      <div className="max-w-5xl mx-auto py-16 flex flex-col items-center justify-center text-center">
+      <div className="max-w-5xl mx-auto flex flex-col items-center justify-center min-h-[400px] text-gray-500">
         <Loader2 size={36} className="animate-spin text-[#7E153A] mb-3" />
-        <p className="text-sm font-medium text-gray-600">
-          Loading order details...
+        <p className="text-sm font-medium">
+          Loading real-time order progression...
         </p>
       </div>
     );
@@ -192,8 +336,8 @@ export default function OrderTrackingPage() {
 
   if (!order) {
     return (
-      <div className="max-w-5xl mx-auto py-16 text-center bg-white rounded-2xl border border-gray-100 p-8">
-        <AlertCircle size={40} className="text-red-500 mx-auto mb-3" />
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-sm">
+        <AlertCircle size={40} className="text-gray-300 mx-auto mb-3" />
         <h2 className="text-lg font-bold text-gray-900 mb-1">
           Order Not Found
         </h2>
@@ -214,6 +358,7 @@ export default function OrderTrackingPage() {
   const measurementSnapshot = order.measurementSnapshot || {};
   const styleSnapshot = order.styleSnapshot || {};
   const addressSnapshot = order.deliveryAddressSnapshot || {};
+  const alterationData = order.metadata?.alterationRequest;
 
   const placedDate = order.createdAt
     ? new Date(order.createdAt).toLocaleDateString('en-PK', {
@@ -236,23 +381,23 @@ export default function OrderTrackingPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 py-2">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
             <Link
               href="/orders"
               className="text-gray-400 hover:text-gray-900 transition-colors mr-1"
             >
               <ArrowLeft size={18} />
             </Link>
-            <h1 className="text-xl font-extrabold text-gray-900 font-mono tracking-tight">
+            <h1 className="text-lg sm:text-xl font-extrabold text-gray-900 font-mono tracking-tight">
               {order.orderNumber || order.id.substring(0, 12).toUpperCase()}
             </h1>
             <span className="bg-red-50 text-[#7E153A] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
               {activeStatus.replace(/_/g, ' ')}
             </span>
           </div>
-          <p className="text-xs text-gray-500 pl-6">
+          <p className="text-xs text-gray-500 pl-0 sm:pl-6">
             Placed on {placedDate} · Est. Doorstep Delivery:{' '}
             <span className="font-semibold text-gray-800">
               {estDeliveryDate}
@@ -260,13 +405,13 @@ export default function OrderTrackingPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {activeStatus === 'pending_payment' && (
             <Button
               onClick={handleCancelOrder}
               disabled={cancelling}
               variant="outline"
-              className="h-10 text-xs font-semibold text-red-600 border-red-200 hover:bg-red-50"
+              className="h-9 sm:h-10 text-xs font-semibold text-red-600 border-red-200 hover:bg-red-50"
             >
               {cancelling ? (
                 <Loader2 size={14} className="animate-spin mr-1" />
@@ -277,20 +422,62 @@ export default function OrderTrackingPage() {
             </Button>
           )}
 
+          {activeStatus === 'delivered' && (
+            <>
+              <Button
+                onClick={() => setIsAlterationModalOpen(true)}
+                variant="outline"
+                className="h-9 sm:h-10 text-xs font-bold text-[#7E153A] border-[#7E153A]/30 hover:bg-red-50"
+              >
+                <RotateCcw size={14} className="mr-1.5" /> 7-Day Alteration
+              </Button>
+              <Button
+                onClick={() => setIsFeedbackModalOpen(true)}
+                className="h-9 sm:h-10 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white"
+              >
+                <Star size={14} className="mr-1.5 fill-current" /> Rate Fit
+              </Button>
+            </>
+          )}
+
           <a
             href={`https://wa.me/923000000000?text=Hi%2C%20I%20have%20an%20inquiry%20regarding%20my%20TailorLink%20Order%20${order.orderNumber || order.id}`}
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold h-10 px-4 shadow-sm shadow-[#7E153A]/20">
+            <Button className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold h-9 sm:h-10 px-3 sm:px-4 shadow-sm shadow-[#7E153A]/20">
               <MessageCircle size={15} className="mr-1.5" /> WhatsApp Support
             </Button>
           </a>
         </div>
       </div>
 
+      {/* Alteration in progress banner if status is return_requested */}
+      {activeStatus === 'return_requested' && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+            <RotateCcw size={20} />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-extrabold text-amber-900 text-sm">
+              7-Day Free Alteration in Progress
+            </h3>
+            <p className="text-xs text-amber-700 leading-relaxed">
+              Our courier rider is scheduled to pick up your suit from your
+              registered address. Once adjusted by our master tailor, it will be
+              re-delivered back to your doorstep free of charge.
+            </p>
+            {alterationData?.notes && (
+              <p className="text-xs text-amber-800 font-medium italic mt-2">
+                Requested Adjustments: &quot;{alterationData.notes}&quot;
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Real-time Order Timeline */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-8 shadow-sm">
         <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-8">
           <div>
             <h2 className="text-base font-extrabold text-gray-900">
@@ -415,7 +602,7 @@ export default function OrderTrackingPage() {
               Garment & Product Details
             </h3>
 
-            <div className="flex gap-4 items-start">
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
               <div className="w-24 h-32 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-100 relative">
                 <img
                   src={productSnapshot.images?.[0] || '/login_bg.jpg'}
@@ -490,7 +677,7 @@ export default function OrderTrackingPage() {
               </div>
             ) : (
               <p className="text-xs text-gray-500">
-                Standard fit profile applied to this order.
+                Sample suit pickup or standard profile applied.
               </p>
             )}
           </div>
@@ -576,6 +763,224 @@ export default function OrderTrackingPage() {
           </div>
         </div>
       </div>
+
+      {/* ── 7-Day Alteration Modal ── */}
+      {isAlterationModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-red-50 text-[#7E153A] flex items-center justify-center">
+                  <RotateCcw size={16} />
+                </div>
+                <h3 className="font-extrabold text-gray-900 text-base">
+                  7-Day Free Alteration Request
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsAlterationModalOpen(false)}
+                className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 leading-relaxed">
+              TailorLink guarantees 100% fitting satisfaction. Select the areas
+              that need adjustment and our courier rider will collect your suit
+              for complimentary alteration.
+            </p>
+
+            <form onSubmit={handleSubmitAlteration} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-2">
+                  Select Areas Needing Adjustment:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {ALTERATION_AREAS.map((area) => {
+                    const isChecked = selectedAlterationItems.includes(area.id);
+                    return (
+                      <button
+                        key={area.id}
+                        type="button"
+                        onClick={() => handleToggleAlterationItem(area.id)}
+                        className={`p-2.5 rounded-xl border text-left text-xs font-medium transition-all flex items-center gap-2 ${
+                          isChecked
+                            ? 'bg-red-50 border-[#7E153A] text-[#7E153A] font-bold'
+                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-md border flex items-center justify-center text-white text-[10px] ${
+                            isChecked
+                              ? 'bg-[#7E153A] border-[#7E153A]'
+                              : 'border-gray-300 bg-white'
+                          }`}
+                        >
+                          {isChecked && <Check size={12} strokeWidth={3} />}
+                        </div>
+                        {area.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-1.5">
+                  Detailed Alteration Instructions:
+                </label>
+                <Textarea
+                  value={alterationNotes}
+                  onChange={(e) => setAlterationNotes(e.target.value)}
+                  placeholder="e.g., Please loosen chest by 1 inch and shorten sleeves by 1.5 inches."
+                  rows={3}
+                  className="text-xs rounded-xl"
+                  required
+                />
+              </div>
+
+              <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 text-[11px] text-gray-600 flex items-center gap-2">
+                <Truck size={16} className="text-[#7E153A] shrink-0" />
+                <span>
+                  Complimentary rider pickup from your registered doorstep.
+                </span>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsAlterationModalOpen(false)}
+                  className="flex-1 text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submittingAlteration}
+                  className="flex-1 bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold"
+                >
+                  {submittingAlteration ? (
+                    <Loader2 size={14} className="animate-spin mr-1.5" />
+                  ) : null}
+                  Schedule Free Pickup
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Rate Fit / Feedback Modal ── */}
+      {isFeedbackModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <Star size={16} className="fill-current" />
+                </div>
+                <h3 className="font-extrabold text-gray-900 text-base">
+                  Rate Tailoring Quality & Fit
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsFeedbackModalOpen(false)}
+                className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitFeedback} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-2">
+                  Overall Experience:
+                </label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setOverallRating(star)}
+                      className="p-1 text-amber-400 hover:scale-110 transition-transform"
+                    >
+                      <Star
+                        size={24}
+                        className={
+                          star <= overallRating
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-gray-200'
+                        }
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-2">
+                  Fitting & Accuracy Rating:
+                </label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setFitRating(star)}
+                      className="p-1 text-amber-400 hover:scale-110 transition-transform"
+                    >
+                      <Star
+                        size={24}
+                        className={
+                          star <= fitRating
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-gray-200'
+                        }
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-1.5">
+                  Review & Comments (Optional):
+                </label>
+                <Textarea
+                  value={feedbackComment}
+                  onChange={(e) => setFeedbackComment(e.target.value)}
+                  placeholder="How did the suit fit? How was the stitching finishing and piping?"
+                  rows={3}
+                  className="text-xs rounded-xl"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsFeedbackModalOpen(false)}
+                  className="flex-1 text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submittingFeedback}
+                  className="flex-1 bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold"
+                >
+                  {submittingFeedback ? (
+                    <Loader2 size={14} className="animate-spin mr-1.5" />
+                  ) : null}
+                  Submit Review
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -157,7 +157,7 @@ enum AuditTriggerType {
 model User {
   id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   email              String?   @unique @db.VarChar(255)
-  phone              String    @db.VarChar(20)
+  phone              String    @unique @db.VarChar(20)
   phoneVerified      Boolean   @default(false) @map("phone_verified")
   emailVerified      Boolean   @default(false) @map("email_verified")
   passwordHash       String?   @map("password_hash")
