@@ -100,6 +100,7 @@ export default function OrderTrackingPage() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [snapshotUnit, setSnapshotUnit] = useState<'inches' | 'cm'>('inches');
 
   // Alteration Modal State
   const [isAlterationModalOpen, setIsAlterationModalOpen] = useState(false);
@@ -678,13 +679,42 @@ export default function OrderTrackingPage() {
 
           {/* Measurements Snapshot Card */}
           <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-xs">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h3 className="font-extrabold text-sm text-gray-900">
-                Measurement Snapshot (Inches)
-              </h3>
-              <span className="text-[11px] text-gray-400 font-medium">
-                Locked for Production
-              </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-sm text-gray-900">
+                  Measurement Snapshot (
+                  {snapshotUnit === 'inches' ? 'Inches' : 'Centimeters'})
+                </h3>
+                <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-full border border-emerald-100">
+                  Locked for Production
+                </span>
+              </div>
+
+              {/* Interactive Unit Toggle */}
+              <div className="flex bg-gray-100 p-0.5 rounded-xl border border-gray-200 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setSnapshotUnit('inches')}
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                    snapshotUnit === 'inches'
+                      ? 'bg-white text-[#7E153A] shadow-xs'
+                      : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  Inches (&quot;)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSnapshotUnit('cm')}
+                  className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                    snapshotUnit === 'cm'
+                      ? 'bg-white text-[#7E153A] shadow-xs'
+                      : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  Centimeters (cm)
+                </button>
+              </div>
             </div>
 
             {Object.keys(measurementSnapshot).length > 0 ? (
@@ -692,7 +722,8 @@ export default function OrderTrackingPage() {
                 {Object.entries(measurementSnapshot)
                   .filter(
                     ([key, val]) =>
-                      (typeof val === 'number' || typeof val === 'string') &&
+                      (typeof val === 'number' ||
+                        (typeof val === 'string' && !isNaN(Number(val)))) &&
                       ![
                         'id',
                         'userId',
@@ -701,22 +732,30 @@ export default function OrderTrackingPage() {
                         'deletedAt',
                         'label',
                         'isDefault',
+                        'unit',
                       ].includes(key)
                   )
-                  .slice(0, 8)
-                  .map(([key, val]) => (
-                    <div
-                      key={key}
-                      className="p-2.5 bg-gray-50 rounded-xl border border-gray-100 flex flex-col justify-between"
-                    >
-                      <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider truncate">
-                        {key.replace(/_/g, ' ')}
-                      </span>
-                      <span className="font-extrabold text-gray-900 text-sm mt-1 font-mono">
-                        {String(val)}&quot;
-                      </span>
-                    </div>
-                  ))}
+                  .slice(0, 12)
+                  .map(([key, val]) => {
+                    const num = Number(val);
+                    const formatted =
+                      snapshotUnit === 'cm'
+                        ? `${(num * 2.54).toFixed(1)} cm`
+                        : `${num}"`;
+                    return (
+                      <div
+                        key={key}
+                        className="p-2.5 bg-gray-50 rounded-xl border border-gray-100 flex flex-col justify-between"
+                      >
+                        <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider truncate">
+                          {key.replace(/_/g, ' ')}
+                        </span>
+                        <span className="font-extrabold text-gray-900 text-sm mt-1 font-mono">
+                          {formatted}
+                        </span>
+                      </div>
+                    );
+                  })}
               </div>
             ) : (
               <p className="text-xs text-gray-500">
