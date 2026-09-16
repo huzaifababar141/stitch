@@ -5,37 +5,33 @@ import { GarmentType, OrderStatus } from '@prisma/client';
 import { logger } from '@/lib/utils/logger';
 import crypto from 'crypto';
 
+import { calculateStitchingFee } from '@/lib/constants/pricing';
+
 function genOrderNum() {
   return 'ORD-' + crypto.randomBytes(4).toString('hex').toUpperCase();
 }
 
 export async function calculateTotal(
-  garmentType: GarmentType,
+  garmentType: GarmentType | string,
   deliveryCity: string,
   couponCode?: string,
-  customerId?: string
+  customerId?: string,
+  stitchingTier: string = 'standard',
+  gender: string = 'female',
+  garmentSubtype?: string
 ) {
-  // Read system settings for pricing or use standard defaults
-  const basePrices: Record<string, number> = {
-    full_suit: 3000,
-    kameez: 2000,
-    kameez_only: 2000,
-    trouser: 1000,
-    trouser_only: 1000,
-    kurta: 2000,
-    shalwar: 1000,
-    dupatta: 500,
-    other: 2500,
-  };
-
   const deliveryRates: Record<string, number> = {
-    default: 200,
+    default: 150,
     karachi: 150,
     lahore: 150,
     islamabad: 150,
   };
 
-  const stitchingFee = basePrices[garmentType] || basePrices.full_suit;
+  const stitchingFee = calculateStitchingFee(
+    gender === 'male' ? 'male' : 'female',
+    garmentSubtype || garmentType,
+    stitchingTier
+  );
   const deliveryFee =
     deliveryRates[deliveryCity.toLowerCase()] || deliveryRates.default;
   const addonFee = 0;
@@ -243,17 +239,28 @@ export async function createOrder(customerId: string, data: any) {
   }
 
   // Calculate pricing
+  const gender = data.gender || data.stylePreferences?.gender || 'female';
+  const stitchingTier = data.stitchingTier || 'standard';
+  const garmentSubtype =
+    (data as any).garmentSubtype ||
+    (data.stylePreferences as any)?.garmentSubtype;
+
   const pricing = await calculateTotal(
     data.garmentType,
     address.city,
     data.couponCode,
-    customerId
+    customerId,
+    stitchingTier,
+    gender,
+    garmentSubtype
   );
   const orderNumber = genOrderNum();
 
   const fullStyleSnapshot = {
     ...style,
-    gender: data.gender || data.stylePreferences?.gender || 'female',
+    gender,
+    stitchingTier,
+    garmentSubtype,
     collarStyle: data.stylePreferences?.collarStyle,
     pocketStyle: data.stylePreferences?.pocketStyle,
     damanStyle: data.stylePreferences?.damanStyle,

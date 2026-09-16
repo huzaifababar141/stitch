@@ -4,6 +4,7 @@ import { GarmentType } from '@prisma/client';
 export const createOrderSchema = z.object({
   productId: z.string().uuid().optional(),
   garmentType: z.nativeEnum(GarmentType).default('full_suit'),
+  garmentSubtype: z.string().optional(),
   gender: z.enum(['female', 'male']).optional().default('female'),
   measurementProfileId: z.string().uuid().optional(),
   customMeasurements: z.record(z.string(), z.any()).optional(),
@@ -11,6 +12,7 @@ export const createOrderSchema = z.object({
   stylePreferences: z
     .object({
       gender: z.string().optional(),
+      garmentSubtype: z.string().optional(),
       neckStyle: z.string().optional(),
       collarStyle: z.string().optional(),
       sleeveStyle: z.string().optional(),
@@ -20,6 +22,7 @@ export const createOrderSchema = z.object({
       pocketStyle: z.string().optional(),
       specialInstructions: z.string().optional(),
     })
+    .passthrough()
     .optional(),
   deliveryAddressId: z.string().uuid().optional(),
   customAddress: z
@@ -35,7 +38,7 @@ export const createOrderSchema = z.object({
   couponCode: z.string().optional(),
   internalNotes: z.string().optional(),
   stitchingTier: z
-    .enum(['standard', 'premium', 'luxury'])
+    .enum(['basic', 'standard', 'premium', 'luxury'])
     .optional()
     .default('standard'),
 });

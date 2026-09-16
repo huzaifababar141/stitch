@@ -1,0 +1,39 @@
+{
+  "product": {
+    "id": 789234120,
+    "title": "Mahay Unstitched 3-Piece Printed Lawn Suit - H241-001A",
+    "vendor": "Sana Safinaz",
+    "product_type": "Unstitched Lawn 3 Piece",
+    "handle": "mahay-unstitched-3-piece-printed-lawn-suit-h241-001a",
+    "body_html": "<p>Printed lawn front, back, and sleeves with a chiffon printed dupatta and dyed cotton pants.</p>",
+    "published_at": "2024-03-25T10:00:00+05:00",
+    "tags": [
+      "Women",
+      "Mahay",
+      "3 Piece",
+      "Unstitched",
+      "Lawn",
+      "Spring Summer"
+    ],
+    "variants": [
+      {
+        "id": 41203948,
+        "title": "Default Title",
+        "price": "9990.00",
+        "compare_at_price": "11500.00",
+        "sku": "H241-001A-U",
+        "available": true
+      }
+    ],
+    "images": [
+      {
+        "id": 401,
+        "src": "https://cdn.shopify.com/s/files/1/0259/files/h241-001a-main.jpg"
+      },
+      {
+        "id": 402,
+        "src": "https://cdn.shopify.com/s/files/1/0259/files/h241-001a-swatch.jpg"
+      }
+    ]
+  }
+}

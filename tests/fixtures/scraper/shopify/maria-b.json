@@ -1,0 +1,39 @@
+{
+  "product": {
+    "id": 651239845,
+    "title": "Luxury M.Lawn Unstitched 3-Piece D-2401-A",
+    "vendor": "Maria.B",
+    "product_type": "M.Lawn",
+    "handle": "m-lawn-unstitched-3-piece-d-2401-a",
+    "body_html": "<p>Schiffli embroidered lawn front, digital printed lawn back, and embroidered organza neckline patch with pure silk dupatta.</p>",
+    "published_at": "2024-04-02T11:00:00+05:00",
+    "tags": [
+      "Women",
+      "M.Lawn",
+      "Unstitched",
+      "3 Piece",
+      "Luxury Lawn",
+      "Embroidered"
+    ],
+    "variants": [
+      {
+        "id": 39821045,
+        "title": "Unstitched",
+        "price": "14500.00",
+        "compare_at_price": "16500.00",
+        "sku": "ML-2401-A",
+        "available": true
+      }
+    ],
+    "images": [
+      {
+        "id": 501,
+        "src": "https://cdn.shopify.com/s/files/1/0278/files/mariab-lawn-2401a-1.jpg"
+      },
+      {
+        "id": 502,
+        "src": "https://cdn.shopify.com/s/files/1/0278/files/mariab-lawn-2401a-2.jpg"
+      }
+    ]
+  }
+}

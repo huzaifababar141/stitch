@@ -24,6 +24,9 @@ import {
   Tag,
   AlertCircle,
   User,
+  Table2,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -39,56 +42,14 @@ import {
   MEN_TROUSER_CODES,
   WOMEN_TROUSER_CODES,
 } from '@/hooks/useMeasurementStudio';
-
-// ─── Stitching Tiers (Men's vs Women's) ──────────────────────────────────────
-
-const WOMEN_STITCHING_TIERS = [
-  {
-    key: 'standard',
-    name: 'Standard Stitching',
-    price: 2000,
-    days: '5-7 Days',
-    desc: 'Perfect for everyday lawn & casual cotton wear with standard piping and interlock.',
-  },
-  {
-    key: 'premium',
-    name: 'Premium Boutique',
-    price: 3000,
-    days: '4-5 Days',
-    desc: 'Boutique finishing, custom laces attachment, fused neckline, and reinforced seams.',
-  },
-  {
-    key: 'luxury',
-    name: 'Luxury Designer',
-    price: 4000,
-    days: '3-4 Days',
-    desc: 'Master tailor hand-crafted finishing, double lining, organza trims & priority dispatch.',
-  },
-];
-
-const MEN_STITCHING_TIERS = [
-  {
-    key: 'standard',
-    name: 'Standard Tailoring',
-    price: 1800,
-    days: '5-7 Days',
-    desc: 'Classic single-needle Shalwar Kameez / Kurta tailoring with standard collar fusing and clean overlock.',
-  },
-  {
-    key: 'premium',
-    name: 'Executive Master Tailoring',
-    price: 2500,
-    days: '4-5 Days',
-    desc: 'German fusing Ban/Collar, precision hand-cut armholes, reinforced Kaj buttonholes & bespoke pocketing.',
-  },
-  {
-    key: 'luxury',
-    name: 'Luxury Bespoke Crafted',
-    price: 3500,
-    days: '3-4 Days',
-    desc: 'Master craftsman tailored, pick-stitching detail, imported cuffs fusing, double press finish & priority dispatch.',
-  },
-];
+import {
+  FEMALE_GARMENTS,
+  MENS_GARMENTS,
+  getStitchingTiers,
+  calculateStitchingFee,
+  formatPKR,
+  type StitchingTierKey,
+} from '@/lib/constants/pricing';
 
 // ─── Main New Order Wizard Content ──────────────────────────────────────────
 
@@ -106,15 +67,16 @@ function NewOrderContent() {
   const [productUrl, setProductUrl] = useState('');
   const [parsing, setParsing] = useState(false);
   const [parsedProduct, setParsedProduct] = useState<any | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [manualTitle, setManualTitle] = useState('');
   const [manualBrand, setManualBrand] = useState('');
   const [manualPrice, setManualPrice] = useState<number | ''>('');
   const [manualFabric, setManualFabric] = useState('');
 
   // ── Step 2: Customization & Stitching Tier ──
-  const [stitchingTier, setStitchingTier] = useState<
-    'standard' | 'premium' | 'luxury'
-  >('standard');
+  const [stitchingTier, setStitchingTier] =
+    useState<StitchingTierKey>('standard');
+  const [showRateCard, setShowRateCard] = useState(false);
   const [garmentType, setGarmentType] = useState('full_suit');
   // Women's Styles
   const [neckStyle, setNeckStyle] = useState('Round Neck with Slit');
@@ -336,7 +298,14 @@ function NewOrderContent() {
           const style = data.data || data;
           if (style) {
             if (style.gender) handleGenderChange(style.gender);
-            if (style.stitchingTier) setStitchingTier(style.stitchingTier);
+            if (style.stitchingTier) {
+              const t = String(style.stitchingTier).toLowerCase();
+              if (t === 'basic' || t === 'luxury') {
+                setStitchingTier(t as StitchingTierKey);
+              } else {
+                setStitchingTier('standard');
+              }
+            }
             if (style.neckStyle) setNeckStyle(style.neckStyle);
             if (style.collarStyle) setCollarStyle(style.collarStyle);
             if (style.sleeveStyle) setSleeveStyle(style.sleeveStyle);
@@ -567,21 +536,77 @@ function NewOrderContent() {
       if (res.ok) {
         const json = await res.json();
         const prod = json.data || json;
+
+        // 1. Gender Synchronization:
+        // When prod.gender ('male' | 'female') is present, immediately call handleGenderChange(prod.gender).
+        // This switches active tab, sets Men's or Women's default styles (Ban collar vs neck slit,
+        // sleeves, daman, P-32 vs T-30 trousers, and appropriate stitching tiers).
+        if (prod.gender === 'male' || prod.gender === 'female') {
+          handleGenderChange(prod.gender);
+        }
+
+        // 2. Garment Type Synchronization:
+        // If prod.garmentType is provided and valid, call setGarmentType(prod.garmentType).
+        if (prod.garmentType) {
+          const validMenGarmentTypes = [
+            'full_suit',
+            'waistcoat',
+            'pant_coat',
+            'kurta_only',
+            'kurta',
+            'kameez_only',
+            'other',
+          ];
+          const validWomenGarmentTypes = [
+            'full_suit',
+            'kameez_only',
+            'frock_maxi',
+            'trouser_only',
+            'other',
+          ];
+          const allowedTypes =
+            prod.gender === 'male'
+              ? validMenGarmentTypes
+              : validWomenGarmentTypes;
+          if (allowedTypes.includes(prod.garmentType)) {
+            const mappedType =
+              prod.garmentType === 'kurta' ? 'kurta_only' : prod.garmentType;
+            setGarmentType(mappedType);
+          }
+        }
+
+        // 3. Set Manual Title, Brand, Price, Fabric, and Images
         setParsedProduct(prod);
+        setSelectedImageIndex(0);
         setManualTitle(prod.name || prod.title || 'Unstitched Suit');
         setManualBrand(prod.brand || 'Designer Brand');
-        if (prod.priceOriginal) {
-          setManualPrice(Number(prod.priceOriginal));
+
+        if (prod.priceOriginal !== null && prod.priceOriginal !== undefined) {
+          setManualPrice(Number(prod.priceOriginal) || 0);
         }
+
+        if (prod.fabricMaterial) {
+          setManualFabric(prod.fabricMaterial);
+        }
+
+        // 4. Toast Notification
+        const genderUpper = prod.gender ? prod.gender.toUpperCase() : 'APPAREL';
+        const brandName = prod.brand || 'Designer Brand';
         toast({
-          title: 'Product Parsed',
-          description: `Loaded suit details from ${prod.brand || 'store'}.`,
+          title: `Product Parsed: Detected ${genderUpper} apparel (${brandName})`,
+          description: `Loaded suit details, synchronized ${
+            prod.gender === 'male' ? "Men's" : "Women's"
+          } tailoring styles, and updated pricing.`,
         });
       } else {
+        const errorJson = await res.json().catch(() => null);
+        const errMsg =
+          errorJson?.message ||
+          errorJson?.error?.message ||
+          'Link attached to order. You can fine-tune fabric details.';
         toast({
           title: 'Direct Link Saved',
-          description:
-            'Link attached to order. You can fine-tune fabric details.',
+          description: errMsg,
         });
       }
     } catch (err) {
@@ -595,14 +620,15 @@ function NewOrderContent() {
   };
 
   // Pricing Calculation
-  const currentTiers =
-    gender === 'male' ? MEN_STITCHING_TIERS : WOMEN_STITCHING_TIERS;
+  const currentTiers = getStitchingTiers(gender, garmentType);
   const currentTierObj =
     currentTiers.find((t) => t.key === stitchingTier) || currentTiers[0];
   const suitFabricPrice = Number(
     parsedProduct?.priceOriginal || manualPrice || 0
   );
-  const stitchingFee = currentTierObj.price;
+  const stitchingFee = currentTierObj
+    ? currentTierObj.price
+    : calculateStitchingFee(gender, garmentType, stitchingTier);
   const deliveryFee = 150;
   const grandTotal =
     suitFabricPrice + stitchingFee + deliveryFee - discountApplied;
@@ -673,9 +699,20 @@ function NewOrderContent() {
     setSubmittingOrder(true);
 
     try {
+      const garmentsList = gender === 'male' ? MENS_GARMENTS : FEMALE_GARMENTS;
+      const matchedGarment = garmentsList.find((g) => g.key === garmentType);
+      const prismaGarmentType =
+        matchedGarment?.prismaGarmentType ||
+        (garmentType === 'waistcoat' ||
+        garmentType === 'pant_coat' ||
+        garmentType === 'frock_maxi'
+          ? 'other'
+          : garmentType);
+
       const payload: Record<string, any> = {
         gender,
-        garmentType,
+        garmentType: prismaGarmentType,
+        garmentSubtype: garmentType,
         stitchingTier,
         couponCode: couponCode.trim() || undefined,
         internalNotes: specialInstructions.trim() || undefined,
@@ -689,6 +726,7 @@ function NewOrderContent() {
       // 2. Style Preferences
       payload.stylePreferences = {
         gender,
+        garmentSubtype: garmentType,
         neckStyle: gender === 'female' ? neckStyle : undefined,
         collarStyle: gender === 'male' ? collarStyle : undefined,
         pocketStyle: gender === 'male' ? pocketStyle : undefined,
@@ -836,8 +874,8 @@ function NewOrderContent() {
 
       {/* ── STEP 1: Fabric & Product Link ── */}
       {currentStep === 1 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+          <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xs flex flex-col justify-between space-y-6">
             <div className="space-y-1">
               <h2 className="text-lg font-extrabold text-gray-900">
                 1. Unstitched Fabric & Tailoring Details
@@ -941,49 +979,53 @@ function NewOrderContent() {
 
             {/* Garment Type Selector Pills */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-700 block">
-                Garment Type <span className="text-[#7E153A]">*</span>
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {gender === 'male'
-                  ? [
-                      { key: 'full_suit', label: 'Shalwar Kameez (2-Pc)' },
-                      { key: 'kurta', label: 'Kurta Pajama' },
-                      { key: 'kameez_only', label: 'Kurta Only' },
-                      { key: 'other', label: 'Sadri / Waistcoat' },
-                    ].map((g) => (
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-gray-700 block">
+                  Garment Type <span className="text-[#7E153A]">*</span>
+                </label>
+                <span className="text-[11px] text-gray-500 font-medium">
+                  {gender === 'male'
+                    ? "Men's Collection"
+                    : "Women's Collection"}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {(gender === 'male' ? MENS_GARMENTS : FEMALE_GARMENTS).map(
+                  (g) => {
+                    const isSelected = garmentType === g.key;
+                    return (
                       <button
                         key={g.key}
                         type="button"
                         onClick={() => setGarmentType(g.key)}
-                        className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
-                          garmentType === g.key
-                            ? 'border-[#7E153A] bg-red-50/60 text-[#7E153A] ring-1 ring-[#7E153A]'
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                          isSelected
+                            ? 'border-[#7E153A] bg-red-50/60 text-[#7E153A] ring-1 ring-[#7E153A] shadow-xs'
                             : 'border-gray-200 hover:border-gray-300 bg-white text-gray-700'
                         }`}
                       >
-                        {g.label}
+                        <div>
+                          <p className="text-xs font-bold leading-tight line-clamp-1">
+                            {g.label}
+                          </p>
+                          {g.sublabel && (
+                            <p className="text-[10px] text-gray-400 mt-1 line-clamp-1 leading-snug">
+                              {g.sublabel}
+                            </p>
+                          )}
+                        </div>
+                        <div className="mt-2.5 pt-2 border-t border-gray-100/80 flex items-center justify-between">
+                          <span className="text-[10px] uppercase font-bold text-gray-400">
+                            From
+                          </span>
+                          <span className="text-xs font-extrabold font-mono text-[#7E153A]">
+                            PKR {g.tiers.basic.toLocaleString()}
+                          </span>
+                        </div>
                       </button>
-                    ))
-                  : [
-                      { key: 'full_suit', label: '3-Piece Full Suit' },
-                      { key: 'kameez_only', label: 'Kurti / Kameez Only' },
-                      { key: 'trouser_only', label: 'Trouser Only' },
-                      { key: 'other', label: 'Formal / Maxi / Frock' },
-                    ].map((g) => (
-                      <button
-                        key={g.key}
-                        type="button"
-                        onClick={() => setGarmentType(g.key)}
-                        className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
-                          garmentType === g.key
-                            ? 'border-[#7E153A] bg-red-50/60 text-[#7E153A] ring-1 ring-[#7E153A]'
-                            : 'border-gray-200 hover:border-gray-300 bg-white text-gray-700'
-                        }`}
-                      >
-                        {g.label}
-                      </button>
-                    ))}
+                    );
+                  }
+                )}
               </div>
             </div>
 
@@ -1087,7 +1129,7 @@ function NewOrderContent() {
               </div>
             </div>
 
-            <div className="pt-4 flex justify-end">
+            <div className="pt-4 flex justify-end mt-auto">
               <Button
                 onClick={() => handleGoToStep(2)}
                 className="h-11 px-8 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer"
@@ -1098,49 +1140,136 @@ function NewOrderContent() {
             </div>
           </div>
 
-          {/* Right Product Preview Card */}
-          <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-xs flex flex-col justify-between space-y-4">
+          {/* Right Product Preview Card - Adjusted to match Continue Button alignment */}
+          <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-xs flex flex-col justify-between h-full">
             <div className="space-y-3">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block">
-                Selected Garment Preview
-              </span>
-              <div className="w-full aspect-[4/3] rounded-2xl bg-gray-50 overflow-hidden relative border border-gray-100 flex items-center justify-center">
-                {parsedProduct?.images?.[0] ? (
-                  <img
-                    src={parsedProduct.images[0]}
-                    alt={manualTitle || 'Product Preview'}
-                    className="w-full h-full object-cover"
-                  />
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-extrabold tracking-wider text-gray-400">
+                  Selected Garment Preview
+                </span>
+                {parsedProduct ? (
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-[#7E153A] border border-red-100">
+                    {gender === 'female' ? "👗 Women's Suit" : "👔 Men's Suit"}
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-semibold text-gray-400">
+                    Live Preview
+                  </span>
+                )}
+              </div>
+
+              {/* Garment Image Card - Balanced height matching left form fields */}
+              <div className="w-full h-[230px] sm:h-[250px] lg:h-[265px] rounded-2xl bg-gray-50 overflow-hidden relative border border-gray-100 flex items-center justify-center group shadow-xs shrink-0">
+                {parsedProduct?.images?.[selectedImageIndex] ||
+                parsedProduct?.images?.[0] ? (
+                  <>
+                    <img
+                      src={
+                        parsedProduct?.images?.[selectedImageIndex] ||
+                        parsedProduct.images[0]
+                      }
+                      alt={manualTitle || 'Product Preview'}
+                      className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                    />
+                    {/* Photo Counter Badge */}
+                    {Array.isArray(parsedProduct?.images) &&
+                      parsedProduct.images.length > 1 && (
+                        <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
+                          {selectedImageIndex + 1} /{' '}
+                          {parsedProduct.images.length}
+                        </div>
+                      )}
+                    {/* Brand Pill */}
+                    {manualBrand && (
+                      <div className="absolute bottom-2.5 left-2.5 bg-white/95 backdrop-blur-md text-gray-900 text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg shadow-md border border-white/60">
+                        {manualBrand}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 space-y-2 p-4 text-center">
-                    <div className="w-10 h-10 rounded-2xl bg-red-50 text-[#7E153A] flex items-center justify-center">
-                      <Scissors size={20} />
+                    <div className="w-12 h-12 rounded-2xl bg-red-50 text-[#7E153A] flex items-center justify-center shadow-xs">
+                      <Scissors size={22} />
                     </div>
                     <span className="text-xs font-bold text-gray-700">
                       {manualTitle ? manualTitle : 'No Suit Linked Yet'}
                     </span>
-                    <span className="text-[11px] text-gray-400 leading-tight">
-                      Paste a brand URL above or enter fabric details to see
-                      live preview
+                    <span className="text-[11px] text-gray-400 leading-relaxed max-w-[200px]">
+                      Paste a store link or enter fabric details on the left to
+                      see live preview.
                     </span>
                   </div>
                 )}
               </div>
 
+              {/* Gallery Thumbnails */}
+              {Array.isArray(parsedProduct?.images) &&
+                parsedProduct.images.length > 1 && (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px] font-medium text-gray-400 px-0.5">
+                      <span>
+                        Available Views ({parsedProduct.images.length})
+                      </span>
+                      <span>Click to switch photo</span>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto pb-0.5 pt-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                      {parsedProduct.images
+                        .slice(0, 8)
+                        .map((imgUrl: string, idx: number) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setSelectedImageIndex(idx)}
+                            className={`w-11 h-13 rounded-lg overflow-hidden border-2 shrink-0 transition-all cursor-pointer relative ${
+                              selectedImageIndex === idx
+                                ? 'border-[#7E153A] ring-2 ring-[#7E153A]/25 shadow-sm scale-105'
+                                : 'border-gray-200 hover:border-gray-300 opacity-65 hover:opacity-100'
+                            }`}
+                          >
+                            <img
+                              src={imgUrl}
+                              alt={`Thumbnail ${idx + 1}`}
+                              className="w-full h-full object-cover object-top"
+                            />
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+              {/* Product Specifications & Details */}
               {manualTitle || manualBrand || parsedProduct ? (
-                <div>
-                  <span className="text-[10px] uppercase font-extrabold text-[#7E153A] tracking-wider">
-                    {manualBrand || 'Pakistani Brand'}
-                  </span>
-                  <h3 className="font-extrabold text-sm text-gray-900 mt-0.5">
-                    {manualTitle || 'Unstitched Suit'}
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {manualFabric || 'Unstitched Fabric'}
-                  </p>
+                <div className="space-y-1 pt-1.5 border-t border-gray-100">
+                  <div>
+                    <span className="text-[10px] uppercase font-extrabold text-[#7E153A] tracking-wider block truncate">
+                      {manualBrand || 'Pakistani Brand'}
+                    </span>
+                    <h3 className="font-extrabold text-xs sm:text-sm text-gray-900 mt-0.5 leading-snug line-clamp-2">
+                      {manualTitle || 'Unstitched Suit'}
+                    </h3>
+                  </div>
+
+                  {/* Dynamic Tags */}
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {manualFabric && (
+                      <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
+                        {manualFabric}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-50 text-[#7E153A] border border-red-100">
+                      {gender === 'female'
+                        ? "Women's Collection"
+                        : "Men's Collection"}
+                    </span>
+                    {parsedProduct?.garmentType && (
+                      <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 capitalize">
+                        {parsedProduct.garmentType.replace('_', ' ')}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ) : (
-                <div className="py-1">
+                <div className="py-1 border-t border-gray-100">
                   <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
                     Suit Details
                   </span>
@@ -1151,10 +1280,16 @@ function NewOrderContent() {
               )}
             </div>
 
-            <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 flex items-center justify-between">
-              <span className="text-xs font-bold text-gray-500">
-                Fabric Value:
-              </span>
+            {/* Bottom Fabric Retail Value - Anchored to align exactly across from Continue button */}
+            <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex items-center justify-between mt-auto">
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                  Suit Fabric Value
+                </span>
+                <span className="text-xs font-semibold text-gray-600">
+                  Retail Price
+                </span>
+              </div>
               <span className="text-sm font-extrabold text-gray-900 font-mono">
                 {suitFabricPrice > 0
                   ? `PKR ${suitFabricPrice.toLocaleString()}`
@@ -1179,23 +1314,222 @@ function NewOrderContent() {
           </div>
 
           {/* Stitching Tiers Grid */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-gray-700 block">
-                Stitching Craftsmanship Tier (
-                {gender === 'male' ? "Men's Pricing" : "Women's Pricing"})
-              </label>
-              <span className="text-[11px] font-semibold text-[#7E153A]">
-                {gender === 'male' ? "Men's Tailoring" : "Women's Tailoring"}
-              </span>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <label className="text-xs font-bold text-gray-800 block">
+                  Stitching Craftsmanship Tier
+                </label>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  Applied rates for{' '}
+                  <span className="font-semibold text-gray-900">
+                    {(gender === 'male' ? MENS_GARMENTS : FEMALE_GARMENTS).find(
+                      (g) => g.key === garmentType
+                    )?.label || 'Selected Garment'}
+                  </span>{' '}
+                  ({gender === 'male' ? "Men's Tailoring" : "Women's Tailoring"}
+                  )
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRateCard((prev) => !prev)}
+                className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-[#7E153A] bg-red-50 hover:bg-red-100/70 border border-red-200 transition-colors cursor-pointer"
+              >
+                <Table2 size={13} />
+                <span>
+                  {showRateCard
+                    ? 'Hide Rate Card'
+                    : 'View Official Rate Card (PKR)'}
+                </span>
+                {showRateCard ? (
+                  <ChevronUp size={13} />
+                ) : (
+                  <ChevronDown size={13} />
+                )}
+              </button>
             </div>
+
+            {/* Official Stitching Rate Card Accordion */}
+            {showRateCard && (
+              <div className="bg-stone-50/80 rounded-2xl border border-stone-200 p-4 sm:p-5 space-y-4 animate-in fade-in-50 duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#7E153A]"></span>
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-gray-800">
+                      Official Tailoring Rate Card (Pakistani Rupees)
+                    </h4>
+                  </div>
+                  <span className="text-[10px] text-gray-400 font-medium">
+                    As per verified pricing policy
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* Female Rate Table */}
+                  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs">
+                    <div className="bg-pink-50/70 px-3.5 py-2 border-b border-pink-100 flex items-center justify-between">
+                      <span className="text-xs font-extrabold text-pink-950 uppercase tracking-wider">
+                        Female Tailoring
+                      </span>
+                      {gender === 'female' && (
+                        <span className="text-[9px] font-extrabold bg-[#7E153A] text-white px-2 py-0.5 rounded-full uppercase">
+                          Active Selection
+                        </span>
+                      )}
+                    </div>
+                    <table className="w-full text-xs text-left">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-100 text-[10px] uppercase font-bold text-gray-500">
+                          <th className="py-2 px-3 font-bold">
+                            Stitching Type
+                          </th>
+                          <th className="py-2 px-2.5 text-right">Basic</th>
+                          <th className="py-2 px-2.5 text-right">Standard</th>
+                          <th className="py-2 px-2.5 text-right">Luxury</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 text-gray-700">
+                        {FEMALE_GARMENTS.map((item) => {
+                          const isCurrentGarment =
+                            gender === 'female' && garmentType === item.key;
+                          return (
+                            <tr
+                              key={item.key}
+                              className={
+                                isCurrentGarment
+                                  ? 'bg-red-50/40 font-semibold text-gray-900'
+                                  : 'hover:bg-gray-50/60'
+                              }
+                            >
+                              <td className="py-2 px-3 flex items-center gap-1.5">
+                                {isCurrentGarment && (
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#7E153A]"></span>
+                                )}
+                                <span>{item.label}</span>
+                              </td>
+                              <td
+                                className={`py-2 px-2.5 text-right font-mono ${
+                                  isCurrentGarment && stitchingTier === 'basic'
+                                    ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
+                                    : ''
+                                }`}
+                              >
+                                Rs. {item.tiers.basic.toLocaleString()}
+                              </td>
+                              <td
+                                className={`py-2 px-2.5 text-right font-mono ${
+                                  isCurrentGarment &&
+                                  stitchingTier === 'standard'
+                                    ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
+                                    : ''
+                                }`}
+                              >
+                                Rs. {item.tiers.standard.toLocaleString()}
+                              </td>
+                              <td
+                                className={`py-2 px-2.5 text-right font-mono ${
+                                  isCurrentGarment && stitchingTier === 'luxury'
+                                    ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
+                                    : ''
+                                }`}
+                              >
+                                Rs. {item.tiers.luxury.toLocaleString()}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mens Rate Table */}
+                  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs">
+                    <div className="bg-blue-50/70 px-3.5 py-2 border-b border-blue-100 flex items-center justify-between">
+                      <span className="text-xs font-extrabold text-blue-950 uppercase tracking-wider">
+                        MENS Tailoring
+                      </span>
+                      {gender === 'male' && (
+                        <span className="text-[9px] font-extrabold bg-[#7E153A] text-white px-2 py-0.5 rounded-full uppercase">
+                          Active Selection
+                        </span>
+                      )}
+                    </div>
+                    <table className="w-full text-xs text-left">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-100 text-[10px] uppercase font-bold text-gray-500">
+                          <th className="py-2 px-3 font-bold">
+                            Stitching Type
+                          </th>
+                          <th className="py-2 px-2.5 text-right">Basic</th>
+                          <th className="py-2 px-2.5 text-right">Standard</th>
+                          <th className="py-2 px-2.5 text-right">Luxury</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 text-gray-700">
+                        {MENS_GARMENTS.map((item) => {
+                          const isCurrentGarment =
+                            gender === 'male' && garmentType === item.key;
+                          return (
+                            <tr
+                              key={item.key}
+                              className={
+                                isCurrentGarment
+                                  ? 'bg-red-50/40 font-semibold text-gray-900'
+                                  : 'hover:bg-gray-50/60'
+                              }
+                            >
+                              <td className="py-2 px-3 flex items-center gap-1.5">
+                                {isCurrentGarment && (
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#7E153A]"></span>
+                                )}
+                                <span>{item.label}</span>
+                              </td>
+                              <td
+                                className={`py-2 px-2.5 text-right font-mono ${
+                                  isCurrentGarment && stitchingTier === 'basic'
+                                    ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
+                                    : ''
+                                }`}
+                              >
+                                Rs. {item.tiers.basic.toLocaleString()}
+                              </td>
+                              <td
+                                className={`py-2 px-2.5 text-right font-mono ${
+                                  isCurrentGarment &&
+                                  stitchingTier === 'standard'
+                                    ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
+                                    : ''
+                                }`}
+                              >
+                                Rs. {item.tiers.standard.toLocaleString()}
+                              </td>
+                              <td
+                                className={`py-2 px-2.5 text-right font-mono ${
+                                  isCurrentGarment && stitchingTier === 'luxury'
+                                    ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
+                                    : ''
+                                }`}
+                              >
+                                Rs. {item.tiers.luxury.toLocaleString()}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {currentTiers.map((tier) => {
                 const isSelected = stitchingTier === tier.key;
                 return (
                   <div
                     key={tier.key}
-                    onClick={() => setStitchingTier(tier.key as any)}
+                    onClick={() => setStitchingTier(tier.key)}
                     className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
                       isSelected
                         ? 'border-[#7E153A] bg-red-50/40 ring-2 ring-[#7E153A]/10 shadow-xs'
@@ -1207,7 +1541,7 @@ function NewOrderContent() {
                         <h4 className="font-extrabold text-sm text-gray-900">
                           {tier.name}
                         </h4>
-                        <span className="text-[10px] font-bold text-gray-400">
+                        <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                           {tier.days}
                         </span>
                       </div>
@@ -1217,9 +1551,14 @@ function NewOrderContent() {
                     </div>
 
                     <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                      <span className="text-sm font-extrabold text-[#7E153A] font-mono">
-                        PKR {tier.price.toLocaleString()}
-                      </span>
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-gray-400 block">
+                          Stitching Fee
+                        </span>
+                        <span className="text-sm font-extrabold text-[#7E153A] font-mono">
+                          PKR {tier.price.toLocaleString()}
+                        </span>
+                      </div>
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center border ${
                           isSelected

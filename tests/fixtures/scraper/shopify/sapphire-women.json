@@ -1,0 +1,32 @@
+{
+  "product": {
+    "id": 892147102,
+    "title": "3 Piece Printed Lawn Suit - Crimson Blooms",
+    "vendor": "Sapphire",
+    "product_type": "Daily Unstitched 3 Piece",
+    "handle": "3-piece-printed-lawn-suit-u3pest24v31-3pc",
+    "body_html": "<p>A vibrant crimson 3-piece unstitched lawn suit with digital printed voile dupatta and dyed cambric trousers.</p>",
+    "published_at": "2024-05-12T09:00:00+05:00",
+    "tags": ["Women", "3 Piece", "Lawn", "Unstitched", "Summer 24"],
+    "variants": [
+      {
+        "id": 48192020,
+        "title": "Default Title",
+        "price": "8490.00",
+        "compare_at_price": null,
+        "sku": "U3PEST24V31-3PC",
+        "available": true
+      }
+    ],
+    "images": [
+      {
+        "id": 201,
+        "src": "https://cdn.shopify.com/s/files/1/0550/sapphire-3pc-front.jpg"
+      },
+      {
+        "id": 202,
+        "src": "https://cdn.shopify.com/s/files/1/0550/sapphire-3pc-back.jpg"
+      }
+    ]
+  }
+}

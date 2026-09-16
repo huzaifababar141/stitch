@@ -1,0 +1,44 @@
+{
+  "product": {
+    "id": 892147101,
+    "title": "Men Embroidered Cotton Kurta - Sage Green",
+    "vendor": "Sapphire",
+    "product_type": "Men Stitched Kurta",
+    "handle": "men-embroidered-cotton-kurta-m-kt-24-01",
+    "body_html": "<p>100% premium Egyptian cotton kurta featuring subtle thread embroidery on the placket and cuffs.</p>",
+    "published_at": "2024-05-10T12:00:00+05:00",
+    "tags": ["Men", "Kurta", "Stitched", "Summer 24", "Cotton"],
+    "variants": [
+      {
+        "id": 48192011,
+        "title": "Small",
+        "price": "4990.00",
+        "compare_at_price": "5990.00",
+        "sku": "M-KT-24-01-S",
+        "available": true
+      },
+      {
+        "id": 48192012,
+        "title": "Medium",
+        "price": "4990.00",
+        "compare_at_price": "5990.00",
+        "sku": "M-KT-24-01-M",
+        "available": true
+      }
+    ],
+    "images": [
+      {
+        "id": 101,
+        "src": "https://cdn.shopify.com/s/files/1/0550/sapphire-kurta-front_medium.jpg"
+      },
+      {
+        "id": 102,
+        "src": "https://cdn.shopify.com/s/files/1/0550/sapphire-kurta-back.jpg"
+      },
+      {
+        "id": 103,
+        "src": "//cdn.shopify.com/s/files/1/0550/sapphire-kurta-detail.jpg"
+      }
+    ]
+  }
+}

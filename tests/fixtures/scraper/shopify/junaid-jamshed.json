@@ -1,0 +1,32 @@
+{
+  "product": {
+    "id": 912384721,
+    "title": "Men Traditional Kameez Shalwar Solid - Off White",
+    "vendor": "Junaid Jamshed",
+    "product_type": "Kameez Shalwar",
+    "handle": "jjks-a-50012",
+    "body_html": "<p>Classic blended poly-viscose traditional men's kameez shalwar suit with band collar and embroidered cuff detailing.</p>",
+    "published_at": "2024-04-18T14:30:00+05:00",
+    "tags": ["Men", "Kameez Shalwar", "Stitched", "Festive", "Solid"],
+    "variants": [
+      {
+        "id": 50192831,
+        "title": "M",
+        "price": "6850.00",
+        "compare_at_price": "7500.00",
+        "sku": "JJKS-A-50012-M",
+        "available": true
+      }
+    ],
+    "images": [
+      {
+        "id": 301,
+        "src": "https://cdn.shopify.com/s/files/1/0143/products/jjks-50012-front.jpg"
+      },
+      {
+        "id": 302,
+        "src": "https://cdn.shopify.com/s/files/1/0143/products/jjks-50012-side.jpg"
+      }
+    ]
+  }
+}
