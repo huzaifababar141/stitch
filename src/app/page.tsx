@@ -38,6 +38,13 @@ export default function Home() {
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
+            <Link
+              href="/stock"
+              className="text-[#7E153A] font-extrabold flex items-center gap-1.5 hover:opacity-85 transition-opacity"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#7E153A] animate-pulse"></span>
+              Our Stock
+            </Link>
             <a
               href="#features"
               className="hover:text-[#7E153A] transition-colors"

@@ -21,6 +21,7 @@ import {
   X,
   Plus,
   User,
+  Boxes,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState } from 'react';
@@ -59,6 +60,7 @@ export default function CustomerLayout({
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+    { icon: Boxes, label: 'Our Stock', href: '/stock' },
     { icon: ShoppingBag, label: 'My Orders', href: '/orders' },
     { icon: Ruler, label: 'Measurements', href: '/measurements' },
     { icon: Palette, label: 'My Designs', href: '/designs' },
@@ -75,9 +77,9 @@ export default function CustomerLayout({
 
   const bottomNavItems = [
     { icon: LayoutDashboard, label: 'Home', href: '/dashboard' },
-    { icon: ShoppingBag, label: 'Orders', href: '/orders' },
+    { icon: Boxes, label: 'Stock', href: '/stock' },
     { icon: Plus, label: 'New Order', href: '/new-order', isFab: true },
-    { icon: Ruler, label: 'Sizes', href: '/measurements' },
+    { icon: ShoppingBag, label: 'Orders', href: '/orders' },
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];
 

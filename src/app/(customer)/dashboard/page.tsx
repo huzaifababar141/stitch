@@ -21,6 +21,7 @@ import {
   ArrowRight,
   Eye,
   Loader2,
+  Boxes,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -831,6 +832,12 @@ export default function DashboardPage() {
                   label: 'Place Custom Order',
                   href: '/new-order',
                   color: 'bg-[#7E153A] text-white',
+                },
+                {
+                  icon: Boxes,
+                  label: 'Browse Fabric Stock',
+                  href: '/stock',
+                  color: 'bg-red-50 text-[#7E153A]',
                 },
                 {
                   icon: Package,

@@ -27,6 +27,7 @@ import {
   Table2,
   ChevronDown,
   ChevronUp,
+  Boxes,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -274,6 +275,40 @@ function NewOrderContent() {
     const brandParam = searchParams.get('brand');
     const priceParam = searchParams.get('price');
     const genderParam = searchParams.get('gender');
+
+    const productIdParam = searchParams.get('productId');
+
+    if (productIdParam) {
+      fetch(`/api/products/${productIdParam}`)
+        .then((res) => res.json())
+        .then((json) => {
+          const prod = json.data || json;
+          if (prod && prod.id) {
+            setParsedProduct(prod);
+            setSelectedImageIndex(0);
+            if (prod.name) setManualTitle(prod.name);
+            if (prod.brand) setManualBrand(prod.brand);
+            if (prod.priceOriginal) setManualPrice(Number(prod.priceOriginal));
+            if (prod.fabricType) setManualFabric(prod.fabricType);
+
+            const meta = prod.parseMetadata || {};
+            if (meta.gender === 'male' || meta.gender === 'female') {
+              handleGenderChange(meta.gender);
+            }
+            if (meta.garmentSubtype) {
+              setGarmentType(meta.garmentSubtype);
+            } else if (prod.garmentType) {
+              setGarmentType(prod.garmentType);
+            }
+
+            toast({
+              title: 'In-House Fabric Selected',
+              description: `"${prod.name}" attached to your tailoring order.`,
+            });
+          }
+        })
+        .catch(() => {});
+    }
 
     if (urlParam) {
       setProductUrl(urlParam);
@@ -1029,10 +1064,37 @@ function NewOrderContent() {
               </div>
             </div>
 
+            {/* Choose From In-House Stock Banner */}
+            <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-3">
+                <span className="w-10 h-10 rounded-2xl bg-red-50 text-[#7E153A] flex items-center justify-center shrink-0 shadow-xs">
+                  <Boxes size={20} />
+                </span>
+                <div>
+                  <p className="text-xs font-black text-gray-900 leading-tight">
+                    Don't have an online store link?
+                  </p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Browse our curated in-house fabric stock of pure lawn, cotton, chiffon & formal suits.
+                  </p>
+                </div>
+              </div>
+              <Link href="/stock" className="shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl border-[#7E153A] text-[#7E153A] hover:bg-red-50 text-xs font-bold w-full sm:w-auto h-9 cursor-pointer"
+                >
+                  Browse Our Stock
+                </Button>
+              </Link>
+            </div>
+
             {/* URL Input Box */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-700 block">
-                Brand Online Store Link (Optional)
+                Or Paste Online Store Link (Optional)
               </label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -1251,6 +1313,11 @@ function NewOrderContent() {
 
                   {/* Dynamic Tags */}
                   <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {parsedProduct?.parseSource === 'in_house' && (
+                      <span className="inline-flex items-center text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        ★ In-House Stock Fabric
+                      </span>
+                    )}
                     {manualFabric && (
                       <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
                         {manualFabric}

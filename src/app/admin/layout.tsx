@@ -20,6 +20,7 @@ import {
   Loader2,
   ShieldAlert,
   Ticket,
+  Boxes,
 } from 'lucide-react';
 import { useAdminRealtime } from '@/hooks/useAdminRealtime';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 const ADMIN_NAV = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
   { icon: ShoppingBag, label: 'Orders Control', href: '/admin/orders' },
+  { icon: Boxes, label: 'Stock / Inventory', href: '/admin/stock' },
   { icon: Scissors, label: 'Tailor Management', href: '/admin/tailors' },
   { icon: Users, label: 'Users & Roles', href: '/admin/users' },
   { icon: ShieldCheck, label: 'Quality Control', href: '/admin/qc' },
