@@ -17,6 +17,7 @@ export interface GarmentPricingOption {
   key: string;
   label: string;
   sublabel?: string;
+  image?: string; // path to illustration SVG in /public/images/garments/
   prismaGarmentType:
     | 'full_suit'
     | 'kameez_only'
@@ -38,6 +39,7 @@ export const FEMALE_GARMENTS: GarmentPricingOption[] = [
     key: 'full_suit',
     label: 'Shalwar Kameez / Pajama',
     sublabel: 'Complete 2-Pc / 3-Pc suit with matching bottoms & dupatta',
+    image: '/images/tailor/garment_w_shalwarkameez.png',
     prismaGarmentType: 'full_suit',
     tiers: {
       basic: 2000,
@@ -49,6 +51,7 @@ export const FEMALE_GARMENTS: GarmentPricingOption[] = [
     key: 'kameez_only',
     label: 'Only Shirt',
     sublabel: 'Single Kurti or Kameez with custom neckline & sleeves',
+    image: '/images/tailor/garment_w_onlyshirt.png',
     prismaGarmentType: 'kameez_only',
     tiers: {
       basic: 1000,
@@ -60,6 +63,7 @@ export const FEMALE_GARMENTS: GarmentPricingOption[] = [
     key: 'frock_maxi',
     label: 'Frock / Maxi',
     sublabel: 'Floor-length Maxi, Flared Frock, or Anarkali cut',
+    image: '/images/tailor/garment_w_frockmaxi.png',
     prismaGarmentType: 'other',
     tiers: {
       basic: 3000,
@@ -71,6 +75,7 @@ export const FEMALE_GARMENTS: GarmentPricingOption[] = [
     key: 'trouser_only',
     label: 'Trouser Only',
     sublabel: 'Straight pants, cigarette pants, or shalwar',
+    image: '/images/tailor/garment_w_trouser.png',
     prismaGarmentType: 'trouser_only',
     tiers: {
       basic: 1000,
@@ -82,14 +87,16 @@ export const FEMALE_GARMENTS: GarmentPricingOption[] = [
 
 // ── MENS Pricing Structure ──────────────────────────────────────────────────
 // Stitching Type            Basic        Standard     Luxury
-// Shalwar Kameez / Pajama   Rs. 2,000    Rs. 3,000    Rs. 3,500
-// Waistcoat                 Rs. 3,000    Rs. 3,500    Rs. 4,000
-// Pant Coat                 Rs. 10,000   Rs. 13,000   Rs. 15,000
+// Shalwar Kameez            Rs. 2,000    Rs. 3,000    Rs. 3,500
+// Trouser                   Rs. 1,500    Rs. 2,000    Rs. 2,500
+// Waist Coat                Rs. 3,000    Rs. 3,500    Rs. 4,000
+// Pent Coat                 Rs. 10,000   Rs. 13,000   Rs. 15,000
 export const MENS_GARMENTS: GarmentPricingOption[] = [
   {
     key: 'full_suit',
-    label: 'Shalwar Kameez / Pajama',
+    label: 'Shalwar Kameez',
     sublabel: 'Traditional 2-Piece Kameez Shalwar or Kurta Pajama',
+    image: '/images/tailor/garment_m_shalwarkameez.png',
     prismaGarmentType: 'full_suit',
     tiers: {
       basic: 2000,
@@ -98,10 +105,23 @@ export const MENS_GARMENTS: GarmentPricingOption[] = [
     },
   },
   {
+    key: 'trouser_mens',
+    label: 'Trouser',
+    sublabel: 'Formal or casual trouser with custom fit and waistband',
+    image: '/images/tailor/garment_m_trouser.png',
+    prismaGarmentType: 'trouser',
+    tiers: {
+      basic: 1500,
+      standard: 2000,
+      luxury: 2500,
+    },
+  },
+  {
     key: 'waistcoat',
-    label: 'Waistcoat',
+    label: 'Waist Coat',
     sublabel:
       'Tailored Sadri / Waistcoat with premium inner lining & welt pockets',
+    image: '/images/tailor/garment_m_waistcoat.png',
     prismaGarmentType: 'other',
     tiers: {
       basic: 3000,
@@ -111,25 +131,15 @@ export const MENS_GARMENTS: GarmentPricingOption[] = [
   },
   {
     key: 'pant_coat',
-    label: 'Pant Coat',
+    label: 'Pent Coat',
     sublabel:
       'Two-Piece Formal Suit with fused lapel jacket & matching trousers',
+    image: '/images/tailor/garment_m_pentcoat.png',
     prismaGarmentType: 'other',
     tiers: {
       basic: 10000,
       standard: 13000,
       luxury: 15000,
-    },
-  },
-  {
-    key: 'kurta_only',
-    label: 'Kurta Only',
-    sublabel: 'Single Kurta with Ban or Shirt collar and open sleeves',
-    prismaGarmentType: 'kameez_only',
-    tiers: {
-      basic: 1500,
-      standard: 2000,
-      luxury: 2500,
     },
   },
 ];

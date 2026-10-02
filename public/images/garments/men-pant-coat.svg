@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" fill="none">
+  <!-- Jacket body -->
+  <path d="M25 18 L12 32 L10 100 L16 128 L104 128 L110 100 L108 32 L95 18 Z" fill="#1A1A2E"/>
+  <!-- Lapels -->
+  <path d="M60 18 L42 40 L50 46 L60 32 L70 46 L78 40 Z" fill="#16213E"/>
+  <path d="M25 18 L12 42 L26 52 Z" fill="#16213E"/>
+  <path d="M95 18 L108 42 L94 52 Z" fill="#16213E"/>
+  <!-- Left sleeve -->
+  <path d="M12 32 L2 85 L12 90 L26 48 Z" fill="#1A1A2E"/>
+  <!-- Right sleeve -->
+  <path d="M108 32 L118 85 L108 90 L94 48 Z" fill="#1A1A2E"/>
+  <!-- Sleeve cuffs -->
+  <rect x="2" y="82" width="12" height="8" rx="2" fill="#16213E"/>
+  <rect x="106" y="82" width="12" height="8" rx="2" fill="#16213E"/>
+  <!-- Cuff buttons -->
+  <circle cx="6" cy="86" r="1.5" fill="#C0A020"/>
+  <circle cx="12" cy="86" r="1.5" fill="#C0A020"/>
+  <circle cx="110" cy="86" r="1.5" fill="#C0A020"/>
+  <circle cx="116" cy="86" r="1.5" fill="#C0A020"/>
+  <!-- Breast pocket -->
+  <rect x="68" y="40" width="18" height="10" rx="2" fill="#16213E"/>
+  <!-- Pocket flaps -->
+  <rect x="22" y="80" width="26" height="9" rx="3" fill="#16213E"/>
+  <rect x="72" y="80" width="26" height="9" rx="3" fill="#16213E"/>
+  <!-- Button -->
+  <circle cx="60" cy="60" r="4" fill="#C0A020"/>
+  <circle cx="60" cy="78" r="4" fill="#C0A020"/>
+  <!-- Trouser waistband glimpse -->
+  <rect x="18" y="122" width="84" height="8" rx="3" fill="#0F0F1A"/>
+  <!-- Hem -->
+  <rect x="16" y="120" width="88" height="6" rx="2" fill="#16213E"/>
+</svg>

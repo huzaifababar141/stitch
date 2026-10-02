@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" fill="none">
+  <!-- Waistcoat body -->
+  <path d="M30 15 L20 28 L18 110 L24 125 L96 125 L102 110 L100 28 L90 15 Z" fill="#8B6914"/>
+  <!-- Lapels -->
+  <path d="M60 15 L44 32 L50 38 L60 28 L70 38 L76 32 Z" fill="#7A5C10"/>
+  <!-- Left lapel -->
+  <path d="M30 15 L18 35 L30 45 Z" fill="#7A5C10"/>
+  <!-- Right lapel -->
+  <path d="M90 15 L102 35 L90 45 Z" fill="#7A5C10"/>
+  <!-- Button row -->
+  <circle cx="60" cy="55" r="3" fill="#F4D03F"/>
+  <circle cx="60" cy="72" r="3" fill="#F4D03F"/>
+  <circle cx="60" cy="89" r="3" fill="#F4D03F"/>
+  <circle cx="60" cy="106" r="3" fill="#F4D03F"/>
+  <!-- Welt pockets -->
+  <rect x="26" y="65" width="24" height="8" rx="2" fill="#7A5C10"/>
+  <rect x="70" y="65" width="24" height="8" rx="2" fill="#7A5C10"/>
+  <!-- Inner lining visible at lapel edge -->
+  <path d="M44 32 L50 38 L50 50 L44 50 Z" fill="#C0392B" opacity="0.7"/>
+  <path d="M76 32 L70 38 L70 50 L76 50 Z" fill="#C0392B" opacity="0.7"/>
+  <!-- Hem detail -->
+  <rect x="22" y="118" width="76" height="5" rx="2" fill="#7A5C10"/>
+</svg>

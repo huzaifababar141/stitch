@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 320" fill="none">
+  <!-- Background -->
+  <rect width="200" height="320" fill="#EEF4FB" rx="16"/>
+
+  <!-- Hair -->
+  <ellipse cx="100" cy="44" rx="26" ry="22" fill="#2D1E0F"/>
+  <rect x="74" y="44" width="52" height="20" rx="3" fill="#2D1E0F"/>
+  
+  <!-- Face -->
+  <ellipse cx="100" cy="63" rx="22" ry="23" fill="#C8915A"/>
+  <!-- Eyes -->
+  <ellipse cx="92" cy="57" rx="2.5" ry="3" fill="#1A0A00"/>
+  <ellipse cx="108" cy="57" rx="2.5" ry="3" fill="#1A0A00"/>
+  <!-- Eyebrows -->
+  <path d="M87 51 Q92 48 97 50" stroke="#2D1E0F" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M103 50 Q108 48 113 51" stroke="#2D1E0F" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Nose -->
+  <path d="M100 60 Q98 65 100 67 Q102 65 100 60" fill="#B07848"/>
+  <!-- Lips / Beard hint -->
+  <path d="M93 73 Q100 77 107 73" stroke="#8B5E3C" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Beard stubble -->
+  <path d="M84 72 Q82 78 85 82 Q88 86 90 83" stroke="#5C3A1E" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M116 72 Q118 78 115 82 Q112 86 110 83" stroke="#5C3A1E" stroke-width="1" fill="none" opacity="0.5"/>
+  
+  <!-- Neck -->
+  <rect x="93" y="83" width="14" height="16" fill="#C8915A"/>
+  
+  <!-- Kameez / Kurta Body - blue/teal -->
+  <path d="M68 98 L55 106 L50 180 L55 250 L145 250 L150 180 L145 106 L132 98 Z" fill="#3B7DD8"/>
+  <!-- Collar / Ban collar -->
+  <rect x="90" y="96" width="20" height="18" rx="3" fill="#2A5FA0"/>
+  <line x1="100" y1="96" x2="100" y2="250" stroke="#2A5FA0" stroke-width="2.5"/>
+  <!-- Collar buttons -->
+  <circle cx="100" cy="130" r="2.5" fill="#1E4A80"/>
+  <circle cx="100" cy="150" r="2.5" fill="#1E4A80"/>
+  <circle cx="100" cy="170" r="2.5" fill="#1E4A80"/>
+  <!-- Left sleeve -->
+  <path d="M55 106 L38 148 L48 152 L68 112 Z" fill="#3B7DD8"/>
+  <!-- Right sleeve -->
+  <path d="M145 106 L162 148 L152 152 L132 112 Z" fill="#3B7DD8"/>
+  <!-- Cuff lines -->
+  <rect x="38" y="146" width="12" height="6" rx="2" fill="#2A5FA0"/>
+  <rect x="150" y="146" width="12" height="6" rx="2" fill="#2A5FA0"/>
+  <!-- Pocket -->
+  <rect x="112" y="118" width="18" height="14" rx="3" fill="#2A5FA0"/>
+  <!-- Kameez hem embroidery strip -->
+  <rect x="55" y="242" width="90" height="8" rx="2" fill="#2A5FA0" opacity="0.7"/>
+  
+  <!-- Shalwar / Pants -->
+  <rect x="65" y="248" width="32" height="55" rx="5" fill="#1E3A6E"/>
+  <rect x="103" y="248" width="32" height="55" rx="5" fill="#1E3A6E"/>
+  <rect x="95" y="248" width="10" height="32" fill="#18305C"/>
+  
+  <!-- Shoes -->
+  <path d="M65 300 Q75 310 95 308 L97 303 L65 300 Z" fill="#3A2010"/>
+  <path d="M135 300 Q125 310 105 308 L103 303 L135 300 Z" fill="#3A2010"/>
+  
+  <!-- Hands -->
+  <ellipse cx="41" cy="154" rx="7" ry="5" fill="#C8915A"/>
+  <ellipse cx="159" cy="154" rx="7" ry="5" fill="#C8915A"/>
+</svg>

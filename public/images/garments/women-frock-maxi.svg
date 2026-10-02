@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" fill="none">
+  <!-- Frock body - flared silhouette -->
+  <path d="M38 25 L28 38 L22 60 L10 135 L110 135 L98 60 L92 38 L82 25 Z" fill="#D4547A"/>
+  <!-- Neckline -->
+  <path d="M50 25 Q60 38 70 25" fill="#C03060" stroke="#C03060" stroke-width="1"/>
+  <!-- Left sleeve (3/4) -->
+  <path d="M28 38 L15 72 L24 76 L38 48 Z" fill="#D4547A"/>
+  <!-- Right sleeve -->
+  <path d="M92 38 L105 72 L96 76 L82 48 Z" fill="#D4547A"/>
+  <!-- Waist detail -->
+  <rect x="40" y="68" width="40" height="6" rx="2" fill="#B83060" opacity="0.7"/>
+  <!-- Skirt flare lines (folds) -->
+  <path d="M40 76 Q30 100 20 130" stroke="#B83060" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M55 76 Q50 100 46 130" stroke="#B83060" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M65 76 Q70 100 74 130" stroke="#B83060" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M80 76 Q90 100 100 130" stroke="#B83060" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Hem embroidery -->
+  <path d="M12 128 Q60 134 108 128" stroke="#C03060" stroke-width="2" fill="none"/>
+  <!-- Decoration dots on bodice -->
+  <circle cx="60" cy="52" r="3" fill="#F4A0C0" opacity="0.7"/>
+  <circle cx="52" cy="48" r="2" fill="#F4A0C0" opacity="0.6"/>
+  <circle cx="68" cy="48" r="2" fill="#F4A0C0" opacity="0.6"/>
+</svg>

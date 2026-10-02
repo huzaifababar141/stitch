@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" fill="none">
+  <!-- Trouser legs -->
+  <rect x="28" y="10" width="28" height="125" rx="6" fill="#9B79C0"/>
+  <rect x="64" y="10" width="28" height="125" rx="6" fill="#9B79C0"/>
+  <!-- Waistband -->
+  <rect x="24" y="10" width="72" height="16" rx="4" fill="#7A5A9E"/>
+  <!-- Elastic band detail -->
+  <line x1="30" y1="15" x2="90" y2="15" stroke="#6A4A8E" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <!-- Center seam -->
+  <rect x="56" y="26" width="8" height="35" fill="#8B69B0"/>
+  <!-- Leg crease lines -->
+  <line x1="42" y1="30" x2="42" y2="130" stroke="#8B69B0" stroke-width="1" opacity="0.5"/>
+  <line x1="78" y1="30" x2="78" y2="130" stroke="#8B69B0" stroke-width="1" opacity="0.5"/>
+  <!-- Hem folds -->
+  <path d="M28 128 Q42 132 56 128" stroke="#7A5A9E" stroke-width="1.5" fill="none"/>
+  <path d="M64 128 Q78 132 92 128" stroke="#7A5A9E" stroke-width="1.5" fill="none"/>
+</svg>

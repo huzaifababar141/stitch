@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" fill="none">
+  <!-- Shirt / Kurti -->
+  <path d="M32 25 L20 38 L16 100 L20 115 L100 115 L104 100 L100 38 L88 25 Z" fill="#F09CC0"/>
+  <path d="M50 25 Q60 37 70 25" fill="#E080A8" stroke="#E080A8" stroke-width="1"/>
+  <!-- Collar detail -->
+  <path d="M50 25 Q60 32 70 25 L68 35 Q60 38 52 35 Z" fill="#E080A8"/>
+  <!-- Left sleeve -->
+  <path d="M20 38 L7 70 L15 74 L32 50 Z" fill="#F09CC0"/>
+  <!-- Right sleeve -->
+  <path d="M100 38 L113 70 L105 74 L88 50 Z" fill="#F09CC0"/>
+  <!-- Button line -->
+  <line x1="60" y1="37" x2="60" y2="115" stroke="#E080A8" stroke-width="1.5"/>
+  <circle cx="60" cy="55" r="2" fill="#E080A8"/>
+  <circle cx="60" cy="72" r="2" fill="#E080A8"/>
+  <circle cx="60" cy="89" r="2" fill="#E080A8"/>
+  <!-- Hem lace detail -->
+  <path d="M20 108 Q40 112 60 108 Q80 112 100 108" stroke="#E080A8" stroke-width="1.5" fill="none"/>
+</svg>

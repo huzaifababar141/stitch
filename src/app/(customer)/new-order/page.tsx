@@ -51,6 +51,19 @@ import {
   formatPKR,
   type StitchingTierKey,
 } from '@/lib/constants/pricing';
+import {
+  WOMEN_COLLARS,
+  WOMEN_CUFFS,
+  WOMEN_TROUSERS,
+  MEN_COLLARS,
+  MEN_CUFFS,
+  MEN_TROUSERS,
+  FROCK_NECKLINES,
+  FROCK_SLEEVES,
+  FROCK_STYLES,
+  FROCK_DAMANS,
+  FROCK_OPTIONS,
+} from '@/lib/constants/customizations';
 
 // ─── Main New Order Wizard Content ──────────────────────────────────────────
 
@@ -80,19 +93,22 @@ function NewOrderContent() {
   const [showRateCard, setShowRateCard] = useState(false);
   const [garmentType, setGarmentType] = useState('full_suit');
   // Women's Styles
-  const [neckStyle, setNeckStyle] = useState('Round Neck with Slit');
+  const [neckStyle, setNeckStyle] = useState('Round Neck');
+  const [frockStyle, setFrockStyle] = useState('A-Line');
+  const [selectedFrockOptions, setSelectedFrockOptions] = useState<string[]>([
+    'Button Style',
+  ]);
   // Men's Styles
-  const [collarStyle, setCollarStyle] = useState('Sherwani Ban Collar (Hard)');
+  const [collarStyle, setCollarStyle] = useState('Classic Collar');
+  const [cuffStyle, setCuffStyle] = useState('Regular Cuff');
   const [pocketStyle, setPocketStyle] = useState(
     '1 Chest Pocket + 2 Side Pockets'
   );
   // Shared / General Styles
-  const [sleeveStyle, setSleeveStyle] = useState('Full Sleeve with Lace Trim');
+  const [sleeveStyle, setSleeveStyle] = useState('Full Sleeve');
   const [fitType, setFitType] = useState('Regular Fit');
-  const [damanStyle, setDamanStyle] = useState('Straight Cut Daman');
-  const [trouserStyle, setTrouserStyle] = useState(
-    'Straight Trouser / Cigarette Pants'
-  );
+  const [damanStyle, setDamanStyle] = useState('Straight');
+  const [trouserStyle, setTrouserStyle] = useState('Straight Fit');
   const [specialInstructions, setSpecialInstructions] = useState('');
 
   // Handler for Gender Switching
@@ -102,11 +118,12 @@ function NewOrderContent() {
     setSelectedTrouserCode(newGender === 'male' ? 'P-32' : 'T-30');
     if (newGender === 'male') {
       setGarmentType('full_suit');
-      setCollarStyle('Sherwani Ban Collar (Hard)');
-      setSleeveStyle('Straight Open Sleeves');
+      setCollarStyle('Classic Collar');
+      setCuffStyle('Regular Cuff');
+      setSleeveStyle('Full Sleeve');
       setPocketStyle('1 Chest Pocket + 2 Side Pockets');
-      setDamanStyle('Round / Gol Daman');
-      setTrouserStyle('Traditional Wide Shalwar');
+      setDamanStyle('Straight');
+      setTrouserStyle('Straight Fit');
       setFitType('Regular Fit');
       if (!manualTitle || manualTitle === 'Mahay Lawn 3-Piece') {
         setManualTitle("Men's Traditional Shalwar Kameez");
@@ -116,10 +133,13 @@ function NewOrderContent() {
       }
     } else {
       setGarmentType('full_suit');
-      setNeckStyle('Round Neck with Slit');
-      setSleeveStyle('Full Sleeve with Lace Trim');
-      setDamanStyle('Straight Cut Daman');
-      setTrouserStyle('Straight Trouser / Cigarette Pants');
+      setCollarStyle('Classic Collar');
+      setCuffStyle('Regular Cuff');
+      setNeckStyle('Round Neck');
+      setSleeveStyle('Full Sleeve');
+      setFrockStyle('A-Line');
+      setDamanStyle('Straight');
+      setTrouserStyle('Straight Fit');
       setFitType('Regular Fit');
       if (!manualTitle || manualTitle === "Men's Traditional Shalwar Kameez") {
         setManualTitle('Mahay Lawn 3-Piece');
@@ -406,24 +426,6 @@ function NewOrderContent() {
       toast({
         title: 'Craftsmanship Tier Required',
         description: 'Please select a stitching craftsmanship tier.',
-        variant: 'destructive',
-      });
-      return false;
-    }
-    if (gender === 'female' && (!neckStyle || !sleeveStyle || !fitType)) {
-      toast({
-        title: 'Style Options Required',
-        description:
-          'Please select your desired neckline cut, sleeve design, and fitting.',
-        variant: 'destructive',
-      });
-      return false;
-    }
-    if (gender === 'male' && (!collarStyle || !sleeveStyle || !pocketStyle)) {
-      toast({
-        title: 'Style Options Required',
-        description:
-          'Please select your desired collar style, sleeve finish, and pocket configuration.',
         variant: 'destructive',
       });
       return false;
@@ -762,13 +764,17 @@ function NewOrderContent() {
       payload.stylePreferences = {
         gender,
         garmentSubtype: garmentType,
-        neckStyle: gender === 'female' ? neckStyle : undefined,
-        collarStyle: gender === 'male' ? collarStyle : undefined,
+        neckStyle,
+        collarStyle,
+        cuffStyle,
         pocketStyle: gender === 'male' ? pocketStyle : undefined,
         sleeveStyle,
-        fitType,
+        frockStyle: garmentType === 'frock_maxi' ? frockStyle : undefined,
         damanStyle,
         trouserStyle,
+        frockOptions:
+          garmentType === 'frock_maxi' ? selectedFrockOptions : undefined,
+        fitType,
         specialInstructions,
       };
 
@@ -913,151 +919,166 @@ function NewOrderContent() {
           <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xs flex flex-col justify-between space-y-6">
             <div className="space-y-1">
               <h2 className="text-lg font-extrabold text-gray-900">
-                1. Unstitched Fabric & Tailoring Details
+                Select Your Garment
               </h2>
               <p className="text-xs text-gray-500">
-                Select who this suit is for, paste a store link from any
-                Pakistani brand, or enter fabric details manually.
+                Choose who this order is for and select the garment type you
+                want tailored.
               </p>
             </div>
 
-            {/* Gender Selection Cards */}
+            {/* Gender Selection Cards - Matching Reference Screenshot 1 */}
             <div className="space-y-3 pb-3 border-b border-gray-100">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-gray-900 block">
-                  Select Tailoring Category{' '}
-                  <span className="text-[#7E153A]">*</span>
-                </label>
-                <span className="text-[11px] font-bold text-[#7E153A] uppercase tracking-wider bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">
-                  {gender === 'female'
-                    ? "Women's Collection"
-                    : "Men's Collection"}
-                </span>
-              </div>
+              <label className="text-xs font-bold text-gray-900 block">
+                Select Tailoring Category{' '}
+                <span className="text-[#7E153A]">*</span>
+              </label>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* Women's Card */}
                 <div
                   onClick={() => handleGenderChange('female')}
-                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-3.5 ${
+                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${
                     gender === 'female'
-                      ? 'border-[#7E153A] bg-red-50/40 shadow-xs ring-2 ring-[#7E153A]/10'
-                      : 'border-gray-200 hover:border-gray-300 bg-white opacity-85 hover:opacity-100'
+                      ? 'border-[#7E153A] bg-red-50/30 ring-2 ring-[#7E153A]/10 shadow-xs'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}
                 >
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 ${
-                      gender === 'female'
-                        ? 'bg-[#7E153A] text-white shadow-sm'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}
-                  >
-                    👗
-                  </div>
-                  <div className="space-y-0.5 flex-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-extrabold text-gray-900">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-14 h-16 rounded-xl bg-pink-50/70 border border-pink-100 flex items-center justify-center p-1 shrink-0 overflow-hidden">
+                      <img
+                        src="/images/tailor/gender_women.png"
+                        alt="Women's Tailoring"
+                        className="h-full w-auto object-contain"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-xs font-extrabold text-gray-900 leading-tight">
                         Women's Tailoring
                       </h3>
-                      {gender === 'female' && (
-                        <Check
-                          size={14}
-                          className="text-[#7E153A]"
-                          strokeWidth={3}
-                        />
-                      )}
+                      <p className="text-[11px] text-gray-500 mt-1 leading-snug line-clamp-2">
+                        Elegant styles for every occasion, crafted just for you.
+                      </p>
                     </div>
-                    <p className="text-[11px] text-gray-500 leading-relaxed">
-                      Lawn, Chiffon, 3-Pc suits, Kurtis, custom necklines &
-                      trousers.
-                    </p>
+                  </div>
+
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
+                      gender === 'female'
+                        ? 'border-[#7E153A] bg-[#7E153A] text-white'
+                        : 'border-gray-300 bg-white'
+                    }`}
+                  >
+                    {gender === 'female' && <Check size={12} strokeWidth={3} />}
                   </div>
                 </div>
 
+                {/* Men's Card */}
                 <div
                   onClick={() => handleGenderChange('male')}
-                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-start gap-3.5 ${
+                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${
                     gender === 'male'
-                      ? 'border-[#7E153A] bg-red-50/40 shadow-xs ring-2 ring-[#7E153A]/10'
-                      : 'border-gray-200 hover:border-gray-300 bg-white opacity-85 hover:opacity-100'
+                      ? 'border-[#7E153A] bg-red-50/30 ring-2 ring-[#7E153A]/10 shadow-xs'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}
                 >
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 ${
-                      gender === 'male'
-                        ? 'bg-[#7E153A] text-white shadow-sm'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}
-                  >
-                    👔
-                  </div>
-                  <div className="space-y-0.5 flex-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-extrabold text-gray-900">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-14 h-16 rounded-xl bg-blue-50/70 border border-blue-100 flex items-center justify-center p-1 shrink-0 overflow-hidden">
+                      <img
+                        src="/images/tailor/gender_men.png"
+                        alt="Men's Tailoring"
+                        className="h-full w-auto object-contain"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-xs font-extrabold text-gray-900 leading-tight">
                         Men's Tailoring
                       </h3>
-                      {gender === 'male' && (
-                        <Check
-                          size={14}
-                          className="text-[#7E153A]"
-                          strokeWidth={3}
-                        />
-                      )}
+                      <p className="text-[11px] text-gray-500 mt-1 leading-snug line-clamp-2">
+                        Classic fits, modern styles, made to measure.
+                      </p>
                     </div>
-                    <p className="text-[11px] text-gray-500 leading-relaxed">
-                      Traditional Shalwar Kameez, Kurta Pajama, Sherwani ban &
-                      cuffs.
-                    </p>
+                  </div>
+
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
+                      gender === 'male'
+                        ? 'border-[#7E153A] bg-[#7E153A] text-white'
+                        : 'border-gray-300 bg-white'
+                    }`}
+                  >
+                    {gender === 'male' && <Check size={12} strokeWidth={3} />}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Garment Type Selector Pills */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-gray-700 block">
-                  Garment Type <span className="text-[#7E153A]">*</span>
-                </label>
-                <span className="text-[11px] text-gray-500 font-medium">
-                  {gender === 'male'
-                    ? "Men's Collection"
-                    : "Women's Collection"}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {/* Garment Type Selector - Matching Reference Screenshot 1 */}
+            <div className="space-y-2.5">
+              <label className="text-xs font-bold text-gray-700 block">
+                Choose garment type ({gender === 'female' ? 'Women' : 'Men'}){' '}
+                <span className="text-[#7E153A]">*</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {(gender === 'male' ? MENS_GARMENTS : FEMALE_GARMENTS).map(
                   (g) => {
                     const isSelected = garmentType === g.key;
                     return (
-                      <button
+                      <div
                         key={g.key}
-                        type="button"
                         onClick={() => setGarmentType(g.key)}
-                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                        className={`relative rounded-2xl border-2 p-3.5 text-left transition-all cursor-pointer flex flex-col justify-between group ${
                           isSelected
-                            ? 'border-[#7E153A] bg-red-50/60 text-[#7E153A] ring-1 ring-[#7E153A] shadow-xs'
-                            : 'border-gray-200 hover:border-gray-300 bg-white text-gray-700'
+                            ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
                         }`}
                       >
+                        {/* Radio Checkmark on top-right */}
+                        <div className="flex items-start justify-between w-full mb-2">
+                          <div className="w-full h-28 flex items-center justify-center rounded-xl bg-gray-50/60 p-1 overflow-hidden">
+                            {g.image ? (
+                              <img
+                                src={g.image}
+                                alt={g.label}
+                                className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                              />
+                            ) : (
+                              <Scissors
+                                size={28}
+                                className={
+                                  isSelected
+                                    ? 'text-[#7E153A]'
+                                    : 'text-gray-400'
+                                }
+                              />
+                            )}
+                          </div>
+                          <div
+                            className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border ml-2 ${
+                              isSelected
+                                ? 'border-[#7E153A] bg-[#7E153A] text-white shadow-xs'
+                                : 'border-gray-300 bg-white'
+                            }`}
+                          >
+                            {isSelected && (
+                              <Check size={11} strokeWidth={3.5} />
+                            )}
+                          </div>
+                        </div>
+
                         <div>
-                          <p className="text-xs font-bold leading-tight line-clamp-1">
+                          <p
+                            className={`text-xs font-extrabold leading-tight ${
+                              isSelected ? 'text-[#7E153A]' : 'text-gray-900'
+                            }`}
+                          >
                             {g.label}
                           </p>
-                          {g.sublabel && (
-                            <p className="text-[10px] text-gray-400 mt-1 line-clamp-1 leading-snug">
-                              {g.sublabel}
-                            </p>
-                          )}
+                          <p className="text-[11px] text-gray-500 mt-1 leading-snug line-clamp-2">
+                            {g.sublabel || 'Custom master tailoring'}
+                          </p>
                         </div>
-                        <div className="mt-2.5 pt-2 border-t border-gray-100/80 flex items-center justify-between">
-                          <span className="text-[10px] uppercase font-bold text-gray-400">
-                            From
-                          </span>
-                          <span className="text-xs font-extrabold font-mono text-[#7E153A]">
-                            PKR {g.tiers.basic.toLocaleString()}
-                          </span>
-                        </div>
-                      </button>
+                      </div>
                     );
                   }
                 )}
@@ -1075,7 +1096,8 @@ function NewOrderContent() {
                     Don't have an online store link?
                   </p>
                   <p className="text-[11px] text-gray-500 mt-0.5">
-                    Browse our curated in-house fabric stock of pure lawn, cotton, chiffon & formal suits.
+                    Browse our curated in-house fabric stock of pure lawn,
+                    cotton, chiffon & formal suits.
                   </p>
                 </div>
               </div>
@@ -1300,568 +1322,1267 @@ function NewOrderContent() {
                 )}
 
               {/* Product Specifications & Details */}
-              {manualTitle || manualBrand || parsedProduct ? (
-                <div className="space-y-1 pt-1.5 border-t border-gray-100">
-                  <div>
-                    <span className="text-[10px] uppercase font-extrabold text-[#7E153A] tracking-wider block truncate">
-                      {manualBrand || 'Pakistani Brand'}
-                    </span>
-                    <h3 className="font-extrabold text-xs sm:text-sm text-gray-900 mt-0.5 leading-snug line-clamp-2">
-                      {manualTitle || 'Unstitched Suit'}
-                    </h3>
-                  </div>
+              <div className="pt-1.5 border-t border-gray-100 space-y-2">
+                <span className="text-[10px] uppercase font-extrabold tracking-wider text-gray-400 block">
+                  Fabric Details
+                </span>
+                {manualTitle || manualBrand || parsedProduct ? (
+                  <div className="space-y-1">
+                    <div>
+                      <span className="text-[10px] uppercase font-extrabold text-[#7E153A] tracking-wider block truncate">
+                        {manualBrand || 'Pakistani Brand'}
+                      </span>
+                      <h3 className="font-extrabold text-xs sm:text-sm text-gray-900 mt-0.5 leading-snug line-clamp-2">
+                        {manualTitle || 'Unstitched Suit'}
+                      </h3>
+                    </div>
 
-                  {/* Dynamic Tags */}
-                  <div className="flex flex-wrap gap-1.5 pt-0.5">
-                    {parsedProduct?.parseSource === 'in_house' && (
-                      <span className="inline-flex items-center text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
-                        ★ In-House Stock Fabric
+                    {/* Dynamic Tags */}
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                      {parsedProduct?.parseSource === 'in_house' && (
+                        <span className="inline-flex items-center text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          ★ In-House Stock Fabric
+                        </span>
+                      )}
+                      {manualFabric && (
+                        <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
+                          {manualFabric}
+                        </span>
+                      )}
+                      <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-50 text-[#7E153A] border border-red-100">
+                        {gender === 'female'
+                          ? "Women's Collection"
+                          : "Men's Collection"}
                       </span>
-                    )}
-                    {manualFabric && (
-                      <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
-                        {manualFabric}
-                      </span>
-                    )}
-                    <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-50 text-[#7E153A] border border-red-100">
-                      {gender === 'female'
-                        ? "Women's Collection"
-                        : "Men's Collection"}
-                    </span>
-                    {parsedProduct?.garmentType && (
-                      <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 capitalize">
-                        {parsedProduct.garmentType.replace('_', ' ')}
-                      </span>
-                    )}
+                      {parsedProduct?.garmentType && (
+                        <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 capitalize">
+                          {parsedProduct.garmentType.replace('_', ' ')}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="py-1 border-t border-gray-100">
-                  <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
-                    Suit Details
-                  </span>
-                  <p className="text-xs text-gray-400 italic mt-0.5">
-                    Awaiting fabric link or manual input...
-                  </p>
-                </div>
-              )}
+                ) : (
+                  <div className="space-y-1.5">
+                    {[
+                      { icon: '🏷️', label: 'Brand & Product Name' },
+                      { icon: '🧵', label: 'Fabric Type' },
+                      { icon: '🎨', label: 'Design / Pattern' },
+                      { icon: '🎨', label: 'Color' },
+                      { icon: '♻️', label: 'Material' },
+                      { icon: 'ℹ️', label: 'Other Details' },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 text-gray-400"
+                      >
+                        <span className="text-sm shrink-0">{item.icon}</span>
+                        <span className="text-[10px] text-gray-400">
+                          {item.label}
+                        </span>
+                      </div>
+                    ))}
+                    <p className="text-[10px] text-gray-400 italic pt-0.5">
+                      Will appear after fetching from brand link
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Bottom Fabric Retail Value - Anchored to align exactly across from Continue button */}
-            <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100 flex items-center justify-between mt-auto">
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
-                  Suit Fabric Value
-                </span>
-                <span className="text-xs font-semibold text-gray-600">
-                  Retail Price
+            {/* Bottom Notice - Stitching price goes to Step 2 */}
+            <div className="bg-blue-50/60 border border-blue-100 rounded-2xl p-3 mt-auto space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <MapPin size={12} className="text-blue-600 shrink-0" />
+                <span className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">
+                  Stitching Price in Step 2
                 </span>
               </div>
-              <span className="text-sm font-extrabold text-gray-900 font-mono">
-                {suitFabricPrice > 0
-                  ? `PKR ${suitFabricPrice.toLocaleString()}`
-                  : 'PKR 0'}
-              </span>
+              <p className="text-[10px] text-blue-600/80 leading-relaxed">
+                In the next step, you'll choose your preferred stitching method
+                (Basic, Standard or Luxury) and see the corresponding price.
+              </p>
+              <div className="flex gap-1.5 pt-0.5">
+                {(['Basic', 'Standard', 'Luxury'] as const).map((tier) => (
+                  <span
+                    key={tier}
+                    className="flex-1 text-center text-[9px] font-bold py-0.5 rounded-md bg-white border border-blue-100 text-blue-600"
+                  >
+                    {tier}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── STEP 2: Style & Stitching Tier ── */}
+      {/* ── STEP 2: Style Customization & Stitching Tier ── */}
       {currentStep === 2 && (
-        <div className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xs space-y-8">
-          <div className="space-y-1">
-            <h2 className="text-lg font-extrabold text-gray-900">
-              2. Select Stitching Tier & Custom Cuts
-            </h2>
-            <p className="text-xs text-gray-500">
-              Choose your master craftsman finishing level and neckline style
-              configuration.
-            </p>
-          </div>
-
-          {/* Stitching Tiers Grid */}
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <div>
-                <label className="text-xs font-bold text-gray-800 block">
-                  Stitching Craftsmanship Tier
-                </label>
-                <p className="text-[11px] text-gray-500 mt-0.5">
-                  Applied rates for{' '}
-                  <span className="font-semibold text-gray-900">
-                    {(gender === 'male' ? MENS_GARMENTS : FEMALE_GARMENTS).find(
-                      (g) => g.key === garmentType
-                    )?.label || 'Selected Garment'}
-                  </span>{' '}
-                  ({gender === 'male' ? "Men's Tailoring" : "Women's Tailoring"}
-                  )
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start font-sans">
+          {/* Main Customization Section (2 Columns) */}
+          <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xs space-y-7">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+              <div className="space-y-1">
+                <h2 className="text-lg font-extrabold text-gray-900">
+                  {garmentType === 'frock_maxi'
+                    ? '3. Choose Your Frock Style'
+                    : '2. Customize Your Garment'}
+                </h2>
+                <p className="text-xs text-gray-500">
+                  {garmentType === 'frock_maxi'
+                    ? 'Select the type of frock and customize its design according to your style.'
+                    : 'Choose the design details for your outfit. You can select different styles for collar, cuff, trouser and more.'}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowRateCard((prev) => !prev)}
-                className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-[#7E153A] bg-red-50 hover:bg-red-100/70 border border-red-200 transition-colors cursor-pointer"
-              >
-                <Table2 size={13} />
+
+              {/* Gender Indicator / Switcher Pill */}
+              <div className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-[#7E153A] bg-red-50 border border-red-100">
                 <span>
-                  {showRateCard
-                    ? 'Hide Rate Card'
-                    : 'View Official Rate Card (PKR)'}
+                  {gender === 'female'
+                    ? "👗 Women's Outfit"
+                    : "👔 Men's Outfit"}
                 </span>
-                {showRateCard ? (
-                  <ChevronUp size={13} />
-                ) : (
-                  <ChevronDown size={13} />
-                )}
-              </button>
+              </div>
             </div>
 
-            {/* Official Stitching Rate Card Accordion */}
-            {showRateCard && (
-              <div className="bg-stone-50/80 rounded-2xl border border-stone-200 p-4 sm:p-5 space-y-4 animate-in fade-in-50 duration-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#7E153A]"></span>
-                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-gray-800">
-                      Official Tailoring Rate Card (Pakistani Rupees)
-                    </h4>
+            {/* Garment Type Row - Matching Reference Screenshot */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
+                <Scissors size={14} className="text-[#7E153A]" />
+                <span>Garment Type</span>
+              </div>
+              <p className="text-[11px] text-gray-400">
+                Select the type of outfit you want to stitch.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                {(gender === 'male' ? MENS_GARMENTS : FEMALE_GARMENTS).map(
+                  (g) => {
+                    const isSelected = garmentType === g.key;
+                    return (
+                      <div
+                        key={g.key}
+                        onClick={() => setGarmentType(g.key)}
+                        className={`relative rounded-xl border-2 p-2.5 text-left transition-all cursor-pointer flex flex-col justify-between group ${
+                          isSelected
+                            ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                      >
+                        <div className="w-full h-20 flex items-center justify-center rounded-lg bg-gray-50/60 p-1 mb-1.5 relative overflow-hidden">
+                          {g.image ? (
+                            <img
+                              src={g.image}
+                              alt={g.label}
+                              className="h-full w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+                            />
+                          ) : (
+                            <Scissors size={20} className="text-gray-400" />
+                          )}
+                          {isSelected && (
+                            <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
+                              <Check
+                                size={9}
+                                className="text-white"
+                                strokeWidth={3.5}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <p
+                          className={`text-[11px] font-extrabold leading-tight truncate ${
+                            isSelected ? 'text-[#7E153A]' : 'text-gray-800'
+                          }`}
+                        >
+                          {g.label}
+                        </p>
+                      </div>
+                    );
+                  }
+                )}
+              </div>
+            </div>
+
+            {/* ── FROCK CUSTOMIZATION STUDIO (Screenshot 4) ── */}
+            {garmentType === 'frock_maxi' ? (
+              <div className="space-y-6 pt-2">
+                <div className="border-t border-gray-100 pt-4">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-900">
+                    <span>👗 Frock Design</span>
                   </div>
-                  <span className="text-[10px] text-gray-400 font-medium">
-                    As per verified pricing policy
-                  </span>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    Customize your frock from different styles, necklines,
+                    sleeves and more.
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {/* Female Rate Table */}
-                  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs">
-                    <div className="bg-pink-50/70 px-3.5 py-2 border-b border-pink-100 flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-pink-950 uppercase tracking-wider">
-                        Female Tailoring
+                {/* 1. Neckline Design & 2. Sleeve Design */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Neckline Design */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-800">
+                        Neckline Design
                       </span>
-                      {gender === 'female' && (
-                        <span className="text-[9px] font-extrabold bg-[#7E153A] text-white px-2 py-0.5 rounded-full uppercase">
-                          Active Selection
-                        </span>
-                      )}
+                      <span className="text-[10px] text-[#7E153A] font-semibold">
+                        {neckStyle}
+                      </span>
                     </div>
-                    <table className="w-full text-xs text-left">
-                      <thead>
-                        <tr className="bg-gray-50 border-b border-gray-100 text-[10px] uppercase font-bold text-gray-500">
-                          <th className="py-2 px-3 font-bold">
-                            Stitching Type
-                          </th>
-                          <th className="py-2 px-2.5 text-right">Basic</th>
-                          <th className="py-2 px-2.5 text-right">Standard</th>
-                          <th className="py-2 px-2.5 text-right">Luxury</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 text-gray-700">
-                        {FEMALE_GARMENTS.map((item) => {
-                          const isCurrentGarment =
-                            gender === 'female' && garmentType === item.key;
-                          return (
-                            <tr
-                              key={item.key}
-                              className={
-                                isCurrentGarment
-                                  ? 'bg-red-50/40 font-semibold text-gray-900'
-                                  : 'hover:bg-gray-50/60'
-                              }
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {FROCK_NECKLINES.map((item) => {
+                        const isSelected = neckStyle === item.name;
+                        return (
+                          <div
+                            key={item.name}
+                            onClick={() => setNeckStyle(item.name)}
+                            className={`rounded-xl border p-1 text-center cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <div className="h-14 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                            <p
+                              className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
+                                isSelected ? 'text-[#7E153A]' : 'text-gray-700'
+                              }`}
                             >
-                              <td className="py-2 px-3 flex items-center gap-1.5">
-                                {isCurrentGarment && (
-                                  <span className="w-1.5 h-1.5 rounded-full bg-[#7E153A]"></span>
-                                )}
-                                <span>{item.label}</span>
-                              </td>
-                              <td
-                                className={`py-2 px-2.5 text-right font-mono ${
-                                  isCurrentGarment && stitchingTier === 'basic'
-                                    ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
-                                    : ''
-                                }`}
-                              >
-                                Rs. {item.tiers.basic.toLocaleString()}
-                              </td>
-                              <td
-                                className={`py-2 px-2.5 text-right font-mono ${
-                                  isCurrentGarment &&
-                                  stitchingTier === 'standard'
-                                    ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
-                                    : ''
-                                }`}
-                              >
-                                Rs. {item.tiers.standard.toLocaleString()}
-                              </td>
-                              <td
-                                className={`py-2 px-2.5 text-right font-mono ${
-                                  isCurrentGarment && stitchingTier === 'luxury'
-                                    ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
-                                    : ''
-                                }`}
-                              >
-                                Rs. {item.tiers.luxury.toLocaleString()}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                              {item.name}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
 
-                  {/* Mens Rate Table */}
-                  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs">
-                    <div className="bg-blue-50/70 px-3.5 py-2 border-b border-blue-100 flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-blue-950 uppercase tracking-wider">
-                        MENS Tailoring
+                  {/* Sleeve Design */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-800">
+                        Sleeve Design
                       </span>
-                      {gender === 'male' && (
-                        <span className="text-[9px] font-extrabold bg-[#7E153A] text-white px-2 py-0.5 rounded-full uppercase">
-                          Active Selection
-                        </span>
+                      <span className="text-[10px] text-[#7E153A] font-semibold">
+                        {sleeveStyle}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {FROCK_SLEEVES.map((item) => {
+                        const isSelected = sleeveStyle === item.name;
+                        return (
+                          <div
+                            key={item.name}
+                            onClick={() => setSleeveStyle(item.name)}
+                            className={`rounded-xl border p-1 text-center cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <div className="h-14 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                            <p
+                              className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
+                                isSelected ? 'text-[#7E153A]' : 'text-gray-700'
+                              }`}
+                            >
+                              {item.name}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Frock Style & 4. Daman Design */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Frock Style */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-800">
+                        Frock Style
+                      </span>
+                      <span className="text-[10px] text-[#7E153A] font-semibold">
+                        {frockStyle}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {FROCK_STYLES.map((item) => {
+                        const isSelected = frockStyle === item.name;
+                        return (
+                          <div
+                            key={item.name}
+                            onClick={() => setFrockStyle(item.name)}
+                            className={`rounded-xl border p-1 text-center cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <div className="h-14 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                            <p
+                              className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
+                                isSelected ? 'text-[#7E153A]' : 'text-gray-700'
+                              }`}
+                            >
+                              {item.name}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Daman Design */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-800">
+                        Daman Design
+                      </span>
+                      <span className="text-[10px] text-[#7E153A] font-semibold">
+                        {damanStyle}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {FROCK_DAMANS.map((item) => {
+                        const isSelected = damanStyle === item.name;
+                        return (
+                          <div
+                            key={item.name}
+                            onClick={() => setDamanStyle(item.name)}
+                            className={`rounded-xl border p-1 text-center cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <div className="h-14 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                            <p
+                              className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
+                                isSelected ? 'text-[#7E153A]' : 'text-gray-700'
+                              }`}
+                            >
+                              {item.name}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 5. Additional Options */}
+                <div className="space-y-2 pt-2 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-800">
+                      Additional Options
+                    </span>
+                    <span className="text-[10px] text-gray-400">
+                      Click to toggle options
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-7 gap-2">
+                    {FROCK_OPTIONS.map((item) => {
+                      const isSelected = selectedFrockOptions.includes(
+                        item.name
+                      );
+                      return (
+                        <div
+                          key={item.name}
+                          onClick={() => {
+                            setSelectedFrockOptions((prev) =>
+                              prev.includes(item.name)
+                                ? prev.filter((o) => o !== item.name)
+                                : [...prev, item.name]
+                            );
+                          }}
+                          className={`rounded-xl border p-1.5 text-center cursor-pointer transition-all ${
+                            isSelected
+                              ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20 shadow-xs'
+                              : 'border-gray-200 hover:border-gray-300 bg-white'
+                          }`}
+                        >
+                          <div className="h-12 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50 relative">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="h-full w-full object-contain"
+                            />
+                            {isSelected && (
+                              <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#7E153A] flex items-center justify-center">
+                                <Check
+                                  size={8}
+                                  className="text-white"
+                                  strokeWidth={3}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <p
+                            className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
+                              isSelected ? 'text-[#7E153A]' : 'text-gray-700'
+                            }`}
+                          >
+                            {item.name}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* ── STANDARD CUSTOMIZATION STUDIO (Collar, Cuff, Trouser) (Screenshot 2 & 3) ── */
+              <div className="space-y-6 pt-2">
+                {/* 1. Collar Design Row */}
+                <div className="space-y-2 border-t border-gray-100 pt-4">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
+                    <span>Collar Design</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400">
+                    Choose your preferred collar style.
+                  </p>
+
+                  <div className="flex flex-col md:flex-row gap-3 items-stretch">
+                    {/* Cards Grid */}
+                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2.5">
+                      {(gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS).map(
+                        (item) => {
+                          const isSelected = collarStyle === item.name;
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => setCollarStyle(item.name)}
+                              className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                              }`}
+                            >
+                              <div className="w-full h-16 flex items-center justify-center rounded-xl bg-gray-50/60 p-1 overflow-hidden relative">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="h-full w-auto object-contain"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
+                                    <Check
+                                      size={9}
+                                      className="text-white"
+                                      strokeWidth={3.5}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              <p
+                                className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  isSelected
+                                    ? 'text-[#7E153A]'
+                                    : 'text-gray-800'
+                                }`}
+                              >
+                                {item.name}
+                              </p>
+                            </div>
+                          );
+                        }
                       )}
                     </div>
-                    <table className="w-full text-xs text-left">
-                      <thead>
-                        <tr className="bg-gray-50 border-b border-gray-100 text-[10px] uppercase font-bold text-gray-500">
-                          <th className="py-2 px-3 font-bold">
-                            Stitching Type
-                          </th>
-                          <th className="py-2 px-2.5 text-right">Basic</th>
-                          <th className="py-2 px-2.5 text-right">Standard</th>
-                          <th className="py-2 px-2.5 text-right">Luxury</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 text-gray-700">
-                        {MENS_GARMENTS.map((item) => {
-                          const isCurrentGarment =
-                            gender === 'male' && garmentType === item.key;
+
+                    {/* "Your Selection" Preview Card */}
+                    <div className="w-full md:w-28 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
+                      <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
+                        Your Selection
+                      </span>
+                      <div className="w-14 h-14 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1 overflow-hidden shadow-2xs">
+                        <img
+                          src={
+                            (gender === 'female'
+                              ? WOMEN_COLLARS
+                              : MEN_COLLARS
+                            ).find((c) => c.name === collarStyle)?.image ||
+                            (gender === 'female'
+                              ? WOMEN_COLLARS[0].image
+                              : MEN_COLLARS[0].image)
+                          }
+                          alt={collarStyle}
+                          className="h-full w-auto object-contain"
+                        />
+                      </div>
+                      <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
+                        {collarStyle}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Cuff Design Row */}
+                <div className="space-y-2 border-t border-gray-100 pt-4">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
+                    <span>Cuff Design</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400">
+                    Choose the cuff style for your sleeves.
+                  </p>
+
+                  <div className="flex flex-col md:flex-row gap-3 items-stretch">
+                    {/* Cards Grid */}
+                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2.5">
+                      {(gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS).map(
+                        (item) => {
+                          const isSelected = cuffStyle === item.name;
                           return (
-                            <tr
-                              key={item.key}
-                              className={
-                                isCurrentGarment
-                                  ? 'bg-red-50/40 font-semibold text-gray-900'
-                                  : 'hover:bg-gray-50/60'
-                              }
+                            <div
+                              key={item.name}
+                              onClick={() => setCuffStyle(item.name)}
+                              className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                              }`}
                             >
-                              <td className="py-2 px-3 flex items-center gap-1.5">
-                                {isCurrentGarment && (
-                                  <span className="w-1.5 h-1.5 rounded-full bg-[#7E153A]"></span>
+                              <div className="w-full h-16 flex items-center justify-center rounded-xl bg-gray-50/60 p-1 overflow-hidden relative">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="h-full w-auto object-contain"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
+                                    <Check
+                                      size={9}
+                                      className="text-white"
+                                      strokeWidth={3.5}
+                                    />
+                                  </div>
                                 )}
-                                <span>{item.label}</span>
-                              </td>
-                              <td
-                                className={`py-2 px-2.5 text-right font-mono ${
-                                  isCurrentGarment && stitchingTier === 'basic'
-                                    ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
-                                    : ''
+                              </div>
+                              <p
+                                className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  isSelected
+                                    ? 'text-[#7E153A]'
+                                    : 'text-gray-800'
                                 }`}
                               >
-                                Rs. {item.tiers.basic.toLocaleString()}
-                              </td>
-                              <td
-                                className={`py-2 px-2.5 text-right font-mono ${
-                                  isCurrentGarment &&
-                                  stitchingTier === 'standard'
-                                    ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
-                                    : ''
-                                }`}
-                              >
-                                Rs. {item.tiers.standard.toLocaleString()}
-                              </td>
-                              <td
-                                className={`py-2 px-2.5 text-right font-mono ${
-                                  isCurrentGarment && stitchingTier === 'luxury'
-                                    ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
-                                    : ''
-                                }`}
-                              >
-                                Rs. {item.tiers.luxury.toLocaleString()}
-                              </td>
-                            </tr>
+                                {item.name}
+                              </p>
+                            </div>
                           );
-                        })}
-                      </tbody>
-                    </table>
+                        }
+                      )}
+                    </div>
+
+                    {/* "Your Selection" Preview Card */}
+                    <div className="w-full md:w-28 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
+                      <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
+                        Your Selection
+                      </span>
+                      <div className="w-14 h-14 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1 overflow-hidden shadow-2xs">
+                        <img
+                          src={
+                            (gender === 'female'
+                              ? WOMEN_CUFFS
+                              : MEN_CUFFS
+                            ).find((c) => c.name === cuffStyle)?.image ||
+                            (gender === 'female'
+                              ? WOMEN_CUFFS[0].image
+                              : MEN_CUFFS[0].image)
+                          }
+                          alt={cuffStyle}
+                          className="h-full w-auto object-contain"
+                        />
+                      </div>
+                      <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
+                        {cuffStyle}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Trouser / Shalwar Design Row */}
+                <div className="space-y-2 border-t border-gray-100 pt-4">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
+                    <span>Trouser / Shalwar Design</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400">
+                    Select the trouser or shalwar style you prefer.
+                  </p>
+
+                  <div className="flex flex-col md:flex-row gap-3 items-stretch">
+                    {/* Cards Grid */}
+                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2.5">
+                      {(gender === 'female'
+                        ? WOMEN_TROUSERS
+                        : MEN_TROUSERS
+                      ).map((item) => {
+                        const isSelected = trouserStyle === item.name;
+                        return (
+                          <div
+                            key={item.name}
+                            onClick={() => setTrouserStyle(item.name)}
+                            className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
+                              isSelected
+                                ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <div className="w-full h-16 flex items-center justify-center rounded-xl bg-gray-50/60 p-1 overflow-hidden relative">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="h-full w-auto object-contain"
+                              />
+                              {isSelected && (
+                                <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
+                                  <Check
+                                    size={9}
+                                    className="text-white"
+                                    strokeWidth={3.5}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                            <p
+                              className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                isSelected ? 'text-[#7E153A]' : 'text-gray-800'
+                              }`}
+                            >
+                              {item.name}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* "Your Selection" Preview Card */}
+                    <div className="w-full md:w-28 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
+                      <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
+                        Your Selection
+                      </span>
+                      <div className="w-14 h-14 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1 overflow-hidden shadow-2xs">
+                        <img
+                          src={
+                            (gender === 'female'
+                              ? WOMEN_TROUSERS
+                              : MEN_TROUSERS
+                            ).find((t) => t.name === trouserStyle)?.image ||
+                            (gender === 'female'
+                              ? WOMEN_TROUSERS[0].image
+                              : MEN_TROUSERS[0].image)
+                          }
+                          alt={trouserStyle}
+                          className="h-full w-auto object-contain"
+                        />
+                      </div>
+                      <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
+                        {trouserStyle}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {currentTiers.map((tier) => {
-                const isSelected = stitchingTier === tier.key;
-                return (
-                  <div
-                    key={tier.key}
-                    onClick={() => setStitchingTier(tier.key)}
-                    className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
-                      isSelected
-                        ? 'border-[#7E153A] bg-red-50/40 ring-2 ring-[#7E153A]/10 shadow-xs'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-extrabold text-sm text-gray-900">
-                          {tier.name}
-                        </h4>
-                        <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                          {tier.days}
+            {/* Stitching Craftsmanship Tier Cards */}
+            <div className="space-y-4 pt-4 border-t border-gray-100">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <label className="text-xs font-bold text-gray-800 block">
+                    Stitching Craftsmanship Tier
+                  </label>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Official rates for{' '}
+                    <span className="font-semibold text-gray-900">
+                      {(gender === 'male'
+                        ? MENS_GARMENTS
+                        : FEMALE_GARMENTS
+                      ).find((g) => g.key === garmentType)?.label ||
+                        'Selected Garment'}
+                    </span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRateCard((prev) => !prev)}
+                  className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-[#7E153A] bg-red-50 hover:bg-red-100/70 border border-red-200 transition-colors cursor-pointer"
+                >
+                  <Table2 size={13} />
+                  <span>
+                    {showRateCard
+                      ? 'Hide Rate Card'
+                      : 'View Official Rate Card (PKR)'}
+                  </span>
+                  {showRateCard ? (
+                    <ChevronUp size={13} />
+                  ) : (
+                    <ChevronDown size={13} />
+                  )}
+                </button>
+              </div>
+
+              {/* Official Stitching Rate Card Accordion */}
+              {showRateCard && (
+                <div className="bg-stone-50/80 rounded-2xl border border-stone-200 p-4 sm:p-5 space-y-4 animate-in fade-in-50 duration-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#7E153A]"></span>
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-gray-800">
+                        Official Tailoring Rate Card (Pakistani Rupees)
+                      </h4>
+                    </div>
+                    <span className="text-[10px] text-gray-400 font-medium">
+                      As per verified pricing policy
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Female Rate Table */}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs">
+                      <div className="bg-pink-50/70 px-3.5 py-2 border-b border-pink-100 flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-pink-950 uppercase tracking-wider">
+                          Female Tailoring
                         </span>
+                        {gender === 'female' && (
+                          <span className="text-[9px] font-extrabold bg-[#7E153A] text-white px-2 py-0.5 rounded-full uppercase">
+                            Active Selection
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-2 leading-relaxed">
-                        {tier.desc}
-                      </p>
+                      <table className="w-full text-xs text-left">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-100 text-[10px] uppercase font-bold text-gray-500">
+                            <th className="py-2 px-3 font-bold">
+                              Stitching Type
+                            </th>
+                            <th className="py-2 px-2.5 text-right">Basic</th>
+                            <th className="py-2 px-2.5 text-right">Standard</th>
+                            <th className="py-2 px-2.5 text-right">Luxury</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 text-gray-700">
+                          {FEMALE_GARMENTS.map((item) => {
+                            const isCurrentGarment =
+                              gender === 'female' && garmentType === item.key;
+                            return (
+                              <tr
+                                key={item.key}
+                                className={
+                                  isCurrentGarment
+                                    ? 'bg-red-50/40 font-semibold text-gray-900'
+                                    : 'hover:bg-gray-50/60'
+                                }
+                              >
+                                <td className="py-2 px-3 flex items-center gap-1.5">
+                                  {isCurrentGarment && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#7E153A]"></span>
+                                  )}
+                                  <span>{item.label}</span>
+                                </td>
+                                <td
+                                  className={`py-2 px-2.5 text-right font-mono ${
+                                    isCurrentGarment &&
+                                    stitchingTier === 'basic'
+                                      ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
+                                      : ''
+                                  }`}
+                                >
+                                  Rs. {item.tiers.basic.toLocaleString()}
+                                </td>
+                                <td
+                                  className={`py-2 px-2.5 text-right font-mono ${
+                                    isCurrentGarment &&
+                                    stitchingTier === 'standard'
+                                      ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
+                                      : ''
+                                  }`}
+                                >
+                                  Rs. {item.tiers.standard.toLocaleString()}
+                                </td>
+                                <td
+                                  className={`py-2 px-2.5 text-right font-mono ${
+                                    isCurrentGarment &&
+                                    stitchingTier === 'luxury'
+                                      ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
+                                      : ''
+                                  }`}
+                                >
+                                  Rs. {item.tiers.luxury.toLocaleString()}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-gray-400 block">
-                          Stitching Fee
+                    {/* Mens Rate Table */}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs">
+                      <div className="bg-blue-50/70 px-3.5 py-2 border-b border-blue-100 flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-blue-950 uppercase tracking-wider">
+                          MENS Tailoring
                         </span>
-                        <span className="text-sm font-extrabold text-[#7E153A] font-mono">
-                          PKR {tier.price.toLocaleString()}
-                        </span>
+                        {gender === 'male' && (
+                          <span className="text-[9px] font-extrabold bg-[#7E153A] text-white px-2 py-0.5 rounded-full uppercase">
+                            Active Selection
+                          </span>
+                        )}
                       </div>
-                      <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center border ${
-                          isSelected
-                            ? 'border-[#7E153A] bg-[#7E153A] text-white'
-                            : 'border-gray-300'
-                        }`}
-                      >
-                        {isSelected && <Check size={12} strokeWidth={3} />}
-                      </div>
+                      <table className="w-full text-xs text-left">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-100 text-[10px] uppercase font-bold text-gray-500">
+                            <th className="py-2 px-3 font-bold">
+                              Stitching Type
+                            </th>
+                            <th className="py-2 px-2.5 text-right">Basic</th>
+                            <th className="py-2 px-2.5 text-right">Standard</th>
+                            <th className="py-2 px-2.5 text-right">Luxury</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 text-gray-700">
+                          {MENS_GARMENTS.map((item) => {
+                            const isCurrentGarment =
+                              gender === 'male' && garmentType === item.key;
+                            return (
+                              <tr
+                                key={item.key}
+                                className={
+                                  isCurrentGarment
+                                    ? 'bg-red-50/40 font-semibold text-gray-900'
+                                    : 'hover:bg-gray-50/60'
+                                }
+                              >
+                                <td className="py-2 px-3 flex items-center gap-1.5">
+                                  {isCurrentGarment && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#7E153A]"></span>
+                                  )}
+                                  <span>{item.label}</span>
+                                </td>
+                                <td
+                                  className={`py-2 px-2.5 text-right font-mono ${
+                                    isCurrentGarment &&
+                                    stitchingTier === 'basic'
+                                      ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
+                                      : ''
+                                  }`}
+                                >
+                                  Rs. {item.tiers.basic.toLocaleString()}
+                                </td>
+                                <td
+                                  className={`py-2 px-2.5 text-right font-mono ${
+                                    isCurrentGarment &&
+                                    stitchingTier === 'standard'
+                                      ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
+                                      : ''
+                                  }`}
+                                >
+                                  Rs. {item.tiers.standard.toLocaleString()}
+                                </td>
+                                <td
+                                  className={`py-2 px-2.5 text-right font-mono ${
+                                    isCurrentGarment &&
+                                    stitchingTier === 'luxury'
+                                      ? 'font-extrabold text-[#7E153A] bg-red-100/50 rounded'
+                                      : ''
+                                  }`}
+                                >
+                                  Rs. {item.tiers.luxury.toLocaleString()}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              )}
+
+              {/* 3 Tier Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {currentTiers.map((tier) => {
+                  const isSelected = stitchingTier === tier.key;
+                  return (
+                    <div
+                      key={tier.key}
+                      onClick={() => setStitchingTier(tier.key)}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-2.5 ${
+                        isSelected
+                          ? 'border-[#7E153A] bg-red-50/40 ring-2 ring-[#7E153A]/10 shadow-xs'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-extrabold text-xs text-gray-900">
+                            {tier.name}
+                          </h4>
+                          <span className="text-[9px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                            {tier.days}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 mt-1.5 leading-relaxed line-clamp-2">
+                          {tier.desc}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between border-t border-gray-100 pt-2.5">
+                        <div>
+                          <span className="text-[9px] uppercase font-bold text-gray-400 block">
+                            Stitching Fee
+                          </span>
+                          <span className="text-xs font-extrabold text-[#7E153A] font-mono">
+                            PKR {tier.price.toLocaleString()}
+                          </span>
+                        </div>
+                        <div
+                          className={`w-4 h-4 rounded-full flex items-center justify-center border ${
+                            isSelected
+                              ? 'border-[#7E153A] bg-[#7E153A] text-white'
+                              : 'border-gray-300'
+                          }`}
+                        >
+                          {isSelected && <Check size={10} strokeWidth={3} />}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Master Tailor Notes */}
+            <div className="space-y-1.5 pt-2 border-t border-gray-100">
+              <label className="text-xs font-bold text-gray-700">
+                Special Stitching Instructions for Master Tailor (Optional)
+              </label>
+              <textarea
+                rows={2}
+                placeholder="e.g. Please keep 2 inches extra fabric inside side seams. Attach lace on sleeve borders."
+                value={specialInstructions}
+                onChange={(e) => setSpecialInstructions(e.target.value)}
+                className="w-full text-xs p-3 rounded-2xl border border-gray-200 focus:border-[#7E153A] text-gray-900"
+              />
+            </div>
+
+            {/* Navigation Controls */}
+            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep(1)}
+                className="h-11 px-6 text-xs font-semibold rounded-xl cursor-pointer"
+              >
+                <ArrowLeft size={14} className="mr-1.5" /> Back
+              </Button>
+
+              <Button
+                onClick={() => handleGoToStep(3)}
+                className="h-11 px-8 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer"
+              >
+                Save & Continue <ArrowRight size={14} className="ml-1.5" />
+              </Button>
             </div>
           </div>
 
-          {/* Style Configuration Dropdowns */}
-          {gender === 'male' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">
-                  Collar / Neck Style <span className="text-[#7E153A]">*</span>
-                </label>
-                <select
-                  value={collarStyle}
-                  onChange={(e) => setCollarStyle(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-                >
-                  <option>Sherwani Ban Collar (Hard)</option>
-                  <option>Sherwani Ban Collar (Soft)</option>
-                  <option>Shirt Collar (Semi-Stiff)</option>
-                  <option>Open Kurta Placket (Gol Gala)</option>
-                  <option>Mandarin Collar</option>
-                </select>
+          {/* Right Sidebar - Order Summary & Your Selections (Matching Reference Screenshot 2, 3, 4) */}
+          <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-xs space-y-5">
+            {/* 1. Order Summary Card */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-extrabold text-gray-900 uppercase tracking-wider">
+                  Order Summary
+                </span>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">
-                  Sleeve Finish <span className="text-[#7E153A]">*</span>
-                </label>
-                <select
-                  value={sleeveStyle}
-                  onChange={(e) => setSleeveStyle(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-                >
-                  <option>Straight Open Sleeves</option>
-                  <option>Cuffed Kurta Sleeves (Single Button)</option>
-                  <option>Double French Cuffs (for Cufflinks)</option>
-                  <option>Half Sleeves</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">
-                  Pocket Configuration <span className="text-[#7E153A]">*</span>
-                </label>
-                <select
-                  value={pocketStyle}
-                  onChange={(e) => setPocketStyle(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-                >
-                  <option>1 Chest Pocket + 2 Side Pockets</option>
-                  <option>2 Side Pockets Only</option>
-                  <option>1 Chest Pocket Only</option>
-                  <option>Hidden Mobile Zipper Pocket</option>
-                  <option>No Pockets (Minimalist)</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">
-                  Daman / Ghera Cut <span className="text-[#7E153A]">*</span>
-                </label>
-                <select
-                  value={damanStyle}
-                  onChange={(e) => setDamanStyle(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-                >
-                  <option>Round / Gol Daman</option>
-                  <option>Straight Square Daman</option>
-                  <option>Short Kurta Daman</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">
-                  Shalwar / Trouser Cut{' '}
-                  <span className="text-[#7E153A]">*</span>
-                </label>
-                <select
-                  value={trouserStyle}
-                  onChange={(e) => setTrouserStyle(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-                >
-                  <option>Traditional Wide Shalwar (Pakistani Ghera)</option>
-                  <option>Straight Trouser / Pajama</option>
-                  <option>Narrow Bottom Pajama</option>
-                  <option>Churidar Pajama</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">
-                  Fitting Silhouette <span className="text-[#7E153A]">*</span>
-                </label>
-                <select
-                  value={fitType}
-                  onChange={(e) => setFitType(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-                >
-                  <option>Regular Fit</option>
-                  <option>Smart / Slim Fit</option>
-                  <option>Relaxed / Traditional Fit</option>
-                </select>
+              {/* Main Garment Image & Meta */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl bg-gray-50/70 border border-gray-100">
+                <div className="w-16 h-20 rounded-xl bg-white border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0 shadow-2xs">
+                  <img
+                    src={
+                      parsedProduct?.images?.[selectedImageIndex] ||
+                      parsedProduct?.images?.[0] ||
+                      (garmentType === 'frock_maxi'
+                        ? '/images/tailor/preview_w_frock.png'
+                        : gender === 'female'
+                          ? '/images/tailor/preview_w_shalwarkameez.png'
+                          : '/images/tailor/preview_m_shalwarkameez.png')
+                    }
+                    alt="Garment Preview"
+                    className="h-full w-auto object-contain"
+                  />
+                </div>
+                <div className="min-w-0 space-y-0.5">
+                  <h4 className="text-xs font-extrabold text-gray-900 leading-tight">
+                    {manualTitle ||
+                      (gender === 'male'
+                        ? MENS_GARMENTS
+                        : FEMALE_GARMENTS
+                      ).find((g) => g.key === garmentType)?.label ||
+                      'Custom Tailoring'}
+                  </h4>
+                  <p className="text-[10px] text-gray-400">
+                    {manualBrand || 'Unstitched Fabric'}
+                  </p>
+                  <div className="pt-1 space-y-0.5 text-[10px] text-gray-500">
+                    <p>
+                      <span className="text-gray-400">Fabric: </span>
+                      <span className="font-semibold text-gray-700">
+                        {manualFabric ||
+                          (gender === 'female' ? 'Lawn Cotton' : 'Cotton Mix')}
+                      </span>
+                    </p>
+                    <p>
+                      <span className="text-gray-400">Color: </span>
+                      <span className="font-semibold text-gray-700">
+                        {gender === 'female' ? 'Dusty Pink' : 'Light Blue'}
+                      </span>
+                    </p>
+                    <p>
+                      <span className="text-gray-400">Designs: </span>
+                      <span className="font-semibold text-gray-700">
+                        Custom
+                      </span>
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">
-                  Neckline Cut <span className="text-[#7E153A]">*</span>
-                </label>
-                <select
-                  value={neckStyle}
-                  onChange={(e) => setNeckStyle(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-                >
-                  <option>Round Neck with Slit</option>
-                  <option>V-Neck with Patti</option>
-                  <option>Ban Collar / Chinese Collar</option>
-                  <option>Boat Neck (Wide)</option>
-                  <option>Square Neckline</option>
-                  <option>Angrakha Style Overlap</option>
-                </select>
-              </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">
-                  Sleeve Design <span className="text-[#7E153A]">*</span>
-                </label>
-                <select
-                  value={sleeveStyle}
-                  onChange={(e) => setSleeveStyle(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-                >
-                  <option>Full Sleeve with Lace Trim</option>
-                  <option>Straight 3/4 Sleeve</option>
-                  <option>Bell Sleeve (Flared)</option>
-                  <option>Cuff Sleeve with Buttons</option>
-                  <option>Sleeveless with Piping</option>
-                </select>
-              </div>
+            {/* 2. Your Selections */}
+            <div className="space-y-3 pt-3 border-t border-gray-100">
+              <span className="text-[11px] font-extrabold text-gray-900 uppercase tracking-wider block">
+                Your Selections
+              </span>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">
-                  Garment Fitting <span className="text-[#7E153A]">*</span>
-                </label>
-                <select
-                  value={fitType}
-                  onChange={(e) => setFitType(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-                >
-                  <option>Regular Fit</option>
-                  <option>Relaxed / Loose Fit</option>
-                  <option>Smart Fitted</option>
-                  <option>A-Line Flare</option>
-                </select>
-              </div>
+              <div className="space-y-2.5">
+                {/* Garment Type */}
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                    <img
+                      src={
+                        (gender === 'male'
+                          ? MENS_GARMENTS
+                          : FEMALE_GARMENTS
+                        ).find((g) => g.key === garmentType)?.image ||
+                        '/images/tailor/garment_w_shalwarkameez.png'
+                      }
+                      alt="Garment Type"
+                      className="h-full w-auto object-contain"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] text-gray-400 block leading-tight">
+                      Garment Type
+                    </span>
+                    <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+                      {(gender === 'male'
+                        ? MENS_GARMENTS
+                        : FEMALE_GARMENTS
+                      ).find((g) => g.key === garmentType)?.label ||
+                        'Custom Suit'}
+                    </span>
+                  </div>
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">
-                  Kameez Daman Style <span className="text-[#7E153A]">*</span>
-                </label>
-                <select
-                  value={damanStyle}
-                  onChange={(e) => setDamanStyle(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-                >
-                  <option>Straight Cut Daman</option>
-                  <option>Round / Curved Daman</option>
-                  <option>Chak Patti & Interlock</option>
-                  <option>Side Slits Closed</option>
-                </select>
-              </div>
+                {garmentType === 'frock_maxi' ? (
+                  <>
+                    {/* Neckline */}
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                        <img
+                          src={
+                            FROCK_NECKLINES.find((n) => n.name === neckStyle)
+                              ?.image || FROCK_NECKLINES[0].image
+                          }
+                          alt="Neckline"
+                          className="h-full w-auto object-contain"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] text-gray-400 block leading-tight">
+                          Neckline Design
+                        </span>
+                        <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+                          {neckStyle}
+                        </span>
+                      </div>
+                    </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700">
-                  Trouser / Shalwar Cut{' '}
-                  <span className="text-[#7E153A]">*</span>
-                </label>
-                <select
-                  value={trouserStyle}
-                  onChange={(e) => setTrouserStyle(e.target.value)}
-                  className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 focus:border-[#7E153A]"
-                >
-                  <option>Straight Trouser / Cigarette Pants</option>
-                  <option>Traditional Pleated Shalwar</option>
-                  <option>Culottes / Wide Bottom Pants</option>
-                  <option>Tulip Shalwar</option>
-                  <option>Capri with Slits</option>
-                </select>
+                    {/* Sleeve */}
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                        <img
+                          src={
+                            FROCK_SLEEVES.find((s) => s.name === sleeveStyle)
+                              ?.image || FROCK_SLEEVES[0].image
+                          }
+                          alt="Sleeve"
+                          className="h-full w-auto object-contain"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] text-gray-400 block leading-tight">
+                          Sleeve Design
+                        </span>
+                        <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+                          {sleeveStyle}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Frock Style */}
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                        <img
+                          src={
+                            FROCK_STYLES.find((f) => f.name === frockStyle)
+                              ?.image || FROCK_STYLES[0].image
+                          }
+                          alt="Frock Style"
+                          className="h-full w-auto object-contain"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] text-gray-400 block leading-tight">
+                          Frock Style
+                        </span>
+                        <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+                          {frockStyle}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Collar Design */}
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                        <img
+                          src={
+                            (gender === 'female'
+                              ? WOMEN_COLLARS
+                              : MEN_COLLARS
+                            ).find((c) => c.name === collarStyle)?.image ||
+                            (gender === 'female'
+                              ? WOMEN_COLLARS[0].image
+                              : MEN_COLLARS[0].image)
+                          }
+                          alt="Collar"
+                          className="h-full w-auto object-contain"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] text-gray-400 block leading-tight">
+                          Collar Design
+                        </span>
+                        <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+                          {collarStyle}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Cuff Design */}
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                        <img
+                          src={
+                            (gender === 'female'
+                              ? WOMEN_CUFFS
+                              : MEN_CUFFS
+                            ).find((c) => c.name === cuffStyle)?.image ||
+                            (gender === 'female'
+                              ? WOMEN_CUFFS[0].image
+                              : MEN_CUFFS[0].image)
+                          }
+                          alt="Cuff"
+                          className="h-full w-auto object-contain"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] text-gray-400 block leading-tight">
+                          Cuff Design
+                        </span>
+                        <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+                          {cuffStyle}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Trouser Design */}
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                        <img
+                          src={
+                            (gender === 'female'
+                              ? WOMEN_TROUSERS
+                              : MEN_TROUSERS
+                            ).find((t) => t.name === trouserStyle)?.image ||
+                            (gender === 'female'
+                              ? WOMEN_TROUSERS[0].image
+                              : MEN_TROUSERS[0].image)
+                          }
+                          alt="Trouser"
+                          className="h-full w-auto object-contain"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] text-gray-400 block leading-tight">
+                          Trouser Design
+                        </span>
+                        <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+                          {trouserStyle}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-          )}
 
-          {/* Master Tailor Notes */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-700">
-              Special Stitching Instructions for Master Tailor (Optional)
-            </label>
-            <textarea
-              rows={3}
-              placeholder="e.g. Please keep 2 inches extra fabric inside side seams. Attach lace on sleeve borders."
-              value={specialInstructions}
-              onChange={(e) => setSpecialInstructions(e.target.value)}
-              className="w-full text-xs p-3.5 rounded-2xl border border-gray-200 focus:border-[#7E153A] text-gray-900"
-            />
-          </div>
+            {/* 3. Delivery Badge & Stitching Price */}
+            <div className="pt-3 border-t border-gray-100 space-y-2.5">
+              <div className="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                <Truck size={14} className="text-[#7E153A] shrink-0" />
+                <span className="text-[11px] font-semibold text-gray-700">
+                  Estimated Delivery:{' '}
+                  <span className="font-extrabold text-gray-900">
+                    7 - 10 Days
+                  </span>
+                </span>
+              </div>
 
-          {/* Navigation Controls */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep(1)}
-              className="h-11 px-6 text-xs font-semibold rounded-xl cursor-pointer"
-            >
-              <ArrowLeft size={14} className="mr-1.5" /> Back
-            </Button>
-
-            <Button
-              onClick={() => handleGoToStep(3)}
-              className="h-11 px-8 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer"
-            >
-              Continue to Measurements{' '}
-              <ArrowRight size={14} className="ml-1.5" />
-            </Button>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-red-50/50 border border-red-100">
+                <span className="text-xs font-bold text-gray-700">
+                  Stitching Fee ({currentTierObj.name})
+                </span>
+                <span className="text-sm font-extrabold text-[#7E153A] font-mono">
+                  PKR {stitchingFee.toLocaleString()}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       )}

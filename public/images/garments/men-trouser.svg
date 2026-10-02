@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" fill="none">
+  <!-- Trouser legs -->
+  <rect x="22" y="15" width="32" height="120" rx="6" fill="#4A5568"/>
+  <rect x="66" y="15" width="32" height="120" rx="6" fill="#4A5568"/>
+  <!-- Waistband -->
+  <rect x="18" y="10" width="84" height="18" rx="4" fill="#2D3748"/>
+  <!-- Belt loops -->
+  <rect x="28" y="8" width="6" height="14" rx="2" fill="#2D3748"/>
+  <rect x="57" y="8" width="6" height="14" rx="2" fill="#2D3748"/>
+  <rect x="86" y="8" width="6" height="14" rx="2" fill="#2D3748"/>
+  <!-- Center seam -->
+  <rect x="54" y="28" width="12" height="42" fill="#3A4555"/>
+  <!-- Pockets outline -->
+  <path d="M22 30 Q28 42 36 38" stroke="#3A4555" stroke-width="1.5" fill="none"/>
+  <path d="M98 30 Q92 42 84 38" stroke="#3A4555" stroke-width="1.5" fill="none"/>
+  <!-- Crease lines -->
+  <line x1="38" y1="36" x2="38" y2="132" stroke="#3A4555" stroke-width="1" opacity="0.5"/>
+  <line x1="82" y1="36" x2="82" y2="132" stroke="#3A4555" stroke-width="1" opacity="0.5"/>
+  <!-- Hem detail -->
+  <rect x="22" y="128" width="32" height="6" rx="2" fill="#2D3748"/>
+  <rect x="66" y="128" width="32" height="6" rx="2" fill="#2D3748"/>
+</svg>
