@@ -945,7 +945,7 @@ function NewOrderContent() {
                   }`}
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-14 h-16 rounded-xl bg-pink-50/70 border border-pink-100 flex items-center justify-center p-1 shrink-0 overflow-hidden">
+                    <div className="w-16 h-20 rounded-xl bg-pink-50/70 border border-pink-100 flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
                       <img
                         src="/images/tailor/gender_women.png"
                         alt="Women's Tailoring"
@@ -983,7 +983,7 @@ function NewOrderContent() {
                   }`}
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-14 h-16 rounded-xl bg-blue-50/70 border border-blue-100 flex items-center justify-center p-1 shrink-0 overflow-hidden">
+                    <div className="w-16 h-20 rounded-xl bg-blue-50/70 border border-blue-100 flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
                       <img
                         src="/images/tailor/gender_men.png"
                         alt="Men's Tailoring"
@@ -1019,7 +1019,11 @@ function NewOrderContent() {
                 Choose garment type ({gender === 'female' ? 'Women' : 'Men'}){' '}
                 <span className="text-[#7E153A]">*</span>
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div
+                className={`grid grid-cols-1 sm:grid-cols-2 ${
+                  gender === 'female' ? 'lg:grid-cols-3' : 'lg:grid-cols-4'
+                } gap-3`}
+              >
                 {(gender === 'male' ? MENS_GARMENTS : FEMALE_GARMENTS).map(
                   (g) => {
                     const isSelected = garmentType === g.key;
@@ -1455,7 +1459,13 @@ function NewOrderContent() {
               <p className="text-[11px] text-gray-400">
                 Select the type of outfit you want to stitch.
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+              <div
+                className={`grid ${
+                  gender === 'female'
+                    ? 'grid-cols-3'
+                    : 'grid-cols-2 sm:grid-cols-4'
+                } gap-2.5 pt-1`}
+              >
                 {(gender === 'male' ? MENS_GARMENTS : FEMALE_GARMENTS).map(
                   (g) => {
                     const isSelected = garmentType === g.key;
@@ -1469,7 +1479,7 @@ function NewOrderContent() {
                             : 'border-gray-200 hover:border-gray-300 bg-white'
                         }`}
                       >
-                        <div className="w-full h-20 flex items-center justify-center rounded-lg bg-gray-50/60 p-1 mb-1.5 relative overflow-hidden">
+                        <div className="w-full h-24 flex items-center justify-center rounded-lg bg-gray-50/60 p-1 mb-1.5 relative overflow-hidden">
                           {g.image ? (
                             <img
                               src={g.image}
@@ -1768,7 +1778,11 @@ function NewOrderContent() {
 
                   <div className="flex flex-col md:flex-row gap-3 items-stretch">
                     {/* Cards Grid */}
-                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2.5">
+                    <div
+                      className={`flex-1 grid grid-cols-2 sm:grid-cols-3 ${
+                        gender === 'male' ? 'lg:grid-cols-6' : 'lg:grid-cols-5'
+                      } gap-2.5`}
+                    >
                       {(gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS).map(
                         (item) => {
                           const isSelected = collarStyle === item.name;
@@ -1782,7 +1796,7 @@ function NewOrderContent() {
                                   : 'border-gray-200 hover:border-gray-300 bg-white'
                               }`}
                             >
-                              <div className="w-full h-16 flex items-center justify-center rounded-xl bg-gray-50/60 p-1 overflow-hidden relative">
+                              <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
                                 <img
                                   src={item.image}
                                   alt={item.name}
@@ -1814,11 +1828,11 @@ function NewOrderContent() {
                     </div>
 
                     {/* "Your Selection" Preview Card */}
-                    <div className="w-full md:w-28 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
+                    <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
                       <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
                         Your Selection
                       </span>
-                      <div className="w-14 h-14 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1 overflow-hidden shadow-2xs">
+                      <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
                         <img
                           src={
                             (gender === 'female'
@@ -1851,7 +1865,7 @@ function NewOrderContent() {
 
                   <div className="flex flex-col md:flex-row gap-3 items-stretch">
                     {/* Cards Grid */}
-                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2.5">
+                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                       {(gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS).map(
                         (item) => {
                           const isSelected = cuffStyle === item.name;
@@ -1865,7 +1879,7 @@ function NewOrderContent() {
                                   : 'border-gray-200 hover:border-gray-300 bg-white'
                               }`}
                             >
-                              <div className="w-full h-16 flex items-center justify-center rounded-xl bg-gray-50/60 p-1 overflow-hidden relative">
+                              <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
                                 <img
                                   src={item.image}
                                   alt={item.name}
@@ -1897,11 +1911,11 @@ function NewOrderContent() {
                     </div>
 
                     {/* "Your Selection" Preview Card */}
-                    <div className="w-full md:w-28 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
+                    <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
                       <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
                         Your Selection
                       </span>
-                      <div className="w-14 h-14 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1 overflow-hidden shadow-2xs">
+                      <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
                         <img
                           src={
                             (gender === 'female'
@@ -1934,7 +1948,7 @@ function NewOrderContent() {
 
                   <div className="flex flex-col md:flex-row gap-3 items-stretch">
                     {/* Cards Grid */}
-                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2.5">
+                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                       {(gender === 'female'
                         ? WOMEN_TROUSERS
                         : MEN_TROUSERS
@@ -1950,7 +1964,7 @@ function NewOrderContent() {
                                 : 'border-gray-200 hover:border-gray-300 bg-white'
                             }`}
                           >
-                            <div className="w-full h-16 flex items-center justify-center rounded-xl bg-gray-50/60 p-1 overflow-hidden relative">
+                            <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
                               <img
                                 src={item.image}
                                 alt={item.name}
@@ -1979,11 +1993,11 @@ function NewOrderContent() {
                     </div>
 
                     {/* "Your Selection" Preview Card */}
-                    <div className="w-full md:w-28 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
+                    <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
                       <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
                         Your Selection
                       </span>
-                      <div className="w-14 h-14 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1 overflow-hidden shadow-2xs">
+                      <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
                         <img
                           src={
                             (gender === 'female'

@@ -38,7 +38,7 @@ export const FEMALE_GARMENTS: GarmentPricingOption[] = [
   {
     key: 'full_suit',
     label: 'Shalwar Kameez / Pajama',
-    sublabel: 'Complete 2-Pc / 3-Pc suit with matching bottoms & dupatta',
+    sublabel: 'Traditional and comfortable for everyday wear.',
     image: '/images/tailor/garment_w_shalwarkameez.png',
     prismaGarmentType: 'full_suit',
     tiers: {
@@ -50,7 +50,7 @@ export const FEMALE_GARMENTS: GarmentPricingOption[] = [
   {
     key: 'kameez_only',
     label: 'Only Shirt',
-    sublabel: 'Single Kurti or Kameez with custom neckline & sleeves',
+    sublabel: 'Simple, elegant and versatile for any occasion.',
     image: '/images/tailor/garment_w_onlyshirt.png',
     prismaGarmentType: 'kameez_only',
     tiers: {
@@ -62,25 +62,13 @@ export const FEMALE_GARMENTS: GarmentPricingOption[] = [
   {
     key: 'frock_maxi',
     label: 'Frock / Maxi',
-    sublabel: 'Floor-length Maxi, Flared Frock, or Anarkali cut',
+    sublabel: 'Stylish and graceful for special moments.',
     image: '/images/tailor/garment_w_frockmaxi.png',
     prismaGarmentType: 'other',
     tiers: {
       basic: 3000,
       standard: 3500,
       luxury: 5000,
-    },
-  },
-  {
-    key: 'trouser_only',
-    label: 'Trouser Only',
-    sublabel: 'Straight pants, cigarette pants, or shalwar',
-    image: '/images/tailor/garment_w_trouser.png',
-    prismaGarmentType: 'trouser_only',
-    tiers: {
-      basic: 1000,
-      standard: 1500,
-      luxury: 2000,
     },
   },
 ];
@@ -95,7 +83,7 @@ export const MENS_GARMENTS: GarmentPricingOption[] = [
   {
     key: 'full_suit',
     label: 'Shalwar Kameez',
-    sublabel: 'Traditional 2-Piece Kameez Shalwar or Kurta Pajama',
+    sublabel: 'Traditional and comfortable for everyday wear.',
     image: '/images/tailor/garment_m_shalwarkameez.png',
     prismaGarmentType: 'full_suit',
     tiers: {
@@ -107,7 +95,7 @@ export const MENS_GARMENTS: GarmentPricingOption[] = [
   {
     key: 'trouser_mens',
     label: 'Trouser',
-    sublabel: 'Formal or casual trouser with custom fit and waistband',
+    sublabel: 'Modern tailored trousers, chinos or formal pants.',
     image: '/images/tailor/garment_m_trouser.png',
     prismaGarmentType: 'trouser',
     tiers: {
@@ -119,8 +107,7 @@ export const MENS_GARMENTS: GarmentPricingOption[] = [
   {
     key: 'waistcoat',
     label: 'Waist Coat',
-    sublabel:
-      'Tailored Sadri / Waistcoat with premium inner lining & welt pockets',
+    sublabel: 'Classic formal sadri / waistcoat with premium lining.',
     image: '/images/tailor/garment_m_waistcoat.png',
     prismaGarmentType: 'other',
     tiers: {
@@ -132,8 +119,7 @@ export const MENS_GARMENTS: GarmentPricingOption[] = [
   {
     key: 'pant_coat',
     label: 'Pent Coat',
-    sublabel:
-      'Two-Piece Formal Suit with fused lapel jacket & matching trousers',
+    sublabel: 'Two-piece formal tailored suit with lapel jacket.',
     image: '/images/tailor/garment_m_pentcoat.png',
     prismaGarmentType: 'other',
     tiers: {

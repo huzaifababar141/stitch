@@ -29,9 +29,11 @@ export const WOMEN_TROUSERS: DesignOption[] = [
 
 export const MEN_COLLARS: DesignOption[] = [
   { name: 'Classic Collar', image: '/images/tailor/m_collar_classic.png' },
+  { name: 'Button Down', image: '/images/tailor/m_collar_buttondown.png' },
   { name: 'Band Collar', image: '/images/tailor/m_collar_band.png' },
-  { name: 'Shawl Collar', image: '/images/tailor/m_collar_shawl.png' },
   { name: 'Spread Collar', image: '/images/tailor/m_collar_spread.png' },
+  { name: 'Cutaway Collar', image: '/images/tailor/m_collar_cutaway.png' },
+  { name: 'Club Collar', image: '/images/tailor/m_collar_club.png' },
 ];
 
 export const MEN_CUFFS: DesignOption[] = [
@@ -39,13 +41,15 @@ export const MEN_CUFFS: DesignOption[] = [
   { name: 'French Cuff', image: '/images/tailor/m_cuff_french.png' },
   { name: 'Button Cuff', image: '/images/tailor/m_cuff_button.png' },
   { name: 'Folded Cuff', image: '/images/tailor/m_cuff_folded.png' },
+  { name: 'Rounded Cuff', image: '/images/tailor/m_cuff_rounded.png' },
 ];
 
 export const MEN_TROUSERS: DesignOption[] = [
   { name: 'Straight Fit', image: '/images/tailor/m_trouser_straight.png' },
   { name: 'Slim Fit', image: '/images/tailor/m_trouser_slim.png' },
-  { name: 'Wide Leg', image: '/images/tailor/m_trouser_wide.png' },
+  { name: 'Chinos', image: '/images/tailor/m_trouser_chinos.png' },
   { name: 'Shalwar Style', image: '/images/tailor/m_trouser_shalwar.png' },
+  { name: 'Formal Trouser', image: '/images/tailor/m_trouser_formal.png' },
 ];
 
 export const FROCK_NECKLINES: DesignOption[] = [
