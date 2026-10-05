@@ -10,6 +10,8 @@ interface SizeChartModalProps {
   onSelectSize: (measurements: Record<string, string>) => void;
   gender?: 'female' | 'male';
   initialUnit?: 'inches' | 'cm';
+  hasTrouser?: boolean;
+  hasSleeves?: boolean;
 }
 
 interface SizePreset {
@@ -394,6 +396,8 @@ export function SizeChartModal({
   onSelectSize,
   gender = 'female',
   initialUnit = 'inches',
+  hasTrouser = true,
+  hasSleeves = true,
 }: SizeChartModalProps) {
   const [activeGender, setActiveGender] = useState<'female' | 'male'>(gender);
   const [activeUnit, setActiveUnit] = useState<'inches' | 'cm'>(initialUnit);
@@ -405,7 +409,10 @@ export function SizeChartModal({
   React.useEffect(() => {
     setActiveGender(gender);
     setSelectedTrouserCode(gender === 'male' ? 'P-32' : 'T-30');
-  }, [gender]);
+    if (!hasTrouser) {
+      setViewTab('full');
+    }
+  }, [gender, hasTrouser]);
 
   React.useEffect(() => {
     setActiveUnit(initialUnit);
@@ -435,6 +442,18 @@ export function SizeChartModal({
   const handleApplyPreset = (preset: SizePreset) => {
     const converted: Record<string, string> = {};
     Object.entries(preset.measurements).forEach(([k, v]) => {
+      if (
+        !hasTrouser &&
+        (k.includes('trouser') ||
+          k === 'bottom_opening' ||
+          k === 'waist_bottom' ||
+          k === 'hip_bottom')
+      ) {
+        return;
+      }
+      if (!hasSleeves && (k.includes('sleeve') || k === 'cuff')) {
+        return;
+      }
       converted[k] = formatVal(v);
     });
     onSelectSize(converted);
@@ -536,30 +555,32 @@ export function SizeChartModal({
           </div>
 
           {/* Sub-Tabs: Full Suit vs Pant Codes */}
-          <div className="flex bg-gray-200/80 p-0.5 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setViewTab('full')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                viewTab === 'full'
-                  ? 'bg-white text-[#7E153A] shadow-xs'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Layers size={13} /> Full Suit Sizes
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewTab('trouser')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                viewTab === 'trouser'
-                  ? 'bg-white text-[#7E153A] shadow-xs'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Sliders size={13} /> Pant / Trouser Codes
-            </button>
-          </div>
+          {hasTrouser && (
+            <div className="flex bg-gray-200/80 p-0.5 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setViewTab('full')}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewTab === 'full'
+                    ? 'bg-white text-[#7E153A] shadow-xs'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Layers size={13} /> Full Suit Sizes
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewTab('trouser')}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewTab === 'trouser'
+                    ? 'bg-white text-[#7E153A] shadow-xs'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Sliders size={13} /> Pant / Trouser Codes
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Modal Body Content */}

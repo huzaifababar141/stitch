@@ -9,7 +9,6 @@ import {
   Palette,
   MapPin,
   CreditCard,
-  Heart,
   Star,
   HelpCircle,
   Settings,
@@ -66,7 +65,6 @@ export default function CustomerLayout({
     { icon: Palette, label: 'My Designs', href: '/designs' },
     { icon: MapPin, label: 'Address Book', href: '/address' },
     { icon: CreditCard, label: 'Payments', href: '/payments' },
-    { icon: Heart, label: 'Wishlist', href: '/wishlist' },
     { icon: Star, label: 'Reviews', href: '/reviews' },
   ];
 
@@ -262,13 +260,6 @@ export default function CustomerLayout({
           </div>
 
           <div className="flex items-center gap-1 sm:gap-4 shrink-0">
-            <Link
-              href="/wishlist"
-              className="hidden sm:flex relative text-gray-500 hover:text-[#7E153A] transition-colors p-1.5 rounded-lg hover:bg-gray-50"
-              title="Saved Suit Wishlist"
-            >
-              <Heart size={18} />
-            </Link>
             <Link
               href="/orders"
               className="relative text-gray-500 hover:text-gray-900 transition-colors p-1.5 rounded-lg hover:bg-gray-50"

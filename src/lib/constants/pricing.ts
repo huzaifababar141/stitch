@@ -76,7 +76,6 @@ export const FEMALE_GARMENTS: GarmentPricingOption[] = [
 // ── MENS Pricing Structure ──────────────────────────────────────────────────
 // Stitching Type            Basic        Standard     Luxury
 // Shalwar Kameez            Rs. 2,000    Rs. 3,000    Rs. 3,500
-// Trouser                   Rs. 1,500    Rs. 2,000    Rs. 2,500
 // Waist Coat                Rs. 3,000    Rs. 3,500    Rs. 4,000
 // Pent Coat                 Rs. 10,000   Rs. 13,000   Rs. 15,000
 export const MENS_GARMENTS: GarmentPricingOption[] = [
@@ -90,18 +89,6 @@ export const MENS_GARMENTS: GarmentPricingOption[] = [
       basic: 2000,
       standard: 3000,
       luxury: 3500,
-    },
-  },
-  {
-    key: 'trouser_mens',
-    label: 'Trouser',
-    sublabel: 'Modern tailored trousers, chinos or formal pants.',
-    image: '/images/tailor/garment_m_trouser.png',
-    prismaGarmentType: 'trouser',
-    tiers: {
-      basic: 1500,
-      standard: 2000,
-      luxury: 2500,
     },
   },
   {

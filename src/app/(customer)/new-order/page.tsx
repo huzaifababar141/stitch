@@ -176,6 +176,20 @@ function NewOrderContent() {
   const [showSizeChart, setShowSizeChart] = useState(false);
   const [showHowToMeasure, setShowHowToMeasure] = useState(false);
 
+  // Garment Part Modifiers: Only show trouser/cuff where applicable
+  const hasTrouser =
+    garmentType !== 'kameez_only' &&
+    garmentType !== 'waistcoat' &&
+    garmentType !== 'frock_maxi';
+
+  const hasSleeves = garmentType !== 'waistcoat';
+
+  useEffect(() => {
+    if (!hasTrouser && activeTab === 'trouser') {
+      setActiveTab('shirt');
+    }
+  }, [hasTrouser, activeTab]);
+
   // Apply Trouser Code Handler
   const handleSelectTrouserCode = (item: any) => {
     setSelectedTrouserCode(item.code);
@@ -287,7 +301,7 @@ function NewOrderContent() {
     };
   }, [user]);
 
-  // Load URL query parameters (e.g. from Wishlist "Stitch This", Designs "Apply to Order", etc.)
+  // Load URL query parameters (e.g. from Designs "Apply to Order", etc.)
   useEffect(() => {
     const urlParam = searchParams.get('productUrl');
     const styleConfigIdParam = searchParams.get('styleConfigId');
@@ -449,9 +463,19 @@ function NewOrderContent() {
             { key: 'bust', label: 'Chest' },
             { key: 'waist', label: 'Waist' },
             { key: 'shoulder', label: 'Shoulder (Teera)' },
-            { key: 'sleeve_length', label: 'Sleeve Length' },
-            { key: 'shirt_length', label: 'Kurta / Kameez Length' },
-            { key: 'trouser_length', label: 'Shalwar Length' },
+            ...(hasSleeves
+              ? [{ key: 'sleeve_length', label: 'Sleeve Length' }]
+              : []),
+            {
+              key: 'shirt_length',
+              label:
+                garmentType === 'waistcoat'
+                  ? 'Waist Coat Length'
+                  : 'Kurta / Kameez Length',
+            },
+            ...(hasTrouser
+              ? [{ key: 'trouser_length', label: 'Shalwar Length' }]
+              : []),
           ]
         : [
             { key: 'bust', label: 'Bust / Chest' },
@@ -460,8 +484,12 @@ function NewOrderContent() {
             { key: 'shoulder', label: 'Shoulder Width' },
             { key: 'sleeve_length', label: 'Sleeve Length' },
             { key: 'shirt_length', label: 'Kameez Length' },
-            { key: 'trouser_length', label: 'Trouser Length' },
-            { key: 'waist_bottom', label: 'Trouser Waist' },
+            ...(hasTrouser
+              ? [
+                  { key: 'trouser_length', label: 'Trouser Length' },
+                  { key: 'waist_bottom', label: 'Trouser Waist' },
+                ]
+              : []),
           ];
 
     for (const item of requiredDims) {
@@ -766,12 +794,12 @@ function NewOrderContent() {
         garmentSubtype: garmentType,
         neckStyle,
         collarStyle,
-        cuffStyle,
+        cuffStyle: hasSleeves ? cuffStyle : undefined,
         pocketStyle: gender === 'male' ? pocketStyle : undefined,
-        sleeveStyle,
+        sleeveStyle: hasSleeves ? sleeveStyle : undefined,
         frockStyle: garmentType === 'frock_maxi' ? frockStyle : undefined,
         damanStyle,
-        trouserStyle,
+        trouserStyle: hasTrouser ? trouserStyle : undefined,
         frockOptions:
           garmentType === 'frock_maxi' ? selectedFrockOptions : undefined,
         fitType,
@@ -1019,11 +1047,7 @@ function NewOrderContent() {
                 Choose garment type ({gender === 'female' ? 'Women' : 'Men'}){' '}
                 <span className="text-[#7E153A]">*</span>
               </label>
-              <div
-                className={`grid grid-cols-1 sm:grid-cols-2 ${
-                  gender === 'female' ? 'lg:grid-cols-3' : 'lg:grid-cols-4'
-                } gap-3`}
-              >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {(gender === 'male' ? MENS_GARMENTS : FEMALE_GARMENTS).map(
                   (g) => {
                     const isSelected = garmentType === g.key;
@@ -1430,7 +1454,7 @@ function NewOrderContent() {
               <div className="space-y-1">
                 <h2 className="text-lg font-extrabold text-gray-900">
                   {garmentType === 'frock_maxi'
-                    ? '3. Choose Your Frock Style'
+                    ? '2. Choose Your Frock Style'
                     : '2. Customize Your Garment'}
                 </h2>
                 <p className="text-xs text-gray-500">
@@ -1440,589 +1464,24 @@ function NewOrderContent() {
                 </p>
               </div>
 
-              {/* Gender Indicator / Switcher Pill */}
-              <div className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-[#7E153A] bg-red-50 border border-red-100">
-                <span>
+              {/* Gender Indicator & Selected Garment Badge */}
+              <div className="self-start sm:self-auto flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-[#7E153A] bg-red-50 border border-red-100">
                   {gender === 'female'
                     ? "👗 Women's Outfit"
                     : "👔 Men's Outfit"}
                 </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-200">
+                  <Scissors size={12} className="text-[#7E153A]" />
+                  {(gender === 'male' ? MENS_GARMENTS : FEMALE_GARMENTS).find(
+                    (g) => g.key === garmentType
+                  )?.label || 'Custom Garment'}
+                </span>
               </div>
             </div>
 
-            {/* Garment Type Row - Matching Reference Screenshot */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
-                <Scissors size={14} className="text-[#7E153A]" />
-                <span>Garment Type</span>
-              </div>
-              <p className="text-[11px] text-gray-400">
-                Select the type of outfit you want to stitch.
-              </p>
-              <div
-                className={`grid ${
-                  gender === 'female'
-                    ? 'grid-cols-3'
-                    : 'grid-cols-2 sm:grid-cols-4'
-                } gap-2.5 pt-1`}
-              >
-                {(gender === 'male' ? MENS_GARMENTS : FEMALE_GARMENTS).map(
-                  (g) => {
-                    const isSelected = garmentType === g.key;
-                    return (
-                      <div
-                        key={g.key}
-                        onClick={() => setGarmentType(g.key)}
-                        className={`relative rounded-xl border-2 p-2.5 text-left transition-all cursor-pointer flex flex-col justify-between group ${
-                          isSelected
-                            ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                            : 'border-gray-200 hover:border-gray-300 bg-white'
-                        }`}
-                      >
-                        <div className="w-full h-24 flex items-center justify-center rounded-lg bg-gray-50/60 p-1 mb-1.5 relative overflow-hidden">
-                          {g.image ? (
-                            <img
-                              src={g.image}
-                              alt={g.label}
-                              className="h-full w-auto object-contain transition-transform duration-200 group-hover:scale-105"
-                            />
-                          ) : (
-                            <Scissors size={20} className="text-gray-400" />
-                          )}
-                          {isSelected && (
-                            <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                              <Check
-                                size={9}
-                                className="text-white"
-                                strokeWidth={3.5}
-                              />
-                            </div>
-                          )}
-                        </div>
-                        <p
-                          className={`text-[11px] font-extrabold leading-tight truncate ${
-                            isSelected ? 'text-[#7E153A]' : 'text-gray-800'
-                          }`}
-                        >
-                          {g.label}
-                        </p>
-                      </div>
-                    );
-                  }
-                )}
-              </div>
-            </div>
-
-            {/* ── FROCK CUSTOMIZATION STUDIO (Screenshot 4) ── */}
-            {garmentType === 'frock_maxi' ? (
-              <div className="space-y-6 pt-2">
-                <div className="border-t border-gray-100 pt-4">
-                  <div className="flex items-center gap-2 text-xs font-bold text-gray-900">
-                    <span>👗 Frock Design</span>
-                  </div>
-                  <p className="text-[11px] text-gray-400 mt-0.5">
-                    Customize your frock from different styles, necklines,
-                    sleeves and more.
-                  </p>
-                </div>
-
-                {/* 1. Neckline Design & 2. Sleeve Design */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* Neckline Design */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-gray-800">
-                        Neckline Design
-                      </span>
-                      <span className="text-[10px] text-[#7E153A] font-semibold">
-                        {neckStyle}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-5 gap-1.5">
-                      {FROCK_NECKLINES.map((item) => {
-                        const isSelected = neckStyle === item.name;
-                        return (
-                          <div
-                            key={item.name}
-                            onClick={() => setNeckStyle(item.name)}
-                            className={`rounded-xl border p-1 text-center cursor-pointer transition-all ${
-                              isSelected
-                                ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20'
-                                : 'border-gray-200 hover:border-gray-300 bg-white'
-                            }`}
-                          >
-                            <div className="h-14 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50">
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="h-full w-full object-contain"
-                              />
-                            </div>
-                            <p
-                              className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
-                                isSelected ? 'text-[#7E153A]' : 'text-gray-700'
-                              }`}
-                            >
-                              {item.name}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Sleeve Design */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-gray-800">
-                        Sleeve Design
-                      </span>
-                      <span className="text-[10px] text-[#7E153A] font-semibold">
-                        {sleeveStyle}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-5 gap-1.5">
-                      {FROCK_SLEEVES.map((item) => {
-                        const isSelected = sleeveStyle === item.name;
-                        return (
-                          <div
-                            key={item.name}
-                            onClick={() => setSleeveStyle(item.name)}
-                            className={`rounded-xl border p-1 text-center cursor-pointer transition-all ${
-                              isSelected
-                                ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20'
-                                : 'border-gray-200 hover:border-gray-300 bg-white'
-                            }`}
-                          >
-                            <div className="h-14 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50">
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="h-full w-full object-contain"
-                              />
-                            </div>
-                            <p
-                              className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
-                                isSelected ? 'text-[#7E153A]' : 'text-gray-700'
-                              }`}
-                            >
-                              {item.name}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Frock Style & 4. Daman Design */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* Frock Style */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-gray-800">
-                        Frock Style
-                      </span>
-                      <span className="text-[10px] text-[#7E153A] font-semibold">
-                        {frockStyle}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-5 gap-1.5">
-                      {FROCK_STYLES.map((item) => {
-                        const isSelected = frockStyle === item.name;
-                        return (
-                          <div
-                            key={item.name}
-                            onClick={() => setFrockStyle(item.name)}
-                            className={`rounded-xl border p-1 text-center cursor-pointer transition-all ${
-                              isSelected
-                                ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20'
-                                : 'border-gray-200 hover:border-gray-300 bg-white'
-                            }`}
-                          >
-                            <div className="h-14 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50">
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="h-full w-full object-contain"
-                              />
-                            </div>
-                            <p
-                              className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
-                                isSelected ? 'text-[#7E153A]' : 'text-gray-700'
-                              }`}
-                            >
-                              {item.name}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Daman Design */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-gray-800">
-                        Daman Design
-                      </span>
-                      <span className="text-[10px] text-[#7E153A] font-semibold">
-                        {damanStyle}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-5 gap-1.5">
-                      {FROCK_DAMANS.map((item) => {
-                        const isSelected = damanStyle === item.name;
-                        return (
-                          <div
-                            key={item.name}
-                            onClick={() => setDamanStyle(item.name)}
-                            className={`rounded-xl border p-1 text-center cursor-pointer transition-all ${
-                              isSelected
-                                ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20'
-                                : 'border-gray-200 hover:border-gray-300 bg-white'
-                            }`}
-                          >
-                            <div className="h-14 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50">
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="h-full w-full object-contain"
-                              />
-                            </div>
-                            <p
-                              className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
-                                isSelected ? 'text-[#7E153A]' : 'text-gray-700'
-                              }`}
-                            >
-                              {item.name}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 5. Additional Options */}
-                <div className="space-y-2 pt-2 border-t border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-800">
-                      Additional Options
-                    </span>
-                    <span className="text-[10px] text-gray-400">
-                      Click to toggle options
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-7 gap-2">
-                    {FROCK_OPTIONS.map((item) => {
-                      const isSelected = selectedFrockOptions.includes(
-                        item.name
-                      );
-                      return (
-                        <div
-                          key={item.name}
-                          onClick={() => {
-                            setSelectedFrockOptions((prev) =>
-                              prev.includes(item.name)
-                                ? prev.filter((o) => o !== item.name)
-                                : [...prev, item.name]
-                            );
-                          }}
-                          className={`rounded-xl border p-1.5 text-center cursor-pointer transition-all ${
-                            isSelected
-                              ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20 shadow-xs'
-                              : 'border-gray-200 hover:border-gray-300 bg-white'
-                          }`}
-                        >
-                          <div className="h-12 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50 relative">
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="h-full w-full object-contain"
-                            />
-                            {isSelected && (
-                              <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#7E153A] flex items-center justify-center">
-                                <Check
-                                  size={8}
-                                  className="text-white"
-                                  strokeWidth={3}
-                                />
-                              </div>
-                            )}
-                          </div>
-                          <p
-                            className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
-                              isSelected ? 'text-[#7E153A]' : 'text-gray-700'
-                            }`}
-                          >
-                            {item.name}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* ── STANDARD CUSTOMIZATION STUDIO (Collar, Cuff, Trouser) (Screenshot 2 & 3) ── */
-              <div className="space-y-6 pt-2">
-                {/* 1. Collar Design Row */}
-                <div className="space-y-2 border-t border-gray-100 pt-4">
-                  <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
-                    <span>Collar Design</span>
-                  </div>
-                  <p className="text-[11px] text-gray-400">
-                    Choose your preferred collar style.
-                  </p>
-
-                  <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                    {/* Cards Grid */}
-                    <div
-                      className={`flex-1 grid grid-cols-2 sm:grid-cols-3 ${
-                        gender === 'male' ? 'lg:grid-cols-6' : 'lg:grid-cols-5'
-                      } gap-2.5`}
-                    >
-                      {(gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS).map(
-                        (item) => {
-                          const isSelected = collarStyle === item.name;
-                          return (
-                            <div
-                              key={item.name}
-                              onClick={() => setCollarStyle(item.name)}
-                              className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                isSelected
-                                  ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                  : 'border-gray-200 hover:border-gray-300 bg-white'
-                              }`}
-                            >
-                              <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  className="h-full w-auto object-contain"
-                                />
-                                {isSelected && (
-                                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                    <Check
-                                      size={9}
-                                      className="text-white"
-                                      strokeWidth={3.5}
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                              <p
-                                className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
-                                  isSelected
-                                    ? 'text-[#7E153A]'
-                                    : 'text-gray-800'
-                                }`}
-                              >
-                                {item.name}
-                              </p>
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
-
-                    {/* "Your Selection" Preview Card */}
-                    <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                      <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                        Your Selection
-                      </span>
-                      <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                        <img
-                          src={
-                            (gender === 'female'
-                              ? WOMEN_COLLARS
-                              : MEN_COLLARS
-                            ).find((c) => c.name === collarStyle)?.image ||
-                            (gender === 'female'
-                              ? WOMEN_COLLARS[0].image
-                              : MEN_COLLARS[0].image)
-                          }
-                          alt={collarStyle}
-                          className="h-full w-auto object-contain"
-                        />
-                      </div>
-                      <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                        {collarStyle}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Cuff Design Row */}
-                <div className="space-y-2 border-t border-gray-100 pt-4">
-                  <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
-                    <span>Cuff Design</span>
-                  </div>
-                  <p className="text-[11px] text-gray-400">
-                    Choose the cuff style for your sleeves.
-                  </p>
-
-                  <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                    {/* Cards Grid */}
-                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-                      {(gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS).map(
-                        (item) => {
-                          const isSelected = cuffStyle === item.name;
-                          return (
-                            <div
-                              key={item.name}
-                              onClick={() => setCuffStyle(item.name)}
-                              className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                isSelected
-                                  ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                  : 'border-gray-200 hover:border-gray-300 bg-white'
-                              }`}
-                            >
-                              <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  className="h-full w-auto object-contain"
-                                />
-                                {isSelected && (
-                                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                    <Check
-                                      size={9}
-                                      className="text-white"
-                                      strokeWidth={3.5}
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                              <p
-                                className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
-                                  isSelected
-                                    ? 'text-[#7E153A]'
-                                    : 'text-gray-800'
-                                }`}
-                              >
-                                {item.name}
-                              </p>
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
-
-                    {/* "Your Selection" Preview Card */}
-                    <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                      <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                        Your Selection
-                      </span>
-                      <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                        <img
-                          src={
-                            (gender === 'female'
-                              ? WOMEN_CUFFS
-                              : MEN_CUFFS
-                            ).find((c) => c.name === cuffStyle)?.image ||
-                            (gender === 'female'
-                              ? WOMEN_CUFFS[0].image
-                              : MEN_CUFFS[0].image)
-                          }
-                          alt={cuffStyle}
-                          className="h-full w-auto object-contain"
-                        />
-                      </div>
-                      <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                        {cuffStyle}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Trouser / Shalwar Design Row */}
-                <div className="space-y-2 border-t border-gray-100 pt-4">
-                  <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
-                    <span>Trouser / Shalwar Design</span>
-                  </div>
-                  <p className="text-[11px] text-gray-400">
-                    Select the trouser or shalwar style you prefer.
-                  </p>
-
-                  <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                    {/* Cards Grid */}
-                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-                      {(gender === 'female'
-                        ? WOMEN_TROUSERS
-                        : MEN_TROUSERS
-                      ).map((item) => {
-                        const isSelected = trouserStyle === item.name;
-                        return (
-                          <div
-                            key={item.name}
-                            onClick={() => setTrouserStyle(item.name)}
-                            className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                              isSelected
-                                ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                : 'border-gray-200 hover:border-gray-300 bg-white'
-                            }`}
-                          >
-                            <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="h-full w-auto object-contain"
-                              />
-                              {isSelected && (
-                                <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                  <Check
-                                    size={9}
-                                    className="text-white"
-                                    strokeWidth={3.5}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                            <p
-                              className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
-                                isSelected ? 'text-[#7E153A]' : 'text-gray-800'
-                              }`}
-                            >
-                              {item.name}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* "Your Selection" Preview Card */}
-                    <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                      <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                        Your Selection
-                      </span>
-                      <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                        <img
-                          src={
-                            (gender === 'female'
-                              ? WOMEN_TROUSERS
-                              : MEN_TROUSERS
-                            ).find((t) => t.name === trouserStyle)?.image ||
-                            (gender === 'female'
-                              ? WOMEN_TROUSERS[0].image
-                              : MEN_TROUSERS[0].image)
-                          }
-                          alt={trouserStyle}
-                          className="h-full w-auto object-contain"
-                        />
-                      </div>
-                      <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                        {trouserStyle}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Stitching Craftsmanship Tier Cards */}
-            <div className="space-y-4 pt-4 border-t border-gray-100">
+            {/* Stitching Craftsmanship Tier Cards (Pricing on Top) */}
+            <div className="space-y-4 pt-1">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
                   <label className="text-xs font-bold text-gray-800 block">
@@ -2288,6 +1747,520 @@ function NewOrderContent() {
               </div>
             </div>
 
+            {/* ── FROCK CUSTOMIZATION STUDIO (Screenshot 4) ── */}
+            {garmentType === 'frock_maxi' ? (
+              <div className="space-y-6 pt-5 border-t border-gray-100">
+                <div>
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-900">
+                    <span>👗 Frock Design</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    Customize your frock from different styles, necklines,
+                    sleeves and more.
+                  </p>
+                </div>
+
+                {/* 1. Neckline Design & 2. Sleeve Design */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Neckline Design */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-800">
+                        Neckline Design
+                      </span>
+                      <span className="text-[10px] text-[#7E153A] font-semibold">
+                        {neckStyle}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {FROCK_NECKLINES.map((item) => {
+                        const isSelected = neckStyle === item.name;
+                        return (
+                          <div
+                            key={item.name}
+                            onClick={() => setNeckStyle(item.name)}
+                            className={`rounded-xl border p-1 text-center cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <div className="h-14 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                            <p
+                              className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
+                                isSelected ? 'text-[#7E153A]' : 'text-gray-700'
+                              }`}
+                            >
+                              {item.name}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Sleeve Design */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-800">
+                        Sleeve Design
+                      </span>
+                      <span className="text-[10px] text-[#7E153A] font-semibold">
+                        {sleeveStyle}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {FROCK_SLEEVES.map((item) => {
+                        const isSelected = sleeveStyle === item.name;
+                        return (
+                          <div
+                            key={item.name}
+                            onClick={() => setSleeveStyle(item.name)}
+                            className={`rounded-xl border p-1 text-center cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <div className="h-14 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                            <p
+                              className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
+                                isSelected ? 'text-[#7E153A]' : 'text-gray-700'
+                              }`}
+                            >
+                              {item.name}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Frock Style & 4. Daman Design */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Frock Style */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-800">
+                        Frock Style
+                      </span>
+                      <span className="text-[10px] text-[#7E153A] font-semibold">
+                        {frockStyle}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {FROCK_STYLES.map((item) => {
+                        const isSelected = frockStyle === item.name;
+                        return (
+                          <div
+                            key={item.name}
+                            onClick={() => setFrockStyle(item.name)}
+                            className={`rounded-xl border p-1 text-center cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <div className="h-14 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                            <p
+                              className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
+                                isSelected ? 'text-[#7E153A]' : 'text-gray-700'
+                              }`}
+                            >
+                              {item.name}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Daman Design */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-800">
+                        Daman Design
+                      </span>
+                      <span className="text-[10px] text-[#7E153A] font-semibold">
+                        {damanStyle}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {FROCK_DAMANS.map((item) => {
+                        const isSelected = damanStyle === item.name;
+                        return (
+                          <div
+                            key={item.name}
+                            onClick={() => setDamanStyle(item.name)}
+                            className={`rounded-xl border p-1 text-center cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <div className="h-14 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                            <p
+                              className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
+                                isSelected ? 'text-[#7E153A]' : 'text-gray-700'
+                              }`}
+                            >
+                              {item.name}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 5. Additional Options */}
+                <div className="space-y-2 pt-2 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-800">
+                      Additional Options
+                    </span>
+                    <span className="text-[10px] text-gray-400">
+                      Click to toggle options
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-7 gap-2">
+                    {FROCK_OPTIONS.map((item) => {
+                      const isSelected = selectedFrockOptions.includes(
+                        item.name
+                      );
+                      return (
+                        <div
+                          key={item.name}
+                          onClick={() => {
+                            setSelectedFrockOptions((prev) =>
+                              prev.includes(item.name)
+                                ? prev.filter((o) => o !== item.name)
+                                : [...prev, item.name]
+                            );
+                          }}
+                          className={`rounded-xl border p-1.5 text-center cursor-pointer transition-all ${
+                            isSelected
+                              ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20 shadow-xs'
+                              : 'border-gray-200 hover:border-gray-300 bg-white'
+                          }`}
+                        >
+                          <div className="h-12 w-full flex items-center justify-center overflow-hidden rounded-lg bg-gray-50/50 relative">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="h-full w-full object-contain"
+                            />
+                            {isSelected && (
+                              <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#7E153A] flex items-center justify-center">
+                                <Check
+                                  size={8}
+                                  className="text-white"
+                                  strokeWidth={3}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <p
+                            className={`text-[9px] font-bold mt-1 leading-tight line-clamp-1 ${
+                              isSelected ? 'text-[#7E153A]' : 'text-gray-700'
+                            }`}
+                          >
+                            {item.name}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* ── STANDARD CUSTOMIZATION STUDIO (Collar, Cuff, Trouser) (Screenshot 2 & 3) ── */
+              <div className="space-y-6 pt-5 border-t border-gray-100">
+                {/* 1. Collar Design Row */}
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
+                    <span>Collar Design</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400">
+                    Choose your preferred collar style.
+                  </p>
+
+                  <div className="flex flex-col md:flex-row gap-3 items-stretch">
+                    {/* Cards Grid */}
+                    <div
+                      className={`flex-1 grid grid-cols-2 sm:grid-cols-3 ${
+                        gender === 'male' ? 'lg:grid-cols-6' : 'lg:grid-cols-5'
+                      } gap-2.5`}
+                    >
+                      {(gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS).map(
+                        (item) => {
+                          const isSelected = collarStyle === item.name;
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => setCollarStyle(item.name)}
+                              className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                              }`}
+                            >
+                              <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="h-full w-auto object-contain"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
+                                    <Check
+                                      size={9}
+                                      className="text-white"
+                                      strokeWidth={3.5}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              <p
+                                className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  isSelected
+                                    ? 'text-[#7E153A]'
+                                    : 'text-gray-800'
+                                }`}
+                              >
+                                {item.name}
+                              </p>
+                            </div>
+                          );
+                        }
+                      )}
+                    </div>
+
+                    {/* "Your Selection" Preview Card */}
+                    <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
+                      <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
+                        Your Selection
+                      </span>
+                      <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
+                        <img
+                          src={
+                            (gender === 'female'
+                              ? WOMEN_COLLARS
+                              : MEN_COLLARS
+                            ).find((c) => c.name === collarStyle)?.image ||
+                            (gender === 'female'
+                              ? WOMEN_COLLARS[0].image
+                              : MEN_COLLARS[0].image)
+                          }
+                          alt={collarStyle}
+                          className="h-full w-auto object-contain"
+                        />
+                      </div>
+                      <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
+                        {collarStyle}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Cuff Design Row (Only for garments with sleeves) */}
+                {hasSleeves && (
+                  <div className="space-y-2 border-t border-gray-100 pt-4">
+                    <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
+                      <span>Cuff Design</span>
+                    </div>
+                    <p className="text-[11px] text-gray-400">
+                      Choose the cuff style for your sleeves.
+                    </p>
+
+                    <div className="flex flex-col md:flex-row gap-3 items-stretch">
+                      {/* Cards Grid */}
+                      <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                        {(gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS).map(
+                          (item) => {
+                            const isSelected = cuffStyle === item.name;
+                            return (
+                              <div
+                                key={item.name}
+                                onClick={() => setCuffStyle(item.name)}
+                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
+                                  isSelected
+                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
+                                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                                }`}
+                              >
+                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    className="h-full w-auto object-contain"
+                                  />
+                                  {isSelected && (
+                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
+                                      <Check
+                                        size={9}
+                                        className="text-white"
+                                        strokeWidth={3.5}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                                <p
+                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                    isSelected
+                                      ? 'text-[#7E153A]'
+                                      : 'text-gray-800'
+                                  }`}
+                                >
+                                  {item.name}
+                                </p>
+                              </div>
+                            );
+                          }
+                        )}
+                      </div>
+
+                      {/* "Your Selection" Preview Card */}
+                      <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
+                        <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
+                          Your Selection
+                        </span>
+                        <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
+                          <img
+                            src={
+                              (gender === 'female'
+                                ? WOMEN_CUFFS
+                                : MEN_CUFFS
+                              ).find((c) => c.name === cuffStyle)?.image ||
+                              (gender === 'female'
+                                ? WOMEN_CUFFS[0].image
+                                : MEN_CUFFS[0].image)
+                            }
+                            alt={cuffStyle}
+                            className="h-full w-auto object-contain"
+                          />
+                        </div>
+                        <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
+                          {cuffStyle}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Trouser / Shalwar Design Row (Only for garments with trousers) */}
+                {hasTrouser && (
+                  <div className="space-y-2 border-t border-gray-100 pt-4">
+                    <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
+                      <span>Trouser / Shalwar Design</span>
+                    </div>
+                    <p className="text-[11px] text-gray-400">
+                      Select the trouser or shalwar style you prefer.
+                    </p>
+
+                    <div className="flex flex-col md:flex-row gap-3 items-stretch">
+                      {/* Cards Grid */}
+                      <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                        {(gender === 'female'
+                          ? WOMEN_TROUSERS
+                          : MEN_TROUSERS
+                        ).map((item) => {
+                          const isSelected = trouserStyle === item.name;
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => setTrouserStyle(item.name)}
+                              className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                              }`}
+                            >
+                              <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="h-full w-auto object-contain"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
+                                    <Check
+                                      size={9}
+                                      className="text-white"
+                                      strokeWidth={3.5}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              <p
+                                className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  isSelected
+                                    ? 'text-[#7E153A]'
+                                    : 'text-gray-800'
+                                }`}
+                              >
+                                {item.name}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* "Your Selection" Preview Card */}
+                      <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
+                        <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
+                          Your Selection
+                        </span>
+                        <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
+                          <img
+                            src={
+                              (gender === 'female'
+                                ? WOMEN_TROUSERS
+                                : MEN_TROUSERS
+                              ).find((t) => t.name === trouserStyle)?.image ||
+                              (gender === 'female'
+                                ? WOMEN_TROUSERS[0].image
+                                : MEN_TROUSERS[0].image)
+                            }
+                            alt={trouserStyle}
+                            className="h-full w-auto object-contain"
+                          />
+                        </div>
+                        <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
+                          {trouserStyle}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Master Tailor Notes */}
             <div className="space-y-1.5 pt-2 border-t border-gray-100">
               <label className="text-xs font-bold text-gray-700">
@@ -2519,58 +2492,62 @@ function NewOrderContent() {
                     </div>
 
                     {/* Cuff Design */}
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
-                        <img
-                          src={
-                            (gender === 'female'
-                              ? WOMEN_CUFFS
-                              : MEN_CUFFS
-                            ).find((c) => c.name === cuffStyle)?.image ||
-                            (gender === 'female'
-                              ? WOMEN_CUFFS[0].image
-                              : MEN_CUFFS[0].image)
-                          }
-                          alt="Cuff"
-                          className="h-full w-auto object-contain"
-                        />
+                    {hasSleeves && (
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                          <img
+                            src={
+                              (gender === 'female'
+                                ? WOMEN_CUFFS
+                                : MEN_CUFFS
+                              ).find((c) => c.name === cuffStyle)?.image ||
+                              (gender === 'female'
+                                ? WOMEN_CUFFS[0].image
+                                : MEN_CUFFS[0].image)
+                            }
+                            alt="Cuff"
+                            className="h-full w-auto object-contain"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[10px] text-gray-400 block leading-tight">
+                            Cuff Design
+                          </span>
+                          <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+                            {cuffStyle}
+                          </span>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <span className="text-[10px] text-gray-400 block leading-tight">
-                          Cuff Design
-                        </span>
-                        <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
-                          {cuffStyle}
-                        </span>
-                      </div>
-                    </div>
+                    )}
 
                     {/* Trouser Design */}
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
-                        <img
-                          src={
-                            (gender === 'female'
-                              ? WOMEN_TROUSERS
-                              : MEN_TROUSERS
-                            ).find((t) => t.name === trouserStyle)?.image ||
-                            (gender === 'female'
-                              ? WOMEN_TROUSERS[0].image
-                              : MEN_TROUSERS[0].image)
-                          }
-                          alt="Trouser"
-                          className="h-full w-auto object-contain"
-                        />
+                    {hasTrouser && (
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                          <img
+                            src={
+                              (gender === 'female'
+                                ? WOMEN_TROUSERS
+                                : MEN_TROUSERS
+                              ).find((t) => t.name === trouserStyle)?.image ||
+                              (gender === 'female'
+                                ? WOMEN_TROUSERS[0].image
+                                : MEN_TROUSERS[0].image)
+                            }
+                            alt="Trouser"
+                            className="h-full w-auto object-contain"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[10px] text-gray-400 block leading-tight">
+                            Trouser Design
+                          </span>
+                          <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+                            {trouserStyle}
+                          </span>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <span className="text-[10px] text-gray-400 block leading-tight">
-                          Trouser Design
-                        </span>
-                        <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
-                          {trouserStyle}
-                        </span>
-                      </div>
-                    </div>
+                    )}
                   </>
                 )}
               </div>
@@ -3176,22 +3153,28 @@ function NewOrderContent() {
                     }`}
                   >
                     {gender === 'male'
-                      ? 'Kurta / Kameez Dimensions'
-                      : 'Kameez Dimensions'}
+                      ? garmentType === 'waistcoat'
+                        ? 'Waist Coat Dimensions'
+                        : 'Kurta / Kameez Dimensions'
+                      : garmentType === 'kameez_only'
+                        ? 'Shirt Dimensions'
+                        : 'Kameez Dimensions'}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('trouser')}
-                    className={`px-4 py-1.5 text-xs font-bold rounded-lg cursor-pointer ${
-                      activeTab === 'trouser'
-                        ? 'bg-white text-[#7E153A] shadow-xs'
-                        : 'text-gray-500'
-                    }`}
-                  >
-                    {gender === 'male'
-                      ? 'Shalwar / Trouser Dimensions'
-                      : 'Trouser Dimensions'}
-                  </button>
+                  {hasTrouser && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('trouser')}
+                      className={`px-4 py-1.5 text-xs font-bold rounded-lg cursor-pointer ${
+                        activeTab === 'trouser'
+                          ? 'bg-white text-[#7E153A] shadow-xs'
+                          : 'text-gray-500'
+                      }`}
+                    >
+                      {gender === 'male'
+                        ? 'Shalwar / Trouser Dimensions'
+                        : 'Trouser Dimensions'}
+                    </button>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
@@ -3241,8 +3224,12 @@ function NewOrderContent() {
                         ? [
                             {
                               id: 'shirt_length',
-                              name: 'Kurta / Kameez Length',
-                              defaultVal: '42',
+                              name:
+                                garmentType === 'waistcoat'
+                                  ? 'Waist Coat Length'
+                                  : 'Kurta / Kameez Length',
+                              defaultVal:
+                                garmentType === 'waistcoat' ? '28' : '42',
                             },
                             {
                               id: 'bust',
@@ -3260,26 +3247,39 @@ function NewOrderContent() {
                               name: 'Shoulder (Teera)',
                               defaultVal: '18',
                             },
-                            {
-                              id: 'sleeve_length',
-                              name: 'Sleeve Length',
-                              defaultVal: '24',
-                            },
-                            {
-                              id: 'armhole',
-                              name: 'Bicep / Armhole',
-                              defaultVal: '9',
-                            },
-                            {
-                              id: 'cuff',
-                              name: 'Wrist / Cuff Opening',
-                              defaultVal: '9.5',
-                            },
+                            ...(hasSleeves
+                              ? [
+                                  {
+                                    id: 'sleeve_length',
+                                    name: 'Sleeve Length',
+                                    defaultVal: '24',
+                                  },
+                                  {
+                                    id: 'armhole',
+                                    name: 'Bicep / Armhole',
+                                    defaultVal: '9',
+                                  },
+                                  {
+                                    id: 'cuff',
+                                    name: 'Wrist / Cuff Opening',
+                                    defaultVal: '9.5',
+                                  },
+                                ]
+                              : [
+                                  {
+                                    id: 'armhole',
+                                    name: 'Armhole Opening',
+                                    defaultVal: '9.5',
+                                  },
+                                ]),
                           ]
                         : [
                             {
                               id: 'shirt_length',
-                              name: 'Kameez Length',
+                              name:
+                                garmentType === 'kameez_only'
+                                  ? 'Shirt Length'
+                                  : 'Kameez Length',
                               defaultVal: '42',
                             },
                             {
@@ -3322,7 +3322,7 @@ function NewOrderContent() {
                     </>
                   )}
 
-                  {activeTab === 'trouser' && (
+                  {hasTrouser && activeTab === 'trouser' && (
                     <div className="col-span-2 space-y-3 mb-2">
                       {/* Quick Trouser Code Selector Bar */}
                       <div className="bg-white p-3 rounded-2xl border border-gray-200/70 space-y-2">
@@ -3386,7 +3386,7 @@ function NewOrderContent() {
                     </div>
                   )}
 
-                  {activeTab === 'trouser' && (
+                  {hasTrouser && activeTab === 'trouser' && (
                     <>
                       {(gender === 'male'
                         ? [
@@ -3782,8 +3782,20 @@ function NewOrderContent() {
                 </p>
                 <p className="text-gray-500">
                   {gender === 'male'
-                    ? `${sleeveStyle} · ${pocketStyle} · ${trouserStyle}`
-                    : `${sleeveStyle} · ${trouserStyle} · ${fitType}`}
+                    ? [
+                        hasSleeves ? sleeveStyle : null,
+                        pocketStyle,
+                        hasTrouser ? trouserStyle : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')
+                    : [
+                        hasSleeves ? sleeveStyle : null,
+                        hasTrouser ? trouserStyle : null,
+                        fitType,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
                 </p>
               </div>
 
@@ -3957,6 +3969,8 @@ function NewOrderContent() {
         onSelectSize={applyPreset}
         gender={gender}
         initialUnit={unit}
+        hasTrouser={hasTrouser}
+        hasSleeves={hasSleeves}
       />
       <HowToMeasureModal
         isOpen={showHowToMeasure}
