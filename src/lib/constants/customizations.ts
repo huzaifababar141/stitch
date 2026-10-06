@@ -4,68 +4,75 @@ export interface DesignOption {
 }
 
 export const WOMEN_COLLARS: DesignOption[] = [
-  { name: 'Classic Collar', image: '/images/tailor/w_collar_classic.png' },
   { name: 'Band Collar', image: '/images/tailor/w_collar_band.png' },
-  { name: 'Shawl Collar', image: '/images/tailor/w_collar_shawl.png' },
-  { name: 'Spread Collar', image: '/images/tailor/w_collar_spread.png' },
-  { name: 'No Collar', image: '/images/tailor/w_collar_none.png' },
+  { name: 'Round Neck', image: '/images/tailor/w_collar_none.png' },
+  { name: 'V-Neck', image: '/images/tailor/w_collar_shawl.png' },
+  { name: 'Open Neck Collar', image: '/images/tailor/w_collar_classic.png' },
 ];
 
 export const WOMEN_CUFFS: DesignOption[] = [
-  { name: 'Regular Cuff', image: '/images/tailor/w_cuff_regular.png' },
-  { name: 'French Cuff', image: '/images/tailor/w_cuff_french.png' },
-  { name: 'Button Cuff', image: '/images/tailor/w_cuff_button.png' },
-  { name: 'Folded Cuff', image: '/images/tailor/w_cuff_folded.png' },
-  { name: 'Elastic Cuff', image: '/images/tailor/w_cuff_elastic.png' },
+  { name: 'Straight Sleeve', image: '/images/tailor/w_cuff_regular.png' },
+  { name: 'Regular Cuff Sleeve', image: '/images/tailor/w_cuff_french.png' },
+  { name: 'Flared Sleeve', image: '/images/tailor/w_cuff_button.png' },
+  { name: 'Bell Sleeve', image: '/images/tailor/w_cuff_folded.png' },
 ];
 
 export const WOMEN_TROUSERS: DesignOption[] = [
-  { name: 'Straight Fit', image: '/images/tailor/w_trouser_straight.png' },
-  { name: 'Slim Fit', image: '/images/tailor/w_trouser_slim.png' },
-  { name: 'Wide Leg', image: '/images/tailor/w_trouser_wide.png' },
-  { name: 'Palazzo', image: '/images/tailor/w_trouser_palazzo.png' },
-  { name: 'Shalwar Style', image: '/images/tailor/w_trouser_shalwar.png' },
+  { name: 'Straight Trouser', image: '/images/tailor/w_trouser_straight.png' },
+  { name: 'Cigarette Trouser', image: '/images/tailor/w_trouser_slim.png' },
+  { name: 'Wide-Leg Trouser', image: '/images/tailor/w_trouser_wide.png' },
+  { name: 'Tapered Trouser', image: '/images/tailor/w_trouser_palazzo.png' },
+];
+
+export const WOMEN_SHALWARS: DesignOption[] = [
+  { name: 'Classic Shalwar', image: '/images/tailor/w_trouser_shalwar.png' },
+  { name: 'Patiala Shalwar', image: '/images/tailor/w_trouser_wide.png' },
+  { name: 'Dhoti Shalwar', image: '/images/tailor/w_trouser_palazzo.png' },
+  { name: 'Straight Shalwar', image: '/images/tailor/w_trouser_straight.png' },
 ];
 
 export const MEN_COLLARS: DesignOption[] = [
-  { name: 'Classic Collar', image: '/images/tailor/m_collar_classic.png' },
-  { name: 'Button Down', image: '/images/tailor/m_collar_buttondown.png' },
+  { name: 'Plain Collar', image: '/images/tailor/m_collar_classic.png' },
   { name: 'Band Collar', image: '/images/tailor/m_collar_band.png' },
-  { name: 'Spread Collar', image: '/images/tailor/m_collar_spread.png' },
-  { name: 'Cutaway Collar', image: '/images/tailor/m_collar_cutaway.png' },
-  { name: 'Club Collar', image: '/images/tailor/m_collar_club.png' },
+  { name: 'Sherwani Collar', image: '/images/tailor/m_collar_spread.png' },
+  { name: 'Round Neck', image: '/images/tailor/m_collar_buttondown.png' },
 ];
 
 export const MEN_CUFFS: DesignOption[] = [
-  { name: 'Regular Cuff', image: '/images/tailor/m_cuff_regular.png' },
-  { name: 'French Cuff', image: '/images/tailor/m_cuff_french.png' },
+  { name: 'Plain Cuff', image: '/images/tailor/m_cuff_regular.png' },
   { name: 'Button Cuff', image: '/images/tailor/m_cuff_button.png' },
-  { name: 'Folded Cuff', image: '/images/tailor/m_cuff_folded.png' },
-  { name: 'Rounded Cuff', image: '/images/tailor/m_cuff_rounded.png' },
+  { name: 'French Cuff', image: '/images/tailor/m_cuff_french.png' },
+  { name: 'Double Button Cuff', image: '/images/tailor/m_cuff_folded.png' },
 ];
 
 export const MEN_TROUSERS: DesignOption[] = [
-  { name: 'Straight Fit', image: '/images/tailor/m_trouser_straight.png' },
-  { name: 'Slim Fit', image: '/images/tailor/m_trouser_slim.png' },
-  { name: 'Chinos', image: '/images/tailor/m_trouser_chinos.png' },
-  { name: 'Shalwar Style', image: '/images/tailor/m_trouser_shalwar.png' },
-  { name: 'Formal Trouser', image: '/images/tailor/m_trouser_formal.png' },
+  { name: 'Straight Trouser', image: '/images/tailor/m_trouser_straight.png' },
+  { name: 'Slim-Fit Trouser', image: '/images/tailor/m_trouser_slim.png' },
+  { name: 'Tapered Trouser', image: '/images/tailor/m_trouser_chinos.png' },
+  { name: 'Wide-Leg Trouser', image: '/images/tailor/m_trouser_formal.png' },
+];
+
+export const MEN_SHALWARS: DesignOption[] = [
+  { name: 'Classic Shalwar', image: '/images/tailor/m_trouser_shalwar.png' },
+  { name: 'Peshawari Shalwar', image: '/images/tailor/m_trouser_straight.png' },
+  { name: 'Kandahari Shalwar', image: '/images/tailor/m_trouser_wide.png' },
+  { name: 'Dhoti Shalwar', image: '/images/tailor/w_trouser_palazzo.png' },
 ];
 
 export const FROCK_NECKLINES: DesignOption[] = [
-  { name: 'Round Neck', image: '/images/tailor/frock_neck_round.png' },
+  { name: 'Round', image: '/images/tailor/frock_neck_round.png' },
   { name: 'V-Neck', image: '/images/tailor/frock_neck_v.png' },
-  { name: 'Square Neck', image: '/images/tailor/frock_neck_square.png' },
-  { name: 'Boat Neck', image: '/images/tailor/frock_neck_boat.png' },
-  { name: 'Keyhole Neck', image: '/images/tailor/frock_neck_keyhole.png' },
+  { name: 'Square', image: '/images/tailor/frock_neck_square.png' },
+  { name: 'Boat', image: '/images/tailor/frock_neck_boat.png' },
+  { name: 'Keyhole', image: '/images/tailor/frock_neck_keyhole.png' },
 ];
 
 export const FROCK_SLEEVES: DesignOption[] = [
-  { name: 'Full Sleeve', image: '/images/tailor/frock_sleeve_full.png' },
-  { name: '3/4 Sleeve', image: '/images/tailor/frock_sleeve_threequarter.png' },
-  { name: 'Bell Sleeve', image: '/images/tailor/frock_sleeve_bell.png' },
-  { name: 'Puff Sleeve', image: '/images/tailor/frock_sleeve_puff.png' },
-  { name: 'Sleeveless', image: '/images/tailor/frock_sleeve_sleeveless.png' },
+  { name: 'Full', image: '/images/tailor/frock_sleeve_full.png' },
+  { name: '3/4', image: '/images/tailor/frock_sleeve_threequarter.png' },
+  { name: 'Bell', image: '/images/tailor/frock_sleeve_bell.png' },
+  { name: 'Belt', image: '/images/tailor/frock_opt_belt.png' },
+  { name: 'Puff', image: '/images/tailor/frock_sleeve_puff.png' },
 ];
 
 export const FROCK_STYLES: DesignOption[] = [
@@ -81,15 +88,101 @@ export const FROCK_DAMANS: DesignOption[] = [
   { name: 'Curved', image: '/images/tailor/frock_daman_curved.png' },
   { name: 'Scalloped', image: '/images/tailor/frock_daman_scalloped.png' },
   { name: 'High-Low', image: '/images/tailor/frock_daman_highlow.png' },
-  { name: 'Embroidered', image: '/images/tailor/frock_daman_embroidered.png' },
+  { name: 'Round', image: '/images/tailor/frock_daman_curved.png' },
 ];
 
-export const FROCK_OPTIONS: DesignOption[] = [
-  { name: 'Pocket', image: '/images/tailor/frock_opt_pocket.png' },
-  { name: 'Button Style', image: '/images/tailor/frock_opt_button.png' },
-  { name: 'Lace', image: '/images/tailor/frock_opt_lace.png' },
-  { name: 'Piping', image: '/images/tailor/frock_opt_piping.png' },
-  { name: 'Embroidery', image: '/images/tailor/frock_opt_embroidery.png' },
-  { name: 'Belt', image: '/images/tailor/frock_opt_belt.png' },
-  { name: 'Contrast Border', image: '/images/tailor/frock_opt_border.png' },
+export const WAISTCOAT_COLLARS: DesignOption[] = [
+  { name: 'Classic V-Neck', image: '/images/tailor/w_collar_shawl.png' },
+  { name: 'Band Collar', image: '/images/tailor/m_collar_band.png' },
+  { name: 'Sherwani Collar', image: '/images/tailor/m_collar_spread.png' },
+];
+
+export const WAISTCOAT_SLEEVES: DesignOption[] = [
+  {
+    name: 'Plain Straight Sleeves',
+    image: '/images/tailor/m_cuff_regular.png',
+  },
+  { name: 'Button Cuff Sleeves', image: '/images/tailor/m_cuff_button.png' },
+  { name: 'Plain Cuff Sleeves', image: '/images/tailor/m_cuff_french.png' },
+  {
+    name: 'Double Button Cuff Sleeves',
+    image: '/images/tailor/m_cuff_folded.png',
+  },
+];
+
+export const PANT_COAT_STYLES: DesignOption[] = [
+  {
+    name: 'Single-Breasted 2 Button',
+    image: '/images/tailor/garment_m_pentcoat.png',
+  },
+  {
+    name: 'Single-Breasted 3 Button',
+    image: '/images/tailor/garment_m_pentcoat.png',
+  },
+  {
+    name: 'Double-Breasted 4 Button',
+    image: '/images/tailor/garment_m_pentcoat.png',
+  },
+  {
+    name: 'Double-Breasted 6 Button',
+    image: '/images/tailor/garment_m_pentcoat.png',
+  },
+];
+
+export const PANT_COAT_LAPELS: DesignOption[] = [
+  { name: 'Notch Lapel', image: '/images/tailor/m_collar_spread.png' },
+  { name: 'Peak Lapel', image: '/images/tailor/m_collar_classic.png' },
+  { name: 'Shawl Lapel', image: '/images/tailor/w_collar_shawl.png' },
+  { name: 'Band Collar', image: '/images/tailor/m_collar_band.png' },
+];
+
+export const PANT_COAT_POCKETS: DesignOption[] = [
+  { name: 'Straight Flap Pocket', image: '/images/tailor/frock_opt_belt.png' },
+  { name: 'Slanted Flap Pocket', image: '/images/tailor/frock_opt_belt.png' },
+  { name: 'Jetted Pocket', image: '/images/tailor/frock_opt_belt.png' },
+  { name: 'Patch Pocket', image: '/images/tailor/frock_opt_belt.png' },
+];
+
+export const PANT_COAT_CUFFS: DesignOption[] = [
+  { name: 'Plain Sleeve', image: '/images/tailor/m_cuff_regular.png' },
+  { name: 'Button Cuff', image: '/images/tailor/m_cuff_button.png' },
+  { name: 'Functional Button Cuff', image: '/images/tailor/m_cuff_french.png' },
+  { name: "Surgeon's Cuff", image: '/images/tailor/m_cuff_folded.png' },
+];
+
+export const PANT_COAT_VENTS: DesignOption[] = [
+  { name: 'Single Vent', image: '/images/tailor/m_trouser_straight.png' },
+  { name: 'Double Vent', image: '/images/tailor/m_trouser_straight.png' },
+  { name: 'No Vent', image: '/images/tailor/m_trouser_straight.png' },
+];
+
+export const PANT_COAT_TROUSER_DESIGNS: DesignOption[] = [
+  { name: 'Straight Fit', image: '/images/tailor/m_trouser_straight.png' },
+  { name: 'Slim Fit', image: '/images/tailor/m_trouser_slim.png' },
+  { name: 'Tapered Fit', image: '/images/tailor/m_trouser_chinos.png' },
+  { name: 'Pleated Trouser', image: '/images/tailor/m_trouser_formal.png' },
+];
+
+export const PANT_COAT_TROUSER_WAISTS: DesignOption[] = [
+  { name: 'Belt Loops', image: '/images/tailor/m_trouser_straight.png' },
+  { name: 'Side Adjusters', image: '/images/tailor/m_trouser_slim.png' },
+  { name: 'Button Waist', image: '/images/tailor/m_trouser_chinos.png' },
+  { name: 'Extended Waistband', image: '/images/tailor/m_trouser_formal.png' },
+];
+
+export const PANT_COAT_TROUSER_POCKETS: DesignOption[] = [
+  {
+    name: 'Side Slant Pockets',
+    image: '/images/tailor/m_trouser_straight.png',
+  },
+  { name: 'Straight Side Pockets', image: '/images/tailor/m_trouser_slim.png' },
+  { name: 'Jetted Back Pockets', image: '/images/tailor/m_trouser_chinos.png' },
+  { name: 'Button Back Pockets', image: '/images/tailor/m_trouser_formal.png' },
+];
+
+export const PANT_COAT_TROUSER_BOTTOMS: DesignOption[] = [
+  { name: 'Plain Hem', image: '/images/tailor/m_trouser_straight.png' },
+  { name: 'Cuffed / Turn-Up', image: '/images/tailor/m_trouser_formal.png' },
+  { name: 'No Break', image: '/images/tailor/m_trouser_slim.png' },
+  { name: 'Half Break', image: '/images/tailor/m_trouser_chinos.png' },
 ];
