@@ -120,7 +120,7 @@ export default function ReferralPage() {
   };
 
   const whatsappShareText = encodeURIComponent(
-    `Assalam-o-Alaikum! ✨ Get PKR 500 OFF your first custom unstitched suit tailoring at TailorLink.pk with free doorstep pickup & delivery! Use my invite link:\n${shareUrl}`
+    `Assalam-o-Alaikum! ✨ Get PKR 500 OFF your first custom unstitched suit tailoring at TailorLink.pk with fast nationwide delivery! Use my invite link:\n${shareUrl}`
   );
 
   return (

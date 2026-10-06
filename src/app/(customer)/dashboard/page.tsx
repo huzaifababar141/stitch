@@ -486,7 +486,7 @@ export default function DashboardPage() {
                 <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto mb-5 leading-relaxed">
                   You don&apos;t have any orders in progress right now. Link
                   your favourite unstitched suit and get it custom stitched with
-                  doorstep pickup & delivery.
+                  doorstep delivery.
                 </p>
                 <Link href="/new-order">
                   <button className="inline-flex items-center gap-2 bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-[#7E153A]/20 active:scale-95 cursor-pointer">

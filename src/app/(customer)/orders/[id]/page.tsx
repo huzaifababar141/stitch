@@ -759,7 +759,7 @@ export default function OrderTrackingPage() {
               </div>
             ) : (
               <p className="text-xs text-gray-500">
-                Sample suit pickup or standard profile applied.
+                Standard tailoring profile applied.
               </p>
             )}
           </div>

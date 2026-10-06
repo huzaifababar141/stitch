@@ -262,7 +262,7 @@ export default function Home() {
                 Integrated TCS Delivery
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed">
-                Track your order seamlessly from fabric pickup to doorstep
+                Track your order seamlessly from tailoring workshop to doorstep
                 courier delivery with real-time milestone updates.
               </p>
             </div>

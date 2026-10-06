@@ -24,16 +24,16 @@ export default function HelpSupportPage() {
 
   const faqs = [
     {
-      q: 'How does doorstep fabric pickup & TCS delivery work?',
-      a: 'Once you paste your suit link and submit measurements, our courier partner TCS picks up the unstitched fabric from your home (or we purchase it directly for you), delivers it to our centralized stitching workshop, and returns the finished tailored suit to your doorstep within 5-7 working days across Pakistan.',
+      q: 'How does custom tailoring & TCS delivery work?',
+      a: 'Once you select your design options and submit measurements (or paste an unstitched brand suit link for us to source), our centralized stitching workshop crafts your suit to perfection and returns the finished tailored suit to your doorstep within 5-7 working days across Pakistan.',
     },
     {
       q: 'What if the garment does not fit me perfectly?',
-      a: 'We offer a 100% Perfect Fit Guarantee. If any measurement deviates from your submitted profile, we provide free doorstep pickup and alteration within 7 days of delivery. You can request this with 1 click directly from your order tracking screen.',
+      a: 'We offer a 100% Perfect Fit Guarantee. If any measurement deviates from your submitted profile, we provide free alteration within 7 days of delivery. You can request this with 1 click directly from your order tracking screen.',
     },
     {
-      q: 'Can I send my physical sample suit for measurements?',
-      a: 'Yes! Select "Sample Suit Pickup" during checkout (Step 3), and TCS will collect your best-fitting sample suit along with your unstitched fabric. Our master tailors will replicate its exact collar, chest, waist, and paicha dimensions, returning both suits safely.',
+      q: 'How do I submit my measurements?',
+      a: 'You can easily enter your dimensions in our interactive Measurement Studio (in cm or inches), select a pre-saved profile from your account, or choose standard size presets from our built-in size chart.',
     },
     {
       q: 'Which payment methods are accepted?',
@@ -137,7 +137,7 @@ export default function HelpSupportPage() {
                 Free 7-Day Alteration
               </h3>
               <p className="text-xs text-gray-500 mt-0.5">
-                Free rider doorstep pickup & re-stitch
+                Free alteration & re-stitch guarantee
               </p>
             </div>
           </div>

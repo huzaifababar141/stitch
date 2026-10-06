@@ -94,7 +94,9 @@ export default function ArticleDetailPage() {
     return (
       <div className="bg-white rounded-3xl border border-gray-100 p-20 text-center space-y-4">
         <Loader2 className="w-10 h-10 animate-spin mx-auto text-[#7E153A]" />
-        <p className="text-sm font-bold text-gray-700">Loading Article Details...</p>
+        <p className="text-sm font-bold text-gray-700">
+          Loading Article Details...
+        </p>
       </div>
     );
   }
@@ -103,12 +105,17 @@ export default function ArticleDetailPage() {
     return (
       <div className="bg-white rounded-3xl border border-dashed border-gray-200 p-16 text-center space-y-4">
         <Package className="w-12 h-12 mx-auto text-gray-400" />
-        <h2 className="text-lg font-extrabold text-gray-900">Article Not Found</h2>
+        <h2 className="text-lg font-extrabold text-gray-900">
+          Article Not Found
+        </h2>
         <p className="text-xs text-gray-500">
           This article may have been unlisted or removed from in-house stock.
         </p>
         <Link href="/stock">
-          <Button variant="outline" className="rounded-xl border-gray-200 text-xs font-bold">
+          <Button
+            variant="outline"
+            className="rounded-xl border-gray-200 text-xs font-bold"
+          >
             <ArrowLeft size={14} className="mr-1.5" /> Back to Stock Catalog
           </Button>
         </Link>
@@ -116,13 +123,16 @@ export default function ArticleDetailPage() {
     );
   }
 
-  const images = Array.isArray(product.images) ? (product.images as string[]) : [];
-  const activeImage = images[selectedImageIndex] || images[0] || '/placeholder.jpg';
+  const images = Array.isArray(product.images)
+    ? (product.images as string[])
+    : [];
+  const activeImage =
+    images[selectedImageIndex] || images[0] || '/placeholder.jpg';
   const price = Number(product.priceOriginal || 0);
   const meta = product.parseMetadata || {};
   const isFemale = meta.gender !== 'male';
   const qty = meta.stockQuantity ?? 0;
-  const isAvailable = product.isActive && (meta.inStock !== false) && qty > 0;
+  const isAvailable = product.isActive && meta.inStock !== false && qty > 0;
 
   return (
     <div className="space-y-8 pb-16">
@@ -142,7 +152,10 @@ export default function ArticleDetailPage() {
             onClick={() => {
               if (navigator.clipboard) {
                 navigator.clipboard.writeText(window.location.href);
-                toast({ title: 'Link Copied', description: 'Article link copied to clipboard.' });
+                toast({
+                  title: 'Link Copied',
+                  description: 'Article link copied to clipboard.',
+                });
               }
             }}
             className="rounded-xl border-gray-200 text-xs font-bold gap-1.5 h-8"
@@ -223,7 +236,8 @@ export default function ArticleDetailPage() {
                   {product.brand}
                 </span>
                 <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                  <CheckCircle2 size={12} /> {isAvailable ? `${qty} in stock` : 'Out of Stock'}
+                  <CheckCircle2 size={12} />{' '}
+                  {isAvailable ? `${qty} in stock` : 'Out of Stock'}
                 </span>
               </div>
 
@@ -233,7 +247,8 @@ export default function ArticleDetailPage() {
 
               {meta.sku && (
                 <p className="text-[11px] font-mono text-gray-400">
-                  Article Code: <span className="font-bold text-gray-700">{meta.sku}</span>
+                  Article Code:{' '}
+                  <span className="font-bold text-gray-700">{meta.sku}</span>
                 </p>
               )}
             </div>
@@ -254,16 +269,19 @@ export default function ArticleDetailPage() {
                 </span>
               </div>
               <p className="text-[11px] text-gray-500 leading-relaxed">
-                Stitching service can be seamlessly added in the next step. Our master craftsmen will stitch this fabric according to your exact measurements.
+                Stitching service can be seamlessly added in the next step. Our
+                master craftsmen will stitch this fabric according to your exact
+                measurements.
               </p>
             </div>
 
             {/* Primary Order Action Button */}
             <div className="space-y-3 pt-2">
-              <Link href={`/new-order?productId=${product.id}`} className="w-full block">
-                <Button
-                  className="w-full h-12 rounded-2xl bg-[#7E153A] hover:bg-[#630f2d] text-white font-extrabold text-sm shadow-lg shadow-[#7E153A]/25 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01]"
-                >
+              <Link
+                href={`/new-order?productId=${product.id}`}
+                className="w-full block"
+              >
+                <Button className="w-full h-12 rounded-2xl bg-[#7E153A] hover:bg-[#630f2d] text-white font-extrabold text-sm shadow-lg shadow-[#7E153A]/25 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01]">
                   <Scissors size={18} />
                   Tailor This Suit Now
                 </Button>
@@ -271,10 +289,12 @@ export default function ArticleDetailPage() {
 
               <div className="flex items-center justify-center gap-6 text-[11px] text-gray-500 font-medium">
                 <span className="flex items-center gap-1">
-                  <ShieldCheck size={14} className="text-[#7E153A]" /> 100% Fit Guarantee
+                  <ShieldCheck size={14} className="text-[#7E153A]" /> 100% Fit
+                  Guarantee
                 </span>
                 <span className="flex items-center gap-1">
-                  <Truck size={14} className="text-[#7E153A]" /> TCS Express Pickup & Delivery
+                  <Truck size={14} className="text-[#7E153A]" /> TCS Express
+                  Delivery
                 </span>
               </div>
             </div>
@@ -289,28 +309,38 @@ export default function ArticleDetailPage() {
                 {meta.specifications?.shirtFabric && (
                   <div className="flex items-center justify-between py-1.5">
                     <span className="text-gray-500">Shirt / Kameez Cut</span>
-                    <span className="font-bold">{meta.specifications.shirtFabric}</span>
+                    <span className="font-bold">
+                      {meta.specifications.shirtFabric}
+                    </span>
                   </div>
                 )}
                 {meta.specifications?.dupattaFabric && (
                   <div className="flex items-center justify-between py-1.5">
                     <span className="text-gray-500">Dupatta / Sadri Cut</span>
-                    <span className="font-bold">{meta.specifications.dupattaFabric}</span>
+                    <span className="font-bold">
+                      {meta.specifications.dupattaFabric}
+                    </span>
                   </div>
                 )}
                 {meta.specifications?.trouserFabric && (
                   <div className="flex items-center justify-between py-1.5">
                     <span className="text-gray-500">Trouser / Bottom Cut</span>
-                    <span className="font-bold">{meta.specifications.trouserFabric}</span>
+                    <span className="font-bold">
+                      {meta.specifications.trouserFabric}
+                    </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between py-1.5">
                   <span className="text-gray-500">Weave Type</span>
-                  <span className="font-bold capitalize">{product.fabricType}</span>
+                  <span className="font-bold capitalize">
+                    {product.fabricType}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between py-1.5">
                   <span className="text-gray-500">Target Category</span>
-                  <span className="font-bold">{isFemale ? "Women's Wear" : "Men's Wear"}</span>
+                  <span className="font-bold">
+                    {isFemale ? "Women's Wear" : "Men's Wear"}
+                  </span>
                 </div>
               </div>
 

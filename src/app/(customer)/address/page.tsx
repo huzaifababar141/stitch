@@ -336,8 +336,8 @@ export default function AddressBookPage() {
             </div>
           </div>
           <p className="text-xs text-gray-500 max-w-xl leading-relaxed">
-            Manage your delivery and doorstep fabric pickup locations across
-            Pakistan for seamless order fulfillment.
+            Manage your delivery locations across Pakistan for seamless order
+            fulfillment.
           </p>
         </div>
 
@@ -371,10 +371,10 @@ export default function AddressBookPage() {
           </div>
           <div className="min-w-0">
             <h4 className="text-xs font-extrabold text-gray-900 truncate">
-              Doorstep Fabric Pickup
+              Express Delivery
             </h4>
             <p className="text-[11px] text-gray-500 truncate">
-              Free rider pickup from saved address
+              Tracked courier delivery to saved address
             </p>
           </div>
         </div>
@@ -412,9 +412,8 @@ export default function AddressBookPage() {
               No Saved Addresses Yet
             </h3>
             <p className="text-xs text-gray-500 leading-relaxed">
-              Add your home, office, or boutique address to enable instant
-              doorstep fabric pickup and TCS tracked delivery on every bespoke
-              tailoring order.
+              Add your home, office, or boutique address to enable instant TCS
+              tracked delivery on every bespoke tailoring order.
             </p>
           </div>
           <Button
@@ -675,7 +674,7 @@ export default function AddressBookPage() {
                     required
                   />
                   <p className="text-[10px] text-gray-400">
-                    Rider will contact before delivery / pickup
+                    Rider will contact before delivery
                   </p>
                 </div>
               </div>
@@ -790,7 +789,7 @@ export default function AddressBookPage() {
                   htmlFor="defaultAddressCheckbox"
                   className="text-xs font-semibold text-gray-700 cursor-pointer leading-tight"
                 >
-                  Set this as my primary shipping and fabric pickup address
+                  Set this as my primary shipping delivery address
                 </label>
               </div>
             </form>
