@@ -17,11 +17,9 @@ import {
   X,
   Loader2,
   Truck,
-  Navigation,
   CheckCircle2,
   Compass,
   AlertCircle,
-  ShieldCheck,
   Copy,
   ExternalLink,
   Info,
@@ -314,6 +312,25 @@ export default function AddressBookPage() {
     });
   };
 
+  // Close drawer on Escape & lock body scroll
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isModalOpen) {
+        setIsModalOpen(false);
+      }
+    };
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isModalOpen]);
+
   return (
     <div className="w-full min-w-0 max-w-7xl mx-auto space-y-5 sm:space-y-8 font-sans">
       {/* ── Top Header Banner ── */}
@@ -347,51 +364,6 @@ export default function AddressBookPage() {
         >
           <Plus size={16} className="mr-1.5 shrink-0" /> Add New Address
         </Button>
-      </div>
-
-      {/* ── Nationwide Delivery Logistics Strip ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 flex items-center gap-3 shadow-xs">
-          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <Truck size={18} />
-          </div>
-          <div className="min-w-0">
-            <h4 className="text-xs font-extrabold text-gray-900 truncate">
-              TCS & Leopards Courier
-            </h4>
-            <p className="text-[11px] text-gray-500 truncate">
-              Nationwide door-to-door transit
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 flex items-center gap-3 shadow-xs">
-          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <Navigation size={18} />
-          </div>
-          <div className="min-w-0">
-            <h4 className="text-xs font-extrabold text-gray-900 truncate">
-              Express Delivery
-            </h4>
-            <p className="text-[11px] text-gray-500 truncate">
-              Tracked courier delivery to saved address
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-4 flex items-center gap-3 shadow-xs sm:col-span-1 col-span-1">
-          <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <ShieldCheck size={18} />
-          </div>
-          <div className="min-w-0">
-            <h4 className="text-xs font-extrabold text-gray-900 truncate">
-              100% Insured Delivery
-            </h4>
-            <p className="text-[11px] text-gray-500 truncate">
-              Safe garment handling guarantee
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* ── Saved Addresses Grid ── */}
@@ -579,16 +551,33 @@ export default function AddressBookPage() {
         </div>
       )}
 
-      {/* ── Address Modal (Create / Edit) ── */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-6 md:p-8 shadow-2xl space-y-4 sm:space-y-6 max-h-[92vh] flex flex-col justify-between overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
-            {/* Mobile Grab Bar */}
-            <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto sm:hidden shrink-0" />
+      {/* ── Address Drawer (Slide-Over from Right with Incoming & Outgoing Animations) ── */}
+      <div
+        className={`fixed inset-0 z-50 transition-opacity duration-300 ease-in-out ${
+          isModalOpen
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
+        }`}
+        aria-hidden={!isModalOpen}
+      >
+        {/* Backdrop overlay */}
+        <div
+          className={`fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity duration-300 ease-in-out ${
+            isModalOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={() => setIsModalOpen(false)}
+        />
 
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3 sm:pb-4 shrink-0">
-              <div className="space-y-0.5 min-w-0 pr-2">
+        {/* Sliding Panel from Right */}
+        <div className="fixed inset-y-0 right-0 flex max-w-full pl-6 sm:pl-10 pointer-events-none">
+          <div
+            className={`w-screen max-w-lg md:max-w-xl bg-white shadow-2xl flex flex-col justify-between overflow-hidden border-l border-gray-100 pointer-events-auto transform transition-transform duration-300 ease-in-out ${
+              isModalOpen ? 'translate-x-0' : 'translate-x-full'
+            }`}
+          >
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between border-b border-gray-100 p-5 sm:p-6 shrink-0 bg-white">
+              <div className="space-y-0.5 min-w-0 pr-3">
                 <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 truncate">
                   {editingAddress
                     ? 'Edit Delivery Address'
@@ -601,18 +590,19 @@ export default function AddressBookPage() {
               </div>
 
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors cursor-pointer shrink-0"
+                className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors cursor-pointer shrink-0"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
 
-            {/* Modal Form Scrollable Body */}
+            {/* Drawer Form Scrollable Body */}
             <form
               id="addressForm"
               onSubmit={handleSaveAddress}
-              className="flex-1 overflow-y-auto px-1 py-1 pr-2 space-y-4 sm:space-y-5"
+              className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 sm:space-y-5"
             >
               {/* Address Label Pills */}
               <div className="space-y-2">
@@ -794,13 +784,13 @@ export default function AddressBookPage() {
               </div>
             </form>
 
-            {/* Modal Footer Controls */}
-            <div className="border-t border-gray-100 pt-3 sm:pt-4 flex flex-col-reverse sm:flex-row items-center justify-between gap-2.5 sm:gap-3 shrink-0">
+            {/* Drawer Footer Controls */}
+            <div className="border-t border-gray-100 p-4 sm:p-6 bg-gray-50/80 flex items-center justify-end gap-3 shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsModalOpen(false)}
-                className="w-full sm:w-auto h-11 px-6 rounded-xl text-xs font-semibold cursor-pointer border-gray-200 text-gray-700 hover:bg-gray-50"
+                className="h-11 px-5 rounded-xl text-xs font-semibold cursor-pointer border-gray-200 text-gray-700 hover:bg-gray-100"
               >
                 Cancel
               </Button>
@@ -809,7 +799,7 @@ export default function AddressBookPage() {
                 type="submit"
                 form="addressForm"
                 disabled={saving}
-                className="w-full sm:w-auto h-11 px-8 rounded-xl text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white shadow-md shadow-[#7E153A]/20 cursor-pointer"
+                className="h-11 px-7 rounded-xl text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white shadow-md shadow-[#7E153A]/20 cursor-pointer"
               >
                 {saving ? (
                   <>
@@ -823,7 +813,7 @@ export default function AddressBookPage() {
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
