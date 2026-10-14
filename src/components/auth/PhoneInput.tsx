@@ -44,7 +44,7 @@ export function PhoneInput({
             onChange={(e) => setCountryCode(e.target.value)}
             disabled={disabled}
             aria-label="Select Country Code"
-            className="appearance-none h-12 pl-3 pr-8 bg-gray-50 hover:bg-gray-100/80 text-gray-800 text-sm font-semibold border border-r-0 border-gray-300 rounded-l-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#7E153A]/20 focus:border-[#7E153A] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="appearance-none h-11 sm:h-12 pl-3 pr-8 bg-gray-50/70 hover:bg-gray-100/80 text-gray-800 text-sm font-semibold border border-r-0 border-gray-200 rounded-l-xl cursor-pointer focus:outline-none focus:ring-4 focus:ring-[#7E153A]/10 focus:border-[#7E153A] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {COUNTRY_CODES.map((c) => (
               <option key={c.code} value={c.code}>
@@ -56,16 +56,16 @@ export function PhoneInput({
         </div>
 
         {/* Input Field */}
-        <Input
+        <input
           type="tel"
           placeholder="300 1234567"
           value={value}
           onChange={handleChange}
           disabled={disabled}
-          className={`h-12 rounded-l-none rounded-r-lg border-gray-300 text-gray-900 placeholder:text-gray-400 text-base tracking-wider transition-all duration-150 ${
+          className={`h-11 sm:h-12 w-full rounded-l-none rounded-r-xl border border-gray-200 bg-white px-4 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 tracking-wider transition-all duration-150 focus:outline-none ${
             error
-              ? 'border-red-500 focus-visible:ring-red-200 focus-visible:border-red-500'
-              : 'focus-visible:border-[#7E153A] focus-visible:ring-2 focus-visible:ring-[#7E153A]/20'
+              ? 'border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+              : 'focus:border-[#7E153A] focus:ring-4 focus:ring-[#7E153A]/10'
           }`}
           required
         />
