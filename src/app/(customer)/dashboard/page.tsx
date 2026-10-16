@@ -286,6 +286,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchDashboardData() {
+      if (authLoading) return;
       try {
         setLoadingData(true);
         const [profileRes, ordersRes, measurementsRes] = await Promise.all([
@@ -319,7 +320,7 @@ export default function DashboardPage() {
     }
 
     fetchDashboardData();
-  }, [user]);
+  }, [user, authLoading]);
 
   // Derived user details
   const displayName = profile?.firstName
@@ -341,9 +342,50 @@ export default function DashboardPage() {
 
   if (authLoading || loadingData) {
     return (
-      <div className="max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[400px] text-gray-500">
-        <Loader2 size={36} className="animate-spin text-[#7E153A] mb-3" />
-        <p className="text-sm font-medium">Loading your dashboard...</p>
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 font-sans min-w-0 w-full animate-in fade-in duration-300">
+        {/* Hero banner skeleton */}
+        <div className="bg-gradient-to-r from-[#F8E9E0] via-[#F7ECE4] to-[#F5DDD8] rounded-2xl p-6 sm:p-8 min-h-[130px] flex items-center justify-between shadow-xs animate-pulse">
+          <div className="space-y-2">
+            <div className="h-4 w-28 bg-[#7A1038]/15 rounded" />
+            <div className="h-7 w-48 bg-[#7A1038]/25 rounded-md" />
+            <div className="h-3 w-64 bg-[#7A1038]/15 rounded" />
+          </div>
+          <div className="hidden sm:flex items-center gap-2 bg-white/70 rounded-xl px-4 py-2 border border-[#7A1038]/10 text-xs font-semibold text-[#7A1038]">
+            <Loader2 size={16} className="animate-spin text-[#7A1038]" />
+            <span>Loading dashboard...</span>
+          </div>
+        </div>
+
+        {/* Metric cards skeletons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl border border-gray-100 p-4.5 flex items-center justify-between shadow-xs h-[100px] animate-pulse"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-full bg-gray-100" />
+                <div className="space-y-2">
+                  <div className="h-6 w-12 bg-gray-200 rounded" />
+                  <div className="h-3 w-20 bg-gray-100 rounded" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Content area skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 space-y-4 shadow-xs animate-pulse">
+            <div className="h-5 w-40 bg-gray-200 rounded" />
+            <div className="h-28 bg-gray-50 rounded-xl" />
+            <div className="h-28 bg-gray-50 rounded-xl" />
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 shadow-xs animate-pulse">
+            <div className="h-5 w-32 bg-gray-200 rounded" />
+            <div className="h-36 bg-gray-50 rounded-xl" />
+          </div>
+        </div>
       </div>
     );
   }

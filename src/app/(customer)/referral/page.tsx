@@ -27,7 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function ReferralPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
@@ -48,6 +48,7 @@ export default function ReferralPage() {
   });
 
   const loadReferralData = useCallback(async () => {
+    if (authLoading) return;
     if (!user) {
       setLoading(false);
       return;
@@ -67,7 +68,7 @@ export default function ReferralPage() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     loadReferralData();
@@ -290,8 +291,8 @@ export default function ReferralPage() {
             <Users size={20} />
           </div>
           <span className="text-2xl sm:text-3xl font-black text-gray-900 block">
-            {loading ? (
-              <Loader2 size={24} className="animate-spin text-gray-400" />
+            {loading || authLoading ? (
+              <span className="inline-block h-8 w-16 bg-gray-200 rounded animate-pulse" />
             ) : (
               data.friendsInvited
             )}
@@ -304,8 +305,8 @@ export default function ReferralPage() {
             <Award size={20} />
           </div>
           <span className="text-2xl sm:text-3xl font-black text-gray-900 block">
-            {loading ? (
-              <Loader2 size={24} className="animate-spin text-gray-400" />
+            {loading || authLoading ? (
+              <span className="inline-block h-8 w-16 bg-gray-200 rounded animate-pulse" />
             ) : (
               data.successfulOrders
             )}
@@ -318,8 +319,8 @@ export default function ReferralPage() {
             <Coins size={20} />
           </div>
           <span className="text-2xl sm:text-3xl font-black text-gray-900 block">
-            {loading ? (
-              <Loader2 size={24} className="animate-spin text-gray-400" />
+            {loading || authLoading ? (
+              <span className="inline-block h-8 w-24 bg-gray-200 rounded animate-pulse" />
             ) : (
               `PKR ${data.totalCreditsEarned.toLocaleString()}`
             )}
@@ -345,13 +346,20 @@ export default function ReferralPage() {
           )}
         </div>
 
-        {loading ? (
-          <div className="py-12 text-center">
-            <Loader2
-              size={28}
-              className="animate-spin text-[#7E153A] mx-auto mb-2"
-            />
-            <p className="text-xs text-gray-500">Loading referral history...</p>
+        {loading || authLoading ? (
+          <div className="space-y-3 min-w-0 w-full animate-in fade-in duration-200">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="py-3.5 px-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-pulse rounded-xl border border-gray-100"
+              >
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <div className="h-4 w-32 bg-gray-200 rounded" />
+                  <div className="h-3 w-44 bg-gray-100 rounded" />
+                </div>
+                <div className="h-6 w-28 bg-emerald-50 rounded-full" />
+              </div>
+            ))}
           </div>
         ) : data.referrals.length === 0 ? (
           <div className="py-12 text-center space-y-2.5">

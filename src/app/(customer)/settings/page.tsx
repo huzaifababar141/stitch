@@ -42,6 +42,7 @@ export default function SettingsPage() {
   const [marketingNotifications, setMarketingNotifications] = useState(true);
 
   const loadProfile = useCallback(async () => {
+    if (authLoading) return;
     if (!user) {
       setLoadingProfile(false);
       return;
@@ -80,7 +81,7 @@ export default function SettingsPage() {
     } finally {
       setLoadingProfile(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     loadProfile();
@@ -199,255 +200,303 @@ export default function SettingsPage() {
       </div>
 
       {/* ── Customer Identity Preview Card ── */}
-      <div className="bg-gradient-to-r from-red-50/70 via-white to-red-50/40 rounded-2xl sm:rounded-3xl border border-red-100/80 p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5 min-w-0">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7E153A] to-[#9e1b4a] text-white font-black text-xl flex items-center justify-center shadow-md shadow-[#7E153A]/20 shrink-0">
-            {getInitials()}
-          </div>
-          <div className="min-w-0">
-            <h3 className="font-extrabold text-base text-gray-900 truncate">
-              {firstName || 'Valued'} {lastName || 'Customer'}
-            </h3>
-            <p className="text-xs text-gray-500 font-mono mt-0.5 truncate">
-              {phone || user?.phone || 'Phone verified'}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap sm:justify-end">
-          <span className="text-[11px] font-bold text-gray-600 bg-white border border-gray-200 px-3 py-1.5 rounded-xl shadow-2xs">
-            Pakistan (PKT)
-          </span>
-          <span className="text-[11px] font-bold text-[#7E153A] bg-red-50 border border-red-100 px-3 py-1.5 rounded-xl">
-            Direct TailorLink VIP
-          </span>
-        </div>
-      </div>
-
-      {/* ── Settings Form ── */}
-      <form onSubmit={handleSave} className="space-y-5 sm:space-y-6">
-        {/* Personal Details */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 md:p-8 shadow-xs space-y-5">
-          <h2 className="text-base font-extrabold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
-            <User size={18} className="text-[#7E153A]" /> Personal Information
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700 block">
-                First Name <span className="text-[#7E153A]">*</span>
-              </label>
-              <Input
-                required
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="h-11 sm:h-10 bg-gray-50/80 border-gray-200 text-xs rounded-xl"
-                placeholder="e.g. Fatima"
-              />
+      {loadingProfile || authLoading ? (
+        <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs animate-pulse">
+            <div className="flex items-center gap-3.5">
+              <div className="w-14 h-14 rounded-2xl bg-gray-200 shrink-0" />
+              <div className="space-y-2">
+                <div className="h-5 w-40 bg-gray-200 rounded" />
+                <div className="h-3 w-28 bg-gray-100 rounded" />
+              </div>
             </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700 block">
-                Last Name
-              </label>
-              <Input
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="h-11 sm:h-10 bg-gray-50/80 border-gray-200 text-xs rounded-xl"
-                placeholder="e.g. Ali"
-              />
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-24 bg-gray-100 rounded-xl" />
+              <div className="h-7 w-28 bg-gray-100 rounded-xl" />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 md:p-8 space-y-6 shadow-xs animate-pulse">
+            <div className="h-5 w-44 bg-gray-200 rounded border-b border-gray-100 pb-3" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="h-3 w-20 bg-gray-200 rounded" />
+                <div className="h-10 bg-gray-100 rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-3 w-20 bg-gray-200 rounded" />
+                <div className="h-10 bg-gray-100 rounded-xl" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="h-3 w-24 bg-gray-200 rounded" />
+                <div className="h-10 bg-gray-100 rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-3 w-24 bg-gray-200 rounded" />
+                <div className="h-10 bg-gray-100 rounded-xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="bg-gradient-to-r from-red-50/70 via-white to-red-50/40 rounded-2xl sm:rounded-3xl border border-red-100/80 p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7E153A] to-[#9e1b4a] text-white font-black text-xl flex items-center justify-center shadow-md shadow-[#7E153A]/20 shrink-0">
+                {getInitials()}
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-extrabold text-base text-gray-900 truncate">
+                  {firstName || 'Valued'} {lastName || 'Customer'}
+                </h3>
+                <p className="text-xs text-gray-500 font-mono mt-0.5 truncate">
+                  {phone || user?.phone || 'Phone verified'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap sm:justify-end">
+              <span className="text-[11px] font-bold text-gray-600 bg-white border border-gray-200 px-3 py-1.5 rounded-xl shadow-2xs">
+                Pakistan (PKT)
+              </span>
+              <span className="text-[11px] font-bold text-[#7E153A] bg-red-50 border border-red-100 px-3 py-1.5 rounded-xl">
+                Direct TailorLink VIP
+              </span>
+            </div>
+          </div>
+
+          {/* ── Settings Form ── */}
+          <form onSubmit={handleSave} className="space-y-5 sm:space-y-6">
+            {/* Personal Details */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 md:p-8 shadow-xs space-y-5">
+              <h2 className="text-base font-extrabold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
+                <User size={18} className="text-[#7E153A]" /> Personal
+                Information
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-700 block">
+                    First Name <span className="text-[#7E153A]">*</span>
+                  </label>
+                  <Input
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="h-11 sm:h-10 bg-gray-50/80 border-gray-200 text-xs rounded-xl"
+                    placeholder="e.g. Fatima"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-700 block">
+                    Last Name
+                  </label>
+                  <Input
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="h-11 sm:h-10 bg-gray-50/80 border-gray-200 text-xs rounded-xl"
+                    placeholder="e.g. Ali"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-gray-700 block">
+                      Primary Mobile Number
+                    </label>
+                    <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-0.5">
+                      <Check size={11} /> OTP Verified
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      value={phone}
+                      readOnly
+                      className="h-11 sm:h-10 bg-gray-100/90 border-gray-200 text-xs rounded-xl text-gray-600 font-mono pr-8"
+                    />
+                    <Lock
+                      size={14}
+                      className="text-gray-400 absolute right-3 top-3"
+                    />
+                  </div>
+                  <p className="text-[10px] text-gray-400">
+                    Contact support to update your registered Pakistani mobile
+                    number.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-700 block">
+                    Email Address (Optional)
+                  </label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-11 sm:h-10 bg-gray-50/80 border-gray-200 text-xs rounded-xl"
+                    placeholder="e.g. fatima@example.com"
+                  />
+                  <p className="text-[10px] text-gray-400">
+                    Used for PDF invoice receipts and order backup
+                    confirmations.
+                  </p>
+                </div>
+              </div>
+
+              {/* Gender Preference Chips */}
+              <div className="space-y-1.5 pt-1">
                 <label className="text-xs font-bold text-gray-700 block">
-                  Primary Mobile Number
+                  Garment Sizing Category
                 </label>
-                <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-0.5">
-                  <Check size={11} /> OTP Verified
-                </span>
-              </div>
-              <div className="relative">
-                <Input
-                  value={phone}
-                  readOnly
-                  className="h-11 sm:h-10 bg-gray-100/90 border-gray-200 text-xs rounded-xl text-gray-600 font-mono pr-8"
-                />
-                <Lock
-                  size={14}
-                  className="text-gray-400 absolute right-3 top-3"
-                />
-              </div>
-              <p className="text-[10px] text-gray-400">
-                Contact support to update your registered Pakistani mobile
-                number.
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700 block">
-                Email Address (Optional)
-              </label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-11 sm:h-10 bg-gray-50/80 border-gray-200 text-xs rounded-xl"
-                placeholder="e.g. fatima@example.com"
-              />
-              <p className="text-[10px] text-gray-400">
-                Used for PDF invoice receipts and order backup confirmations.
-              </p>
-            </div>
-          </div>
-
-          {/* Gender Preference Chips */}
-          <div className="space-y-1.5 pt-1">
-            <label className="text-xs font-bold text-gray-700 block">
-              Garment Sizing Category
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { key: 'female', label: "Women's Wear" },
-                { key: 'male', label: "Men's Wear" },
-                { key: 'other', label: 'Bespoke Unisex' },
-              ].map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setGender(item.key)}
-                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
-                    gender === item.key
-                      ? 'bg-red-50 border-[#7E153A] text-[#7E153A] ring-1 ring-[#7E153A]'
-                      : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Live Notification Preferences */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 md:p-8 shadow-xs space-y-4">
-          <h2 className="text-base font-extrabold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
-            <Bell size={18} className="text-[#7E153A]" /> Live Tailoring
-            Notification Preferences
-          </h2>
-
-          <div className="space-y-3">
-            {/* WhatsApp Alerts */}
-            <div className="flex items-start sm:items-center justify-between p-3.5 sm:p-4 bg-gray-50/80 rounded-2xl border border-gray-100 gap-3">
-              <div className="space-y-0.5 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                    <MessageSquare size={13} />
-                  </span>
-                  <h4 className="text-xs font-bold text-gray-900 truncate">
-                    WhatsApp Order Milestone Alerts
-                  </h4>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { key: 'female', label: "Women's Wear" },
+                    { key: 'male', label: "Men's Wear" },
+                    { key: 'other', label: 'Bespoke Unisex' },
+                  ].map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setGender(item.key)}
+                      className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                        gender === item.key
+                          ? 'bg-red-50 border-[#7E153A] text-[#7E153A] ring-1 ring-[#7E153A]'
+                          : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
                 </div>
-                <p className="text-[11px] text-gray-500 pl-8 leading-relaxed">
-                  Instant WhatsApp updates when master tailor starts cutting,
-                  stitching finishes, QC inspection passes, and rider is
-                  dispatched.
+              </div>
+            </div>
+
+            {/* Live Notification Preferences */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 md:p-8 shadow-xs space-y-4">
+              <h2 className="text-base font-extrabold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
+                <Bell size={18} className="text-[#7E153A]" /> Live Tailoring
+                Notification Preferences
+              </h2>
+
+              <div className="space-y-3">
+                {/* WhatsApp Alerts */}
+                <div className="flex items-start sm:items-center justify-between p-3.5 sm:p-4 bg-gray-50/80 rounded-2xl border border-gray-100 gap-3">
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <MessageSquare size={13} />
+                      </span>
+                      <h4 className="text-xs font-bold text-gray-900 truncate">
+                        WhatsApp Order Milestone Alerts
+                      </h4>
+                    </div>
+                    <p className="text-[11px] text-gray-500 pl-8 leading-relaxed">
+                      Instant WhatsApp updates when master tailor starts
+                      cutting, stitching finishes, QC inspection passes, and
+                      rider is dispatched.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={whatsappNotifications}
+                    onChange={(e) => setWhatsappNotifications(e.target.checked)}
+                    className="w-5 h-5 accent-[#7E153A] cursor-pointer shrink-0 mt-1 sm:mt-0"
+                  />
+                </div>
+
+                {/* SMS Alerts */}
+                <div className="flex items-start sm:items-center justify-between p-3.5 sm:p-4 bg-gray-50/80 rounded-2xl border border-gray-100 gap-3">
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <Smartphone size={13} />
+                      </span>
+                      <h4 className="text-xs font-bold text-gray-900 truncate">
+                        SMS Courier Delivery Tracking
+                      </h4>
+                    </div>
+                    <p className="text-[11px] text-gray-500 pl-8 leading-relaxed">
+                      Receive SMS when TCS / Leopards courier rider is out for
+                      delivery with parcel tracking code.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={smsNotifications}
+                    onChange={(e) => setSmsNotifications(e.target.checked)}
+                    className="w-5 h-5 accent-[#7E153A] cursor-pointer shrink-0 mt-1 sm:mt-0"
+                  />
+                </div>
+
+                {/* Festive & Eid Alerts */}
+                <div className="flex items-start sm:items-center justify-between p-3.5 sm:p-4 bg-gray-50/80 rounded-2xl border border-gray-100 gap-3">
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                        <Sparkles size={13} />
+                      </span>
+                      <h4 className="text-xs font-bold text-gray-900 truncate">
+                        Festive & Eid Tailoring Priority Slots
+                      </h4>
+                    </div>
+                    <p className="text-[11px] text-gray-500 pl-8 leading-relaxed">
+                      Early bird notifications when Ramadan and Eid stitching
+                      booking windows open.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={marketingNotifications}
+                    onChange={(e) =>
+                      setMarketingNotifications(e.target.checked)
+                    }
+                    className="w-5 h-5 accent-[#7E153A] cursor-pointer shrink-0 mt-1 sm:mt-0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Security & Privacy Card */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                <ShieldCheck size={20} />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-xs font-extrabold text-gray-900">
+                  256-Bit Encrypted Data Privacy
+                </h4>
+                <p className="text-[11px] text-gray-500">
+                  Your measurement profiles and delivery addresses are encrypted
+                  and strictly protected.
                 </p>
               </div>
-              <input
-                type="checkbox"
-                checked={whatsappNotifications}
-                onChange={(e) => setWhatsappNotifications(e.target.checked)}
-                className="w-5 h-5 accent-[#7E153A] cursor-pointer shrink-0 mt-1 sm:mt-0"
-              />
             </div>
 
-            {/* SMS Alerts */}
-            <div className="flex items-start sm:items-center justify-between p-3.5 sm:p-4 bg-gray-50/80 rounded-2xl border border-gray-100 gap-3">
-              <div className="space-y-0.5 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <Smartphone size={13} />
-                  </span>
-                  <h4 className="text-xs font-bold text-gray-900 truncate">
-                    SMS Courier Delivery Tracking
-                  </h4>
-                </div>
-                <p className="text-[11px] text-gray-500 pl-8 leading-relaxed">
-                  Receive SMS when TCS / Leopards courier rider is out for
-                  delivery with parcel tracking code.
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                checked={smsNotifications}
-                onChange={(e) => setSmsNotifications(e.target.checked)}
-                className="w-5 h-5 accent-[#7E153A] cursor-pointer shrink-0 mt-1 sm:mt-0"
-              />
+            {/* Save Button Row */}
+            <div className="flex justify-end pt-2">
+              <Button
+                type="submit"
+                disabled={saving}
+                className="w-full sm:w-auto h-12 bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-8 rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin mr-1.5" /> Saving
+                    Changes...
+                  </>
+                ) : (
+                  'Save Profile Settings'
+                )}
+              </Button>
             </div>
-
-            {/* Festive & Eid Alerts */}
-            <div className="flex items-start sm:items-center justify-between p-3.5 sm:p-4 bg-gray-50/80 rounded-2xl border border-gray-100 gap-3">
-              <div className="space-y-0.5 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                    <Sparkles size={13} />
-                  </span>
-                  <h4 className="text-xs font-bold text-gray-900 truncate">
-                    Festive & Eid Tailoring Priority Slots
-                  </h4>
-                </div>
-                <p className="text-[11px] text-gray-500 pl-8 leading-relaxed">
-                  Early bird notifications when Ramadan and Eid stitching
-                  booking windows open.
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                checked={marketingNotifications}
-                onChange={(e) => setMarketingNotifications(e.target.checked)}
-                className="w-5 h-5 accent-[#7E153A] cursor-pointer shrink-0 mt-1 sm:mt-0"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Security & Privacy Card */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-            <ShieldCheck size={20} />
-          </div>
-          <div className="min-w-0">
-            <h4 className="text-xs font-extrabold text-gray-900">
-              256-Bit Encrypted Data Privacy
-            </h4>
-            <p className="text-[11px] text-gray-500">
-              Your measurement profiles and delivery addresses are encrypted and
-              strictly protected.
-            </p>
-          </div>
-        </div>
-
-        {/* Save Button Row */}
-        <div className="flex justify-end pt-2">
-          <Button
-            type="submit"
-            disabled={saving}
-            className="w-full sm:w-auto h-12 bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-8 rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer flex items-center justify-center gap-1.5"
-          >
-            {saving ? (
-              <>
-                <Loader2 size={16} className="animate-spin mr-1.5" /> Saving
-                Changes...
-              </>
-            ) : (
-              'Save Profile Settings'
-            )}
-          </Button>
-        </div>
-      </form>
+          </form>
+        </>
+      )}
     </div>
   );
 }

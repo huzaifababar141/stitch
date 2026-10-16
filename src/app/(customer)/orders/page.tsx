@@ -28,11 +28,13 @@ export default function MyOrdersPage() {
 
   useEffect(() => {
     async function fetchOrders() {
+      if (authLoading) return;
       if (!user) {
         setLoading(false);
         return;
       }
       try {
+        setLoading(true);
         const res = await fetch('/api/orders?limit=50');
         if (res.ok) {
           const json = await res.json();
@@ -53,7 +55,7 @@ export default function MyOrdersPage() {
     }
 
     fetchOrders();
-  }, [user]);
+  }, [user, authLoading]);
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -199,7 +201,7 @@ export default function MyOrdersPage() {
                       : 'bg-gray-200/70 text-gray-500'
                   }`}
                 >
-                  {tab.count}
+                  {loading || authLoading ? '...' : tab.count}
                 </span>
               </button>
             ))}
@@ -207,18 +209,41 @@ export default function MyOrdersPage() {
         </div>
 
         <span className="text-[11px] sm:text-xs text-gray-400 font-semibold px-1 shrink-0">
-          Showing {filteredOrders.length}{' '}
+          Showing {loading || authLoading ? '...' : filteredOrders.length}{' '}
           {filteredOrders.length === 1 ? 'order' : 'orders'}
         </span>
       </div>
 
-      {/* Content Area */}
       {loading || authLoading ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 sm:p-16 flex flex-col items-center justify-center text-center shadow-xs min-w-0 w-full">
-          <Loader2 size={32} className="animate-spin text-[#7E153A] mb-3" />
-          <p className="text-xs sm:text-sm font-medium text-gray-600">
-            Loading your orders from database...
-          </p>
+        <div className="space-y-4 min-w-0 w-full animate-in fade-in duration-200">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl border border-gray-100 p-3.5 sm:p-5 shadow-xs animate-pulse min-w-0 w-full space-y-3"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-28 bg-gray-200 rounded" />
+                  <div className="h-3 w-20 bg-gray-100 rounded" />
+                </div>
+                <div className="h-5 w-24 bg-gray-100 rounded-full" />
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                  <div className="w-16 h-20 sm:w-20 sm:h-24 rounded-xl bg-gray-100 shrink-0" />
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <div className="h-4 w-48 bg-gray-200 rounded" />
+                    <div className="h-3 w-28 bg-gray-100 rounded" />
+                    <div className="h-3 w-36 bg-gray-100 rounded" />
+                  </div>
+                </div>
+                <div className="flex sm:flex-col items-end justify-between sm:justify-start gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-50 shrink-0">
+                  <div className="h-5 w-20 bg-gray-200 rounded" />
+                  <div className="h-8 w-28 bg-gray-100 rounded-xl" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-8 sm:p-12 flex flex-col items-center justify-center text-center shadow-xs min-w-0 w-full">

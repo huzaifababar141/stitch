@@ -103,12 +103,14 @@ export default function AddressBookPage() {
 
   // Load User Addresses from API
   const loadAddresses = useCallback(async () => {
+    if (authLoading) return;
     if (!user) {
       setLoading(false);
       return;
     }
 
     try {
+      setLoading(true);
       const res = await fetch('/api/users/addresses');
       if (res.ok) {
         const json = await res.json();
@@ -124,7 +126,7 @@ export default function AddressBookPage() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     loadAddresses();
@@ -366,13 +368,39 @@ export default function AddressBookPage() {
         </Button>
       </div>
 
-      {/* ── Saved Addresses Grid ── */}
       {loading || authLoading ? (
-        <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-12 sm:p-16 flex flex-col items-center justify-center text-center shadow-xs">
-          <Loader2 size={32} className="animate-spin text-[#7E153A] mb-3" />
-          <p className="text-sm font-medium text-gray-600">
-            Loading your address book...
-          </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0 w-full animate-in fade-in duration-200">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs flex flex-col justify-between space-y-4 sm:space-y-6 animate-pulse"
+            >
+              <div className="space-y-3.5">
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-gray-100" />
+                    <div className="space-y-1.5">
+                      <div className="h-4 w-20 bg-gray-200 rounded" />
+                      <div className="h-3 w-28 bg-gray-100 rounded" />
+                    </div>
+                  </div>
+                  <div className="h-5 w-16 bg-gray-100 rounded-full" />
+                </div>
+                <div className="space-y-2 bg-gray-50/80 p-3 rounded-xl border border-gray-100">
+                  <div className="h-3.5 w-32 bg-gray-200 rounded" />
+                  <div className="h-3 w-24 bg-gray-100 rounded" />
+                </div>
+                <div className="space-y-1.5 pt-1">
+                  <div className="h-3 w-full bg-gray-100 rounded" />
+                  <div className="h-3 w-3/4 bg-gray-100 rounded" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <div className="h-7 w-20 bg-gray-100 rounded-lg" />
+                <div className="h-7 w-14 bg-gray-100 rounded-lg" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : addresses.length === 0 ? (
         <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-8 sm:p-14 flex flex-col items-center justify-center text-center shadow-xs space-y-4">

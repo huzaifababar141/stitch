@@ -24,7 +24,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ReviewsPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
@@ -40,6 +40,7 @@ export default function ReviewsPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const loadReviews = useCallback(async () => {
+    if (authLoading) return;
     if (!user) {
       setLoading(false);
       return;
@@ -61,7 +62,7 @@ export default function ReviewsPage() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     loadReviews();
@@ -253,12 +254,32 @@ export default function ReviewsPage() {
       )}
 
       {/* ── Reviews Feed Grid ── */}
-      {loading ? (
-        <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-12 sm:p-16 flex flex-col items-center justify-center text-center shadow-xs">
-          <Loader2 size={32} className="animate-spin text-[#7E153A] mb-3" />
-          <p className="text-xs font-semibold text-gray-600">
-            Loading your review history...
-          </p>
+      {loading || authLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 min-w-0 w-full animate-in fade-in duration-200">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs flex flex-col justify-between space-y-3.5 animate-pulse"
+            >
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2 border-b border-gray-100 pb-3">
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <div className="h-3.5 w-24 bg-gray-200 rounded" />
+                    <div className="h-4 w-36 bg-gray-300 rounded" />
+                  </div>
+                  <div className="h-6 w-24 bg-amber-50 rounded-xl" />
+                </div>
+                <div className="space-y-2 py-1">
+                  <div className="h-3 w-full bg-gray-100 rounded" />
+                  <div className="h-3 w-4/5 bg-gray-100 rounded" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                <div className="h-4 w-28 bg-gray-100 rounded-full" />
+                <div className="h-3 w-20 bg-gray-100 rounded" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : reviews.length === 0 ? (
         <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-8 sm:p-14 flex flex-col items-center justify-center text-center shadow-xs space-y-4">

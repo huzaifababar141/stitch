@@ -27,7 +27,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export default function PaymentsPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -64,6 +64,7 @@ export default function PaymentsPage() {
   ];
 
   const loadPayments = useCallback(async () => {
+    if (authLoading) return;
     if (!user) {
       setLoading(false);
       return;
@@ -84,7 +85,7 @@ export default function PaymentsPage() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     loadPayments();
@@ -407,15 +408,29 @@ export default function PaymentsPage() {
         </div>
 
         {/* Invoice List */}
-        {loading ? (
-          <div className="py-14 text-center space-y-2">
-            <Loader2
-              size={32}
-              className="animate-spin text-[#7E153A] mx-auto mb-2"
-            />
-            <p className="text-xs font-semibold text-gray-600">
-              Loading your invoices...
-            </p>
+        {loading || authLoading ? (
+          <div className="space-y-3 min-w-0 w-full animate-in fade-in duration-200">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-pulse shadow-xs"
+              >
+                <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-gray-100 shrink-0" />
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-28 bg-gray-200 rounded" />
+                      <div className="h-4 w-20 bg-gray-100 rounded-full" />
+                    </div>
+                    <div className="h-3 w-44 bg-gray-100 rounded" />
+                  </div>
+                </div>
+                <div className="flex sm:flex-col items-end justify-between sm:justify-start gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 shrink-0">
+                  <div className="h-5 w-24 bg-gray-200 rounded" />
+                  <div className="h-8 w-24 bg-gray-100 rounded-xl" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredTransactions.length === 0 ? (
           <div className="py-14 text-center space-y-3">
