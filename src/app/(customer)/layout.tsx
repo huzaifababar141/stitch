@@ -18,12 +18,15 @@ import {
   LogOut,
   Menu,
   X,
-  Plus,
   User,
   Boxes,
+  ChevronDown,
+  Plus,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState } from 'react';
+import { LogoNeedle } from '@/components/illustrations/LogoNeedle';
+import { SidebarPromoCard } from '@/components/illustrations/SidebarPromoCard';
 
 export default function CustomerLayout({
   children,
@@ -62,7 +65,6 @@ export default function CustomerLayout({
     { icon: Boxes, label: 'Our Stock', href: '/stock' },
     { icon: ShoppingBag, label: 'My Orders', href: '/orders' },
     { icon: Ruler, label: 'Measurements', href: '/measurements' },
-    // { icon: Palette, label: 'My Designs', href: '/designs' },
     { icon: MapPin, label: 'Address Book', href: '/address' },
     { icon: CreditCard, label: 'Payments', href: '/payments' },
     { icon: Star, label: 'Reviews', href: '/reviews' },
@@ -82,32 +84,19 @@ export default function CustomerLayout({
   ];
 
   const sidebarContent = (
-    <div className="flex flex-col justify-between h-full">
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-8">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="text-[#7E153A]">
-              <svg
-                width="24"
-                height="30"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 2v20" />
-                <path d="M8 6h8" />
-                <path d="M12 22l-4-4" />
-              </svg>
+    <div className="flex flex-col h-full min-h-full justify-between p-4 sm:p-5">
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <div className="text-[#7A1038] shrink-0">
+              <LogoNeedle className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-gray-900 leading-none">
-                TailorLink<span className="text-[#7E153A]">.pk</span>
+              <h1 className="text-[17px] font-bold tracking-tight text-[#1A1A2E] leading-none">
+                TailorLink<span className="text-[#7A1038]">.pk</span>
               </h1>
-              <p className="text-[8px] text-gray-500 uppercase tracking-widest mt-1">
-                You Link it, We Stitch it
+              <p className="text-[7.5px] text-[#A0A0AD] font-semibold uppercase tracking-[0.2em] mt-1">
+                Your Style · Our Stitch
               </p>
             </div>
           </Link>
@@ -122,8 +111,8 @@ export default function CustomerLayout({
         </div>
 
         <Link href="/new-order">
-          <button className="w-full bg-[#7E153A] hover:bg-[#630f2d] text-white rounded-xl py-3 font-semibold flex items-center justify-center gap-2 transition-all shadow-md shadow-[#7E153A]/20 hover:shadow-lg hover:shadow-[#7E153A]/30 mb-6 active:scale-[0.98] cursor-pointer">
-            <span className="text-lg leading-none font-bold">+</span> New Order
+          <button className="w-full bg-[#7A1038] hover:bg-[#650D2F] text-white rounded-[10px] py-2.5 px-4 font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-sm mb-6 active:scale-[0.98] cursor-pointer">
+            <Plus size={16} className="stroke-[2.5]" /> New Order
           </button>
         </Link>
 
@@ -138,50 +127,43 @@ export default function CustomerLayout({
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group relative ${
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-[10px] text-xs sm:text-sm transition-all duration-150 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40 ${
                   isActive
-                    ? 'bg-gradient-to-r from-[#7E153A] to-[#911642] text-white shadow-md shadow-[#7E153A]/25'
-                    : 'text-gray-600 hover:text-[#7E153A] hover:bg-red-50/70 font-medium'
+                    ? 'bg-[#F9E4E6] text-[#7A1038] font-bold'
+                    : 'text-gray-600 hover:text-[#7A1038] hover:bg-[#FDF2F4] font-medium'
                 }`}
               >
                 <item.icon
-                  size={18}
-                  className={`transition-transform duration-200 group-hover:scale-110 ${
-                    isActive
-                      ? 'text-white'
-                      : 'text-gray-500 group-hover:text-[#7E153A]'
+                  size={17}
+                  className={`shrink-0 ${
+                    isActive ? 'text-[#7A1038]' : 'text-gray-400'
                   }`}
                 />
                 <span>{item.label}</span>
-                {isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                )}
               </Link>
             );
           })}
         </nav>
       </div>
 
-      <div className="p-6">
-        <nav className="space-y-1 mb-6 border-t border-gray-100 pt-4">
+      <div className="mt-auto pt-4 space-y-4">
+        <nav className="space-y-1 border-t border-gray-100 pt-3">
           {secondaryNavItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group ${
+                className={`flex items-center gap-3 px-3.5 py-2 rounded-[10px] text-xs sm:text-sm transition-all outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40 ${
                   isActive
-                    ? 'bg-gradient-to-r from-[#7E153A] to-[#911642] text-white shadow-md shadow-[#7E153A]/25'
-                    : 'text-gray-600 hover:text-[#7E153A] hover:bg-red-50/70 font-medium'
+                    ? 'bg-[#F9E4E6] text-[#7A1038] font-bold'
+                    : 'text-gray-600 hover:text-[#7A1038] hover:bg-[#FDF2F4] font-medium'
                 }`}
               >
                 <item.icon
-                  size={18}
-                  className={`transition-transform duration-200 group-hover:scale-110 ${
-                    isActive
-                      ? 'text-white'
-                      : 'text-gray-500 group-hover:text-[#7E153A]'
+                  size={17}
+                  className={`shrink-0 ${
+                    isActive ? 'text-[#7A1038]' : 'text-gray-400'
                   }`}
                 />
                 <span>{item.label}</span>
@@ -190,40 +172,23 @@ export default function CustomerLayout({
           })}
           <button
             onClick={signOut}
-            className="w-full flex items-center gap-3 px-3.5 py-2.5 text-red-600 hover:bg-red-50/80 rounded-xl transition-all text-sm font-medium text-left cursor-pointer mt-1"
+            className="w-full flex items-center gap-3 px-3.5 py-2 text-[#7A1038] hover:bg-red-50/80 rounded-[10px] transition-all text-xs sm:text-sm font-medium text-left cursor-pointer outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
           >
-            <LogOut size={18} />
+            <LogOut size={17} className="shrink-0" />
             Logout
           </button>
         </nav>
 
-        <div className="bg-red-50 rounded-2xl p-4 relative overflow-hidden border border-red-100/50">
-          <div className="relative z-10">
-            <h4 className="font-bold text-gray-900 text-sm mb-1">
-              Refer & Earn
-            </h4>
-            <p className="text-xs text-gray-600 mb-3 leading-relaxed">
-              Invite your friends and earn tailoring credits.
-            </p>
-            <Link href="/referral">
-              <button className="bg-[#7E153A] text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-[#630f2d] transition-colors shadow-sm cursor-pointer">
-                Invite Now
-              </button>
-            </Link>
-          </div>
-          <Gift
-            size={48}
-            className="absolute -bottom-2 -right-2 text-[#7E153A] opacity-20 pointer-events-none"
-          />
-        </div>
+        {/* Bottom Sidebar Promo Card pinned to bottom */}
+        <SidebarPromoCard />
       </div>
     </div>
   );
 
   return (
-    <div className="flex min-h-screen bg-[#FDFDFD] font-sans w-full max-w-full overflow-x-hidden">
+    <div className="flex min-h-screen bg-[#FBF7F4] font-sans w-full max-w-full overflow-x-hidden">
       {/* Desktop Fixed Sidebar */}
-      <aside className="hidden md:flex w-64 bg-white border-r border-gray-100 flex-col justify-between flex-shrink-0 fixed h-full z-40 overflow-y-auto">
+      <aside className="hidden md:flex w-[250px] bg-white border-r border-[#F1E6E1] flex-col justify-between flex-shrink-0 fixed h-full z-40 overflow-y-auto">
         {sidebarContent}
       </aside>
 
@@ -241,42 +206,43 @@ export default function CustomerLayout({
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 ml-0 md:ml-64 flex flex-col min-h-screen min-w-0 w-full max-w-full overflow-x-hidden">
+      <div className="flex-1 ml-0 md:ml-[250px] flex flex-col min-h-screen min-w-0 w-full max-w-full overflow-x-hidden">
         {/* Header */}
-        <header className="h-14 sm:h-16 md:h-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 flex items-center justify-between px-3 sm:px-6 lg:px-8 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)] min-w-0 w-full max-w-full">
+        <header className="h-16 bg-white border-b border-[#F1E6E1] flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-30 min-w-0 w-full max-w-full">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-1.5 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100 focus:outline-none shrink-0 cursor-pointer"
+              className="md:hidden p-1.5 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-black/5 focus:outline-none shrink-0 cursor-pointer"
               aria-label="Open Navigation Menu"
             >
               <Menu size={20} />
             </button>
-            <div className="flex items-center gap-1.5 min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0 md:hidden">
               <span className="font-bold text-gray-900 text-sm tracking-tight truncate">
                 TailorLink<span className="text-[#7E153A]">.pk</span>
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-4 shrink-0">
-            <Link
-              href="/orders"
-              className="relative text-gray-500 hover:text-gray-900 transition-colors p-1.5 rounded-lg hover:bg-gray-50"
-              title="My Orders"
-            >
-              <ShoppingCart size={18} />
-            </Link>
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             <button
-              className="relative text-gray-500 hover:text-gray-900 transition-colors p-1.5 rounded-lg hover:bg-gray-50 cursor-pointer"
+              className="relative text-gray-600 hover:text-gray-900 transition-colors p-1.5 rounded-lg hover:bg-black/5 cursor-pointer"
               title="Notifications"
             >
               <Bell size={18} />
             </button>
 
-            <div className="flex items-center gap-2 pl-1.5 sm:pl-3 border-l border-gray-200">
+            <Link
+              href="/orders"
+              className="relative text-gray-600 hover:text-gray-900 transition-colors p-1.5 rounded-lg hover:bg-black/5"
+              title="Shopping Cart / Orders"
+            >
+              <ShoppingCart size={18} />
+            </Link>
+
+            <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-gray-200/80">
               <Link href="/settings" className="flex items-center gap-2 group">
-                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-[#7E153A] text-white font-bold flex items-center justify-center overflow-hidden relative shadow-xs group-hover:ring-2 group-hover:ring-[#7E153A]/30 transition-all shrink-0">
+                <div className="w-8 h-8 rounded-full bg-[#7E153A] text-white font-bold flex items-center justify-center overflow-hidden relative shadow-xs shrink-0 text-xs">
                   {profile?.profileImageUrl ? (
                     <img
                       src={profile.profileImageUrl}
@@ -284,16 +250,22 @@ export default function CustomerLayout({
                       className="object-cover w-full h-full"
                     />
                   ) : (
-                    <span className="text-xs">{userInitial}</span>
+                    <span>{userInitial}</span>
                   )}
                 </div>
-                <div className="hidden sm:block text-left">
-                  <p className="text-xs font-semibold text-gray-900 leading-none mb-0.5 group-hover:text-[#7E153A] transition-colors">
-                    {userName}
-                  </p>
-                  <p className="text-[9px] text-gray-500 font-medium capitalize">
-                    {profile?.role || 'Customer'}
-                  </p>
+                <div className="hidden sm:flex items-center gap-1.5 text-left">
+                  <div>
+                    <p className="text-xs font-bold text-gray-900 leading-none mb-0.5 group-hover:text-[#7E153A] transition-colors">
+                      {userName}
+                    </p>
+                    <p className="text-[10px] text-gray-500 font-medium capitalize">
+                      {profile?.role || 'Customer'}
+                    </p>
+                  </div>
+                  <ChevronDown
+                    size={14}
+                    className="text-gray-400 group-hover:text-gray-600 transition-colors ml-0.5"
+                  />
                 </div>
               </Link>
             </div>
