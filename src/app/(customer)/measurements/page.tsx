@@ -36,6 +36,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { BodyDiagram } from '@/components/measurement-studio/BodyDiagram';
 import { HowToMeasureModal } from '@/components/measurement-studio/HowToMeasureModal';
 import { SizeChartModal } from '@/components/measurement-studio/SizeChartModal';
+import { confirmDialog } from '@/components/ui/confirm-dialog';
 import {
   MeasurementGarmentType,
   GARMENT_CATEGORIES,
@@ -773,7 +774,12 @@ export default function MeasurementsStudioPage() {
 
   // Delete Profile
   const handleDeleteProfile = async (profileId: string, label: string) => {
-    if (!confirm(`Are you sure you want to delete "${label}"?`)) return;
+    const ok = await confirmDialog({
+      title: `Delete "${label}"?`,
+      confirmText: 'Delete',
+      variant: 'destructive',
+    });
+    if (!ok) return;
 
     try {
       const res = await fetch(`/api/measurements/${profileId}`, {

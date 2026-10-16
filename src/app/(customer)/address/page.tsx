@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { confirmDialog } from '@/components/ui/confirm-dialog';
 
 // ─── Major Pakistani Cities & Provinces ──────────────────────────────────────
 
@@ -281,7 +282,12 @@ export default function AddressBookPage() {
     addressId: string,
     addressLabel: string
   ) => {
-    if (!confirm(`Are you sure you want to delete "${addressLabel}"?`)) return;
+    const ok = await confirmDialog({
+      title: `Delete "${addressLabel}"?`,
+      confirmText: 'Delete',
+      variant: 'destructive',
+    });
+    if (!ok) return;
 
     try {
       const res = await fetch(`/api/users/addresses/${addressId}`, {

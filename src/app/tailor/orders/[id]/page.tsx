@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { confirmDialog } from '@/components/ui/confirm-dialog';
 
 export default function TailorOrderDetailPage() {
   const params = useParams();
@@ -63,12 +64,11 @@ export default function TailorOrderDetailPage() {
       newStatus === 'in_stitching'
         ? 'Start Stitching'
         : 'Complete & Send to QC';
-    if (
-      !confirm(
-        `Are you sure you want to ${actionLabel.toLowerCase()} for this order?`
-      )
-    )
-      return;
+    const ok = await confirmDialog({
+      title: `${actionLabel}?`,
+      confirmText: actionLabel,
+    });
+    if (!ok) return;
 
     setUpdating(true);
     try {

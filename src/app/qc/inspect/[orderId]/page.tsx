@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { confirmDialog } from '@/components/ui/confirm-dialog';
 
 export default function QCInspectPage() {
   const params = useParams();
@@ -72,8 +73,22 @@ export default function QCInspectPage() {
       rejected: 'REJECT this garment and issue a complete re-stitch order?',
     };
 
-    if (!confirm(`Are you sure you want to ${actionDescriptions[result]}`))
-      return;
+    const ok = await confirmDialog({
+      title:
+        result === 'approved'
+          ? 'Approve and dispatch?'
+          : result === 'rejected'
+            ? 'Reject this order?'
+            : 'Return for alteration?',
+      confirmText:
+        result === 'approved'
+          ? 'Approve'
+          : result === 'rejected'
+            ? 'Reject'
+            : 'Return',
+      variant: result === 'rejected' ? 'destructive' : 'default',
+    });
+    if (!ok) return;
 
     setSubmitting(true);
     try {

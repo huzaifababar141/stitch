@@ -32,6 +32,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useOrderRealtime } from '@/hooks/useOrderRealtime';
 import { useAuth } from '@/hooks/useAuth';
+import { confirmDialog } from '@/components/ui/confirm-dialog';
 
 // ─── Status Steps Configuration ──────────────────────────────────────────────
 
@@ -178,13 +179,12 @@ export default function OrderTrackingPage() {
   const currentStepIdx = getStepIndex(activeStatus);
 
   const handleCancelOrder = async () => {
-    if (
-      !confirm(
-        'Are you sure you want to cancel this order? This action cannot be undone.'
-      )
-    ) {
-      return;
-    }
+    const ok = await confirmDialog({
+      title: 'Cancel this order?',
+      confirmText: 'Cancel Order',
+      variant: 'destructive',
+    });
+    if (!ok) return;
 
     try {
       setCancelling(true);

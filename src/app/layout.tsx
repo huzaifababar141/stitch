@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
+import { ConfirmDialogHost } from '@/components/ui/confirm-dialog';
 import { Providers } from './providers';
 
 const geistSans = localFont({
@@ -34,6 +35,7 @@ export default function RootLayout({
       >
         <Providers>{children}</Providers>
         <Toaster />
+        <ConfirmDialogHost />
       </body>
     </html>
   );
