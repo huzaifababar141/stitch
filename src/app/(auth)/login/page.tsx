@@ -4,8 +4,18 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import { Scissors, Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import {
+  Scissors,
+  Loader2,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  ShieldCheck,
+  Truck,
+  Ruler,
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { AuthBackground } from '@/components/auth/AuthBackground';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -99,16 +109,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-gradient-to-br from-[#ffffff] via-[#FAF8FC] to-[#F5EEF9] px-4 py-10 font-sans sm:px-6">
-      {/* Soft ambient background glow */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute top-10 right-10 h-96 w-96 rounded-full bg-[#7E153A]/5 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-10 -left-10 h-96 w-96 rounded-full bg-purple-200/20 blur-3xl"
-      />
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center px-4 py-10 font-sans sm:px-6">
+      {/* ── Unique Low-Opacity Tailoring Graphics Background ── */}
+      <AuthBackground />
 
       {/* ── TOP LOGO (Centered above card) ── */}
       <div className="mb-6 flex justify-center sm:mb-8">
@@ -270,8 +273,30 @@ export default function LoginPage() {
           </Link>
         </p>
 
+        {/* Trust Badges Strip */}
+        <div className="mt-6 pt-5 border-t border-gray-100">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {[
+              { Icon: ShieldCheck, label: 'Secure Login' },
+              { Icon: Truck, label: '7-Day Delivery' },
+              { Icon: Scissors, label: 'Master Tailors' },
+              { Icon: Ruler, label: 'Custom Fit' },
+            ].map(({ Icon, label }) => (
+              <div
+                key={label}
+                className="flex items-center gap-1.5 justify-center py-1.5 px-2 rounded-lg bg-gray-50/80 text-gray-600 border border-gray-100"
+              >
+                <Icon size={12} className="text-[#7E153A] shrink-0" />
+                <span className="text-[10px] font-semibold truncate">
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Footer disclaimer */}
-        <p className="mt-8 border-t border-gray-100 pt-5 text-center text-xs text-gray-400">
+        <p className="mt-5 text-center text-xs text-gray-400">
           By signing in you agree to our{' '}
           <Link
             href="/help"
