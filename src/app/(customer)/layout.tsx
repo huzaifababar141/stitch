@@ -21,6 +21,7 @@ import {
   Plus,
   User,
   Boxes,
+  Globe,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState } from 'react';
@@ -69,6 +70,7 @@ export default function CustomerLayout({
   ];
 
   const secondaryNavItems = [
+    { icon: Globe, label: 'Main Website', href: '/' },
     { icon: HelpCircle, label: 'Help & Support', href: '/help' },
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];

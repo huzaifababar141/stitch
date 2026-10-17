@@ -36,7 +36,10 @@
   --color-popover: #ffffff;
   --color-popover-foreground: #171717;
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans:
+    'Plus Jakarta Sans', var(--font-geist-sans), ui-sans-serif, system-ui,
+    sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
@@ -46,7 +49,9 @@
 
 html,
 body {
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family:
+    'Plus Jakarta Sans', var(--font-geist-sans), ui-sans-serif, system-ui,
+    sans-serif;
   color: #171717;
   background: #fdfdfd;
   margin: 0;

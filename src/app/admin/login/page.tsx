@@ -195,7 +195,7 @@ function AdminLoginForm() {
                 />
                 <Input
                   type="email"
-                  placeholder="admin@stitch.pk"
+                  placeholder="admin@tailorlink.pk"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 h-11 bg-white/5 border-white/10 text-white text-xs placeholder:text-gray-600 focus:border-[#7E153A] focus:ring-1 focus:ring-[#7E153A] rounded-xl"

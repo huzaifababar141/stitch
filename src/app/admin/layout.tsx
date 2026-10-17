@@ -112,7 +112,7 @@ export default function AdminLayout({
         setAdminProfile({
           role: role === 'super_admin' ? 'Super Admin' : 'Operations Admin',
           fullName,
-          email: profile?.email || user.email || 'admin@stitch.pk',
+          email: profile?.email || user.email || 'admin@tailorlink.pk',
         });
       } catch (err) {
         console.error('Error verifying admin access:', err);

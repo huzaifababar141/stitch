@@ -106,24 +106,30 @@ export default function CustomerStockCatalogPage() {
       <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-[#7E153A] via-[#921943] to-[#5a0f2a] text-white p-8 sm:p-10 shadow-lg">
         <div className="relative z-10 max-w-2xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-white text-[11px] font-bold uppercase tracking-wider">
-            <Sparkles size={13} className="text-amber-300" /> Curated In-House Collection
+            <Sparkles size={13} className="text-amber-300" /> Curated In-House
+            Collection
           </div>
           <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
             Our Unstitched Fabric Stock
           </h1>
           <p className="text-xs sm:text-sm text-red-100 font-normal leading-relaxed">
-            Handpicked pure fabrics from top Pakistani looms and designers. Order the unstitched fabric and have it tailored to your custom measurements in one single order.
+            Handpicked pure fabrics from top Pakistani looms and designers.
+            Order the unstitched fabric and have it tailored to your custom
+            measurements in one single order.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-semibold text-red-200">
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={14} className="text-emerald-300" /> Guaranteed 100% Pure Fabric
+              <CheckCircle2 size={14} className="text-emerald-300" /> Guaranteed
+              100% Pure Fabric
             </span>
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={14} className="text-emerald-300" /> Doorstep QC Inspection
+              <CheckCircle2 size={14} className="text-emerald-300" /> Certified
+              24-Point QC Protocol
             </span>
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={14} className="text-emerald-300" /> TCS Express Delivery
+              <CheckCircle2 size={14} className="text-emerald-300" /> TCS
+              Express Delivery
             </span>
           </div>
         </div>
@@ -174,7 +180,9 @@ export default function CustomerStockCatalogPage() {
 
           {/* Sorter */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Sort by:</span>
+            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">
+              Sort by:
+            </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -206,7 +214,10 @@ export default function CustomerStockCatalogPage() {
             ))}
           </div>
 
-          <form onSubmit={handleSearchSubmit} className="relative w-full md:w-72">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="relative w-full md:w-72"
+          >
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               placeholder="Search fabric, brand..."
@@ -222,16 +233,21 @@ export default function CustomerStockCatalogPage() {
       {loading ? (
         <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#7E153A] mb-3" />
-          <p className="text-sm font-bold text-gray-700">Loading Fabric Catalog...</p>
+          <p className="text-sm font-bold text-gray-700">
+            Loading Fabric Catalog...
+          </p>
         </div>
       ) : products.length === 0 ? (
         <div className="bg-white rounded-3xl border border-dashed border-gray-200 p-16 text-center space-y-3">
           <div className="w-14 h-14 rounded-full bg-red-50 text-[#7E153A] flex items-center justify-center mx-auto">
             <Boxes size={26} />
           </div>
-          <h3 className="text-base font-extrabold text-gray-900">No Fabrics Matching Your Filter</h3>
+          <h3 className="text-base font-extrabold text-gray-900">
+            No Fabrics Matching Your Filter
+          </h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
-            Try switching gender collections or selecting "All Fabrics" to view available unstitched suits.
+            Try switching gender collections or selecting "All Fabrics" to view
+            available unstitched suits.
           </p>
           <Button
             onClick={() => {
@@ -248,7 +264,9 @@ export default function CustomerStockCatalogPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((item) => {
-            const images = Array.isArray(item.images) ? (item.images as string[]) : [];
+            const images = Array.isArray(item.images)
+              ? (item.images as string[])
+              : [];
             const coverImage = images[0] || '/placeholder.jpg';
             const hoverImage = images[1] || coverImage;
             const price = Number(item.priceOriginal || 0);
@@ -260,7 +278,10 @@ export default function CustomerStockCatalogPage() {
                 className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1"
               >
                 {/* Image Section */}
-                <Link href={`/stock/${item.id}`} className="relative aspect-3/4 bg-gray-100 overflow-hidden block">
+                <Link
+                  href={`/stock/${item.id}`}
+                  className="relative aspect-3/4 bg-gray-100 overflow-hidden block"
+                >
                   <img
                     src={coverImage}
                     alt={item.name}
@@ -323,7 +344,10 @@ export default function CustomerStockCatalogPage() {
                         </Button>
                       </Link>
 
-                      <Link href={`/new-order?productId=${item.id}`} className="w-full">
+                      <Link
+                        href={`/new-order?productId=${item.id}`}
+                        className="w-full"
+                      >
                         <Button
                           size="sm"
                           className="w-full h-9 rounded-xl bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold shadow-xs shadow-[#7E153A]/20 flex items-center justify-center gap-1 cursor-pointer"

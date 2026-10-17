@@ -254,7 +254,7 @@ export default function ArticleDetailPage() {
             </div>
 
             {/* Price Breakdown in PKR */}
-            <div className="bg-stone-50/70 p-4 rounded-2xl border border-stone-200 space-y-2">
+            <div className="bg-[#FAF0F2]/70 p-4 rounded-2xl border border-[#7E153A]/20 space-y-2">
               <div className="flex items-baseline justify-between">
                 <div>
                   <span className="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">
