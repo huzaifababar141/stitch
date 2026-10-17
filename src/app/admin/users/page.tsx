@@ -44,6 +44,10 @@ export default function AdminUsersPage() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [page]);
+
   const { data, isLoading, isError, isPlaceholderData } = useUsers({
     page,
     limit: LIMIT,

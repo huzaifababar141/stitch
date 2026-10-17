@@ -1,17 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Ruler,
-  Info,
-  Sparkles,
-  PlayCircle,
-  HelpCircle,
-  CheckCircle2,
-  ChevronRight,
-  MoveHorizontal,
-  MoveVertical,
-} from 'lucide-react';
+import { Ruler, MoveHorizontal, MoveVertical } from 'lucide-react';
 import { MeasurementGarmentType } from '@/hooks/useMeasurementStudio';
 
 interface BodyDiagramProps {
@@ -645,39 +635,6 @@ export function BodyDiagram({
             )}
           </div>
         </div>
-      </div>
-
-      {/* ── Dynamic Pro Tailor Measuring Tip Box ── */}
-      <div className="w-full bg-gradient-to-r from-red-50/70 via-pink-50/40 to-red-50/70 border border-red-100 rounded-2xl p-3.5 space-y-2 text-xs">
-        <div className="flex items-center gap-1.5 text-[#7E153A] font-extrabold text-[11px] uppercase tracking-wider">
-          <Sparkles size={13} />
-          <span>Tailor Master Measurement Guide</span>
-        </div>
-
-        <p className="text-[11px] text-gray-700 leading-relaxed">
-          {guide.instruction}
-        </p>
-
-        <div className="bg-white/90 p-2 rounded-xl border border-red-100/80 text-[10.5px] text-gray-600 flex items-start gap-1.5">
-          <Info size={13} className="text-[#7E153A] shrink-0 mt-0.5" />
-          <span>
-            <strong className="text-gray-900 font-bold">Pro Tip:</strong>{' '}
-            {guide.proTip}
-          </span>
-        </div>
-
-        {/* Modal Trigger */}
-        {onOpenGuideModal && (
-          <button
-            type="button"
-            onClick={onOpenGuideModal}
-            className="w-full mt-1 py-1.5 px-2.5 bg-white hover:bg-gray-50 border border-red-200 text-[#7E153A] font-bold text-[11px] rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-          >
-            <PlayCircle size={13} />
-            <span>Open Step-by-Step Visual Tutorial</span>
-            <ChevronRight size={12} />
-          </button>
-        )}
       </div>
     </div>
   );

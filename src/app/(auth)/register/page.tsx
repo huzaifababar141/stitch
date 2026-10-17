@@ -7,17 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { PhoneInput } from '@/components/auth/PhoneInput';
 import { AuthBackground } from '@/components/auth/AuthBackground';
-import {
-  Scissors,
-  Loader2,
-  Eye,
-  EyeOff,
-  AlertCircle,
-  ShieldCheck,
-  Truck,
-  Ruler,
-  Sparkles,
-} from 'lucide-react';
+import { Scissors, Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export default function RegisterPage() {
   const { supabase } = useAuth();
@@ -400,28 +390,6 @@ export default function RegisterPage() {
               Sign in
             </Link>
           </p>
-
-          {/* Trust Badges Strip */}
-          <div className="mt-6 pt-5 border-t border-gray-100">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {[
-                { Icon: ShieldCheck, label: 'Secure Data' },
-                { Icon: Truck, label: '7-Day Delivery' },
-                { Icon: Scissors, label: 'Master Tailors' },
-                { Icon: Ruler, label: 'Custom Fit' },
-              ].map(({ Icon, label }) => (
-                <div
-                  key={label}
-                  className="flex items-center gap-1.5 justify-center py-1.5 px-2 rounded-lg bg-gray-50/80 text-gray-600 border border-gray-100"
-                >
-                  <Icon size={12} className="text-[#7E153A] shrink-0" />
-                  <span className="text-[10px] font-semibold truncate">
-                    {label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* Footer disclaimer */}
           <p className="mt-5 text-center text-xs text-gray-400">

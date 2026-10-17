@@ -4,16 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Scissors,
-  Loader2,
-  Eye,
-  EyeOff,
-  AlertCircle,
-  ShieldCheck,
-  Truck,
-  Ruler,
-} from 'lucide-react';
+import { Scissors, Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthBackground } from '@/components/auth/AuthBackground';
 
@@ -273,28 +264,6 @@ export default function LoginPage() {
               Sign up free
             </Link>
           </p>
-
-          {/* Trust Badges Strip */}
-          <div className="mt-6 pt-5 border-t border-gray-100">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {[
-                { Icon: ShieldCheck, label: 'Secure Login' },
-                { Icon: Truck, label: '7-Day Delivery' },
-                { Icon: Scissors, label: 'Master Tailors' },
-                { Icon: Ruler, label: 'Custom Fit' },
-              ].map(({ Icon, label }) => (
-                <div
-                  key={label}
-                  className="flex items-center gap-1.5 justify-center py-1.5 px-2 rounded-lg bg-gray-50/80 text-gray-600 border border-gray-100"
-                >
-                  <Icon size={12} className="text-[#7E153A] shrink-0" />
-                  <span className="text-[10px] font-semibold truncate">
-                    {label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* Footer disclaimer */}
           <p className="mt-5 text-center text-xs text-gray-400">

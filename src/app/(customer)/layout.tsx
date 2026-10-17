@@ -20,7 +20,6 @@ import {
   X,
   User,
   Boxes,
-  Globe,
   ChevronDown,
   Plus,
 } from 'lucide-react';
@@ -40,17 +39,18 @@ export default function CustomerLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       fetch('/api/users/profile')
         .then((res) => res.json())
         .then((data) => setProfile(data.data || data))
         .catch(() => {});
     }
-  }, [user]);
+  }, [user?.id]);
 
-  // Close mobile drawer when route changes
+  // Close mobile drawer when route changes and scroll to top
   useEffect(() => {
     setMobileMenuOpen(false);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [pathname]);
 
   const userName = profile?.firstName
@@ -72,7 +72,6 @@ export default function CustomerLayout({
   ];
 
   const secondaryNavItems = [
-    { icon: Globe, label: 'Main Website', href: '/' },
     { icon: HelpCircle, label: 'Help & Support', href: '/help' },
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];

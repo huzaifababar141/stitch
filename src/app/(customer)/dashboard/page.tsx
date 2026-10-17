@@ -287,6 +287,11 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchDashboardData() {
       if (authLoading) return;
+      if (!user) {
+        setLoadingData(false);
+        return;
+      }
+
       try {
         setLoadingData(true);
         const [profileRes, ordersRes, measurementsRes] = await Promise.all([
@@ -356,18 +361,18 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Metric cards skeletons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* Metric cards skeletons – 2 cols on mobile, 4 on desktop */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4.5">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="bg-white rounded-2xl border border-gray-100 p-4.5 flex items-center justify-between shadow-xs h-[100px] animate-pulse"
+              className="bg-white rounded-2xl border border-gray-100 p-3 sm:p-4.5 flex items-center justify-between shadow-xs min-h-[88px] sm:h-[100px] animate-pulse"
             >
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-full bg-gray-100" />
-                <div className="space-y-2">
-                  <div className="h-6 w-12 bg-gray-200 rounded" />
-                  <div className="h-3 w-20 bg-gray-100 rounded" />
+              <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-100 shrink-0" />
+                <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                  <div className="h-5 sm:h-6 w-10 sm:w-12 bg-gray-200 rounded" />
+                  <div className="h-2.5 sm:h-3 w-16 sm:w-20 bg-gray-100 rounded" />
                 </div>
               </div>
             </div>
@@ -400,16 +405,16 @@ export default function DashboardPage() {
         The tagline is a flex item that naturally centers between greeting and button.
         overflow-hidden clips the top of the tall image cleanly.
       */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#F8E9E0] via-[#F7ECE4] to-[#F5DDD8] pl-6 sm:pl-8 pr-5 sm:pr-6 py-5 min-h-[130px] flex items-center gap-6 shadow-[0_4px_20px_rgba(122,16,56,0.05)] border border-[#F1E6E1]/70">
-        {/* 1. Greeting block – fixed width so it never shrinks */}
-        <div className="relative z-10 shrink-0 w-[260px] sm:w-[300px]">
-          <p className="text-[14px] font-medium text-[#6B6B7B] leading-tight">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#F8E9E0] via-[#F7ECE4] to-[#F5DDD8] p-4 sm:p-5 sm:pl-8 sm:pr-6 min-h-[130px] flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 shadow-[0_4px_20px_rgba(122,16,56,0.05)] border border-[#F1E6E1]/70">
+        {/* 1. Greeting block – fluid on mobile, fixed width on tablet/desktop */}
+        <div className="relative z-10 w-full sm:w-[260px] lg:w-[300px] sm:shrink-0">
+          <p className="text-xs sm:text-[14px] font-medium text-[#6B6B7B] leading-tight">
             Welcome back,
           </p>
-          <h1 className="text-[26px] sm:text-[28px] font-bold text-[#1A1A2E] tracking-tight mt-0.5 leading-snug">
+          <h1 className="text-[20px] sm:text-[24px] lg:text-[28px] font-bold text-[#1A1A2E] tracking-tight mt-0.5 leading-snug">
             {displayName}
           </h1>
-          <p className="text-[13px] text-[#6B6B7B] mt-1 leading-normal">
+          <p className="text-xs sm:text-[13px] text-[#6B6B7B] mt-1 leading-normal">
             You have{' '}
             <strong className="font-bold text-[#7A1038]">
               {activeOrders.length} active{' '}
@@ -417,22 +422,22 @@ export default function DashboardPage() {
             </strong>{' '}
             in tailoring production.
           </p>
-          <div className="h-[2px] w-[36px] bg-[#7A1038] mt-2.5 rounded-full" />
+          <div className="h-[2px] w-[36px] bg-[#7A1038] mt-2 sm:mt-2.5 rounded-full" />
         </div>
 
-        {/* 2. Tagline – flex-1 so it stretches and centers between greeting and button */}
-        <div className="hidden lg:flex flex-1 items-center justify-center relative z-10 select-none">
-          <p className="font-serif italic text-[#1A1A2E] text-[18px] xl:text-[20px] leading-snug text-center">
+        {/* 2. Tagline – reduced font size and shifted leftward */}
+        <div className="hidden lg:flex flex-1 items-center justify-center relative z-10 select-none -translate-x-6 xl:-translate-x-10">
+          <p className="font-serif italic text-[#1A1A2E] text-[13.5px] xl:text-[15px] leading-snug text-center">
             Traditional Craft
             <br />
             Modern Comfort
           </p>
         </div>
 
-        {/* 3. Suit image – absolute, right-aligned, behind the button */}
+        {/* 3. Suit image – shifted left so button does not overlap */}
         <div
           aria-hidden="true"
-          className="pointer-events-none select-none absolute right-[150px] top-0 hidden lg:block h-full w-[210px] z-0"
+          className="pointer-events-none select-none absolute right-[215px] xl:right-[235px] top-0 hidden lg:block h-full w-[195px] xl:w-[210px] z-0"
         >
           <Image
             src="/images/dashboard/suit_banner.png"
@@ -443,88 +448,91 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* 4. Button – shrink-0 so it always stays at its natural width */}
-        <Link href="/new-order" className="relative z-10 shrink-0 ml-auto">
-          <button className="h-10 px-5 rounded-[10px] bg-[#7A1038] hover:bg-[#650D2F] text-white text-[13px] font-semibold flex items-center gap-1.5 shadow-sm shadow-[#7A1038]/25 transition-all duration-150 active:scale-[0.98] cursor-pointer whitespace-nowrap">
+        {/* 4. Button – full-width on mobile, auto on tablet/desktop */}
+        <Link
+          href="/new-order"
+          className="relative z-10 w-full sm:w-auto sm:shrink-0 sm:ml-auto"
+        >
+          <button className="w-full sm:w-auto h-10 px-4 sm:px-5 rounded-[10px] bg-[#7A1038] hover:bg-[#650D2F] text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 shadow-sm shadow-[#7A1038]/25 transition-all duration-150 active:scale-[0.98] cursor-pointer whitespace-nowrap">
             <Plus size={15} className="stroke-[2.5]" />
             <span>Place New Order</span>
           </button>
         </Link>
       </div>
 
-      {/* ── 2. SUMMARY METRIC CARDS (4 Columns) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      {/* ── 2. SUMMARY METRIC CARDS (2 Columns on Mobile, 4 on Desktop) ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4.5">
         {/* Total Orders */}
         <Link
           href="/orders"
-          className="bg-white rounded-2xl border border-[#F1E6E1] p-4 sm:p-4.5 flex items-center justify-between shadow-[0_4px_20px_rgba(122,16,56,0.04)] hover:shadow-[0_8px_24px_rgba(122,16,56,0.08)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer h-[100px] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
+          className="bg-white rounded-2xl border border-[#F1E6E1] p-3 sm:p-4.5 flex items-center justify-between shadow-[0_4px_20px_rgba(122,16,56,0.04)] hover:shadow-[0_8px_24px_rgba(122,16,56,0.08)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer min-h-[88px] sm:h-[100px] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
         >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-12 h-12 rounded-full bg-[#FBE3E8] text-[#7A1038] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
-              <ShoppingBag size={20} className="stroke-[2]" />
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#FBE3E8] text-[#7A1038] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
+              <ShoppingBag className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[2]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[22px] font-bold text-[#1A1A2E] leading-none font-mono tracking-tight">
+              <p className="text-[18px] sm:text-[22px] font-bold text-[#1A1A2E] leading-none font-mono tracking-tight">
                 {orders.length}
               </p>
-              <p className="text-[13px] font-medium text-[#1A1A2E] mt-1 leading-tight truncate">
+              <p className="text-xs sm:text-[13px] font-medium text-[#1A1A2E] mt-1 leading-tight truncate">
                 Total Orders
               </p>
-              <p className="text-xs text-[#A0A0AD] mt-0.5 leading-tight truncate">
+              <p className="text-[11px] sm:text-xs text-[#A0A0AD] mt-0.5 leading-tight truncate">
                 Lifetime
               </p>
             </div>
           </div>
           <ChevronRight
             size={16}
-            className="text-[#A0A0AD] group-hover:text-[#7A1038] group-hover:translate-x-0.5 transition-all shrink-0 ml-2"
+            className="text-[#A0A0AD] group-hover:text-[#7A1038] group-hover:translate-x-0.5 transition-all shrink-0 ml-1.5 hidden sm:block"
           />
         </Link>
 
         {/* Active Orders */}
         <Link
           href="/orders"
-          className="bg-white rounded-2xl border border-[#F1E6E1] p-4 sm:p-4.5 flex items-center justify-between shadow-[0_4px_20px_rgba(122,16,56,0.04)] hover:shadow-[0_8px_24px_rgba(122,16,56,0.08)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer h-[100px] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
+          className="bg-white rounded-2xl border border-[#F1E6E1] p-3 sm:p-4.5 flex items-center justify-between shadow-[0_4px_20px_rgba(122,16,56,0.04)] hover:shadow-[0_8px_24px_rgba(122,16,56,0.08)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer min-h-[88px] sm:h-[100px] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
         >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-12 h-12 rounded-full bg-[#FDEBDD] text-[#E8863A] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
-              <Clock size={20} className="stroke-[2]" />
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#FDEBDD] text-[#E8863A] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
+              <Clock className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[2]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[22px] font-bold text-[#1A1A2E] leading-none font-mono tracking-tight">
+              <p className="text-[18px] sm:text-[22px] font-bold text-[#1A1A2E] leading-none font-mono tracking-tight">
                 {activeOrders.length}
               </p>
-              <p className="text-[13px] font-medium text-[#1A1A2E] mt-1 leading-tight truncate">
+              <p className="text-xs sm:text-[13px] font-medium text-[#1A1A2E] mt-1 leading-tight truncate">
                 Active Orders
               </p>
-              <p className="text-xs text-[#A0A0AD] mt-0.5 leading-tight truncate">
+              <p className="text-[11px] sm:text-xs text-[#A0A0AD] mt-0.5 leading-tight truncate">
                 In production
               </p>
             </div>
           </div>
           <ChevronRight
             size={16}
-            className="text-[#A0A0AD] group-hover:text-[#7A1038] group-hover:translate-x-0.5 transition-all shrink-0 ml-2"
+            className="text-[#A0A0AD] group-hover:text-[#7A1038] group-hover:translate-x-0.5 transition-all shrink-0 ml-1.5 hidden sm:block"
           />
         </Link>
 
         {/* Saved Profiles */}
         <Link
           href="/measurements"
-          className="bg-white rounded-2xl border border-[#F1E6E1] p-4 sm:p-4.5 flex items-center justify-between shadow-[0_4px_20px_rgba(122,16,56,0.04)] hover:shadow-[0_8px_24px_rgba(122,16,56,0.08)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer h-[100px] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
+          className="bg-white rounded-2xl border border-[#F1E6E1] p-3 sm:p-4.5 flex items-center justify-between shadow-[0_4px_20px_rgba(122,16,56,0.04)] hover:shadow-[0_8px_24px_rgba(122,16,56,0.08)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer min-h-[88px] sm:h-[100px] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
         >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-12 h-12 rounded-full bg-[#EDE6F8] text-[#6B4FB3] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
-              <Tag size={20} className="stroke-[2]" />
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#EDE6F8] text-[#6B4FB3] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
+              <Tag className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[2]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[22px] font-bold text-[#1A1A2E] leading-none font-mono tracking-tight">
+              <p className="text-[18px] sm:text-[22px] font-bold text-[#1A1A2E] leading-none font-mono tracking-tight">
                 {measurementProfiles.length}
               </p>
-              <p className="text-[13px] font-medium text-[#1A1A2E] mt-1 leading-tight truncate">
+              <p className="text-xs sm:text-[13px] font-medium text-[#1A1A2E] mt-1 leading-tight truncate">
                 Saved Profiles
               </p>
-              <p className="text-xs text-[#A0A0AD] mt-0.5 leading-tight truncate">
+              <p className="text-[11px] sm:text-xs text-[#A0A0AD] mt-0.5 leading-tight truncate">
                 {defaultMeasurement
                   ? defaultMeasurement.label
                   : 'No profiles saved'}
@@ -533,34 +541,34 @@ export default function DashboardPage() {
           </div>
           <ChevronRight
             size={16}
-            className="text-[#A0A0AD] group-hover:text-[#7A1038] group-hover:translate-x-0.5 transition-all shrink-0 ml-2"
+            className="text-[#A0A0AD] group-hover:text-[#7A1038] group-hover:translate-x-0.5 transition-all shrink-0 ml-1.5 hidden sm:block"
           />
         </Link>
 
         {/* Referral Credit */}
         <Link
           href="/referral"
-          className="bg-white rounded-2xl border border-[#F1E6E1] p-4 sm:p-4.5 flex items-center justify-between shadow-[0_4px_20px_rgba(122,16,56,0.04)] hover:shadow-[0_8px_24px_rgba(122,16,56,0.08)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer h-[100px] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
+          className="bg-white rounded-2xl border border-[#F1E6E1] p-3 sm:p-4.5 flex items-center justify-between shadow-[0_4px_20px_rgba(122,16,56,0.04)] hover:shadow-[0_8px_24px_rgba(122,16,56,0.08)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer min-h-[88px] sm:h-[100px] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
         >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-12 h-12 rounded-full bg-[#DFF3E8] text-[#2E9E6A] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
-              <Wallet size={20} className="stroke-[2]" />
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#DFF3E8] text-[#2E9E6A] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
+              <Wallet className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[2]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[22px] font-bold text-[#1A1A2E] leading-none font-mono tracking-tight">
+              <p className="text-[18px] sm:text-[22px] font-bold text-[#1A1A2E] leading-none font-mono tracking-tight">
                 PKR {Number(referralCredit).toLocaleString()}
               </p>
-              <p className="text-[13px] font-medium text-[#1A1A2E] mt-1 leading-tight truncate">
+              <p className="text-xs sm:text-[13px] font-medium text-[#1A1A2E] mt-1 leading-tight truncate">
                 Referral Credit
               </p>
-              <p className="text-xs text-[#A0A0AD] mt-0.5 leading-tight whitespace-nowrap">
+              <p className="text-[11px] sm:text-xs text-[#A0A0AD] mt-0.5 leading-tight whitespace-nowrap truncate">
                 Available to redeem
               </p>
             </div>
           </div>
           <ChevronRight
             size={16}
-            className="text-[#A0A0AD] group-hover:text-[#7A1038] group-hover:translate-x-0.5 transition-all shrink-0 ml-2"
+            className="text-[#A0A0AD] group-hover:text-[#7A1038] group-hover:translate-x-0.5 transition-all shrink-0 ml-1.5 hidden sm:block"
           />
         </Link>
       </div>

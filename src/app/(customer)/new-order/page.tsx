@@ -109,9 +109,9 @@ function NewOrderContent() {
     'with_sleeves' | 'sleeveless'
   >('with_sleeves');
   const [frockStyle, setFrockStyle] = useState('A-Line');
-  // Men's Styles
-  const [collarStyle, setCollarStyle] = useState('Plain Collar');
-  const [cuffStyle, setCuffStyle] = useState('Plain Cuff');
+  // Men's / Women's Styles
+  const [collarStyle, setCollarStyle] = useState('Band Collar');
+  const [cuffStyle, setCuffStyle] = useState('Straight Sleeve');
   const [waistcoatSleeveType, setWaistcoatSleeveType] = useState<
     'sleeveless' | 'full_sleeves'
   >('sleeveless');
@@ -233,6 +233,87 @@ function NewOrderContent() {
     }
   }, [hasTrouser, activeTab]);
 
+  // Ensure active styles match available options for current gender, garment type & bottom type
+  useEffect(() => {
+    if (gender === 'female') {
+      if (garmentType === 'frock_maxi') {
+        if (!FROCK_NECKLINES.some((n) => n.name === neckStyle)) {
+          setNeckStyle(FROCK_NECKLINES[0].name);
+        }
+        if (!FROCK_SLEEVES.some((s) => s.name === sleeveStyle)) {
+          setSleeveStyle(FROCK_SLEEVES[0].name);
+        }
+        if (!FROCK_STYLES.some((s) => s.name === frockStyle)) {
+          setFrockStyle(FROCK_STYLES[0].name);
+        }
+        if (!FROCK_DAMANS.some((d) => d.name === damanStyle)) {
+          setDamanStyle(FROCK_DAMANS[0].name);
+        }
+      } else {
+        if (!WOMEN_COLLARS.some((c) => c.name === collarStyle)) {
+          setCollarStyle(WOMEN_COLLARS[0].name);
+        }
+        if (!WOMEN_CUFFS.some((c) => c.name === cuffStyle)) {
+          setCuffStyle(WOMEN_CUFFS[0].name);
+        }
+      }
+      if (bottomType === 'shalwar') {
+        if (!WOMEN_SHALWARS.some((s) => s.name === trouserStyle)) {
+          setTrouserStyle(WOMEN_SHALWARS[0].name);
+        }
+      } else {
+        if (!WOMEN_TROUSERS.some((t) => t.name === trouserStyle)) {
+          setTrouserStyle(WOMEN_TROUSERS[0].name);
+        }
+      }
+    } else {
+      if (garmentType === 'waistcoat') {
+        if (!WAISTCOAT_COLLARS.some((c) => c.name === collarStyle)) {
+          setCollarStyle(WAISTCOAT_COLLARS[0].name);
+        }
+        if (!WAISTCOAT_SLEEVES.some((s) => s.name === cuffStyle)) {
+          setCuffStyle(WAISTCOAT_SLEEVES[0].name);
+        }
+      } else if (garmentType === 'pant_coat') {
+        if (!PANT_COAT_STYLES.some((s) => s.name === pantCoatStyle)) {
+          setPantCoatStyle(PANT_COAT_STYLES[0].name);
+        }
+        if (!PANT_COAT_LAPELS.some((l) => l.name === pantCoatLapel)) {
+          setPantCoatLapel(PANT_COAT_LAPELS[0].name);
+        }
+      } else {
+        if (!MEN_COLLARS.some((c) => c.name === collarStyle)) {
+          setCollarStyle(MEN_COLLARS[0].name);
+        }
+        if (!MEN_CUFFS.some((c) => c.name === cuffStyle)) {
+          setCuffStyle(MEN_CUFFS[0].name);
+        }
+      }
+      if (bottomType === 'shalwar') {
+        if (!MEN_SHALWARS.some((s) => s.name === trouserStyle)) {
+          setTrouserStyle(MEN_SHALWARS[0].name);
+        }
+      } else {
+        if (!MEN_TROUSERS.some((t) => t.name === trouserStyle)) {
+          setTrouserStyle(MEN_TROUSERS[0].name);
+        }
+      }
+    }
+  }, [
+    gender,
+    garmentType,
+    bottomType,
+    collarStyle,
+    cuffStyle,
+    trouserStyle,
+    neckStyle,
+    sleeveStyle,
+    frockStyle,
+    damanStyle,
+    pantCoatStyle,
+    pantCoatLapel,
+  ]);
+
   // Apply Trouser Code Handler
   const handleSelectTrouserCode = (item: any) => {
     setSelectedTrouserCode(item.code);
@@ -343,6 +424,11 @@ function NewOrderContent() {
       isMounted = false;
     };
   }, [user]);
+
+  // Scroll window to top whenever wizard step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [currentStep]);
 
   // Load URL query parameters (e.g. from Designs "Apply to Order", etc.)
   useEffect(() => {
@@ -3005,9 +3091,16 @@ function NewOrderContent() {
                   <div className="flex flex-col md:flex-row gap-3 items-stretch">
                     {/* Cards Grid */}
                     <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                      {(gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS).map(
-                        (item) => {
-                          const isSelected = collarStyle === item.name;
+                      {(() => {
+                        const activeCollars =
+                          gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS;
+                        return activeCollars.map((item, idx) => {
+                          const isSelected =
+                            collarStyle === item.name ||
+                            (!activeCollars.some(
+                              (c) => c.name === collarStyle
+                            ) &&
+                              idx === 0);
                           return (
                             <div
                               key={item.name}
@@ -3045,8 +3138,8 @@ function NewOrderContent() {
                               </p>
                             </div>
                           );
-                        }
-                      )}
+                        });
+                      })()}
                     </div>
 
                     {/* "Your Selection" Preview Card */}
@@ -3054,24 +3147,27 @@ function NewOrderContent() {
                       <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
                         Your Selection
                       </span>
-                      <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                        <img
-                          src={
-                            (gender === 'female'
-                              ? WOMEN_COLLARS
-                              : MEN_COLLARS
-                            ).find((c) => c.name === collarStyle)?.image ||
-                            (gender === 'female'
-                              ? WOMEN_COLLARS[0].image
-                              : MEN_COLLARS[0].image)
-                          }
-                          alt={collarStyle}
-                          className="h-full w-auto object-contain"
-                        />
-                      </div>
-                      <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                        {collarStyle}
-                      </span>
+                      {(() => {
+                        const activeCollars =
+                          gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS;
+                        const activeCollar =
+                          activeCollars.find((c) => c.name === collarStyle) ||
+                          activeCollars[0];
+                        return (
+                          <>
+                            <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
+                              <img
+                                src={activeCollar.image}
+                                alt={activeCollar.name}
+                                className="h-full w-auto object-contain"
+                              />
+                            </div>
+                            <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
+                              {activeCollar.name}
+                            </span>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -3095,9 +3191,14 @@ function NewOrderContent() {
                     <div className="flex flex-col md:flex-row gap-3 items-stretch">
                       {/* Cards Grid */}
                       <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                        {(gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS).map(
-                          (item) => {
-                            const isSelected = cuffStyle === item.name;
+                        {(() => {
+                          const activeCuffs =
+                            gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS;
+                          return activeCuffs.map((item, idx) => {
+                            const isSelected =
+                              cuffStyle === item.name ||
+                              (!activeCuffs.some((c) => c.name === cuffStyle) &&
+                                idx === 0);
                             return (
                               <div
                                 key={item.name}
@@ -3135,8 +3236,8 @@ function NewOrderContent() {
                                 </p>
                               </div>
                             );
-                          }
-                        )}
+                          });
+                        })()}
                       </div>
 
                       {/* "Your Selection" Preview Card */}
@@ -3144,24 +3245,27 @@ function NewOrderContent() {
                         <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
                           Your Selection
                         </span>
-                        <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                          <img
-                            src={
-                              (gender === 'female'
-                                ? WOMEN_CUFFS
-                                : MEN_CUFFS
-                              ).find((c) => c.name === cuffStyle)?.image ||
-                              (gender === 'female'
-                                ? WOMEN_CUFFS[0].image
-                                : MEN_CUFFS[0].image)
-                            }
-                            alt={cuffStyle}
-                            className="h-full w-auto object-contain"
-                          />
-                        </div>
-                        <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                          {cuffStyle}
-                        </span>
+                        {(() => {
+                          const activeCuffs =
+                            gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS;
+                          const activeCuff =
+                            activeCuffs.find((c) => c.name === cuffStyle) ||
+                            activeCuffs[0];
+                          return (
+                            <>
+                              <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
+                                <img
+                                  src={activeCuff.image}
+                                  alt={activeCuff.name}
+                                  className="h-full w-auto object-contain"
+                                />
+                              </div>
+                              <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
+                                {activeCuff.name}
+                              </span>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -3222,53 +3326,61 @@ function NewOrderContent() {
                     <div className="flex flex-col md:flex-row gap-3 items-stretch">
                       {/* Cards Grid */}
                       <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                        {(bottomType === 'shalwar'
-                          ? gender === 'female'
-                            ? WOMEN_SHALWARS
-                            : MEN_SHALWARS
-                          : gender === 'female'
-                            ? WOMEN_TROUSERS
-                            : MEN_TROUSERS
-                        ).map((item) => {
-                          const isSelected = trouserStyle === item.name;
-                          return (
-                            <div
-                              key={item.name}
-                              onClick={() => setTrouserStyle(item.name)}
-                              className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                isSelected
-                                  ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                  : 'border-gray-200 hover:border-gray-300 bg-white'
-                              }`}
-                            >
-                              <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  className="h-full w-auto object-contain"
-                                />
-                                {isSelected && (
-                                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                    <Check
-                                      size={9}
-                                      className="text-white"
-                                      strokeWidth={3.5}
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                              <p
-                                className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                        {(() => {
+                          const activeTrousers =
+                            bottomType === 'shalwar'
+                              ? gender === 'female'
+                                ? WOMEN_SHALWARS
+                                : MEN_SHALWARS
+                              : gender === 'female'
+                                ? WOMEN_TROUSERS
+                                : MEN_TROUSERS;
+                          return activeTrousers.map((item, idx) => {
+                            const isSelected =
+                              trouserStyle === item.name ||
+                              (!activeTrousers.some(
+                                (t) => t.name === trouserStyle
+                              ) &&
+                                idx === 0);
+                            return (
+                              <div
+                                key={item.name}
+                                onClick={() => setTrouserStyle(item.name)}
+                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
                                   isSelected
-                                    ? 'text-[#7E153A]'
-                                    : 'text-gray-800'
+                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
+                                    : 'border-gray-200 hover:border-gray-300 bg-white'
                                 }`}
                               >
-                                {item.name}
-                              </p>
-                            </div>
-                          );
-                        })}
+                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    className="h-full w-auto object-contain"
+                                  />
+                                  {isSelected && (
+                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
+                                      <Check
+                                        size={9}
+                                        className="text-white"
+                                        strokeWidth={3.5}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                                <p
+                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                    isSelected
+                                      ? 'text-[#7E153A]'
+                                      : 'text-gray-800'
+                                  }`}
+                                >
+                                  {item.name}
+                                </p>
+                              </div>
+                            );
+                          });
+                        })()}
                       </div>
 
                       {/* "Your Selection" Preview Card */}
@@ -3276,32 +3388,34 @@ function NewOrderContent() {
                         <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
                           Your Selection
                         </span>
-                        <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                          <img
-                            src={
-                              (bottomType === 'shalwar'
-                                ? gender === 'female'
-                                  ? WOMEN_SHALWARS
-                                  : MEN_SHALWARS
-                                : gender === 'female'
-                                  ? WOMEN_TROUSERS
-                                  : MEN_TROUSERS
-                              ).find((t) => t.name === trouserStyle)?.image ||
-                              (bottomType === 'shalwar'
-                                ? gender === 'female'
-                                  ? WOMEN_SHALWARS[0].image
-                                  : MEN_SHALWARS[0].image
-                                : gender === 'female'
-                                  ? WOMEN_TROUSERS[0].image
-                                  : MEN_TROUSERS[0].image)
-                            }
-                            alt={trouserStyle}
-                            className="h-full w-auto object-contain"
-                          />
-                        </div>
-                        <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                          {trouserStyle}
-                        </span>
+                        {(() => {
+                          const activeTrousers =
+                            bottomType === 'shalwar'
+                              ? gender === 'female'
+                                ? WOMEN_SHALWARS
+                                : MEN_SHALWARS
+                              : gender === 'female'
+                                ? WOMEN_TROUSERS
+                                : MEN_TROUSERS;
+                          const activeTrouser =
+                            activeTrousers.find(
+                              (t) => t.name === trouserStyle
+                            ) || activeTrousers[0];
+                          return (
+                            <>
+                              <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
+                                <img
+                                  src={activeTrouser.image}
+                                  alt={activeTrouser.name}
+                                  className="h-full w-auto object-contain"
+                                />
+                              </div>
+                              <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
+                                {activeTrouser.name}
+                              </span>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -3802,21 +3916,23 @@ function NewOrderContent() {
                 ) : (
                   <>
                     {/* Collar Design */}
+                    {/* Collar Design */}
                     <div className="flex items-center gap-2.5">
                       <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
-                        <img
-                          src={
-                            (gender === 'female'
-                              ? WOMEN_COLLARS
-                              : MEN_COLLARS
-                            ).find((c) => c.name === collarStyle)?.image ||
-                            (gender === 'female'
-                              ? WOMEN_COLLARS[0].image
-                              : MEN_COLLARS[0].image)
-                          }
-                          alt="Collar"
-                          className="h-full w-auto object-contain"
-                        />
+                        {(() => {
+                          const activeList =
+                            gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS;
+                          const activeCollar =
+                            activeList.find((c) => c.name === collarStyle) ||
+                            activeList[0];
+                          return (
+                            <img
+                              src={activeCollar.image}
+                              alt={activeCollar.name}
+                              className="h-full w-auto object-contain"
+                            />
+                          );
+                        })()}
                       </div>
                       <div className="min-w-0">
                         <span className="text-[10px] text-gray-400 block leading-tight">
@@ -3825,7 +3941,14 @@ function NewOrderContent() {
                             : 'Collar Design'}
                         </span>
                         <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
-                          {collarStyle}
+                          {(() => {
+                            const activeList =
+                              gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS;
+                            return (
+                              activeList.find((c) => c.name === collarStyle) ||
+                              activeList[0]
+                            ).name;
+                          })()}
                         </span>
                       </div>
                     </div>
@@ -3834,19 +3957,20 @@ function NewOrderContent() {
                     {hasSleeves && (
                       <div className="flex items-center gap-2.5">
                         <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
-                          <img
-                            src={
-                              (gender === 'female'
-                                ? WOMEN_CUFFS
-                                : MEN_CUFFS
-                              ).find((c) => c.name === cuffStyle)?.image ||
-                              (gender === 'female'
-                                ? WOMEN_CUFFS[0].image
-                                : MEN_CUFFS[0].image)
-                            }
-                            alt="Cuff"
-                            className="h-full w-auto object-contain"
-                          />
+                          {(() => {
+                            const activeList =
+                              gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS;
+                            const activeCuff =
+                              activeList.find((c) => c.name === cuffStyle) ||
+                              activeList[0];
+                            return (
+                              <img
+                                src={activeCuff.image}
+                                alt={activeCuff.name}
+                                className="h-full w-auto object-contain"
+                              />
+                            );
+                          })()}
                         </div>
                         <div className="min-w-0">
                           <span className="text-[10px] text-gray-400 block leading-tight">
@@ -3855,7 +3979,14 @@ function NewOrderContent() {
                               : 'Cuff Design'}
                           </span>
                           <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
-                            {cuffStyle}
+                            {(() => {
+                              const activeList =
+                                gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS;
+                              return (
+                                activeList.find((c) => c.name === cuffStyle) ||
+                                activeList[0]
+                              ).name;
+                            })()}
                           </span>
                         </div>
                       </div>
@@ -4489,287 +4620,315 @@ function NewOrderContent() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 grid grid-cols-2 gap-3 text-xs">
-                  {activeTab === 'shirt' && (
-                    <>
-                      {(gender === 'male'
-                        ? [
-                            {
-                              id: 'shirt_length',
-                              name:
-                                garmentType === 'waistcoat'
-                                  ? 'Waist Coat Length'
-                                  : 'Kurta / Kameez Length',
-                              defaultVal:
-                                garmentType === 'waistcoat' ? '28' : '42',
-                            },
-                            {
-                              id: 'bust',
-                              name: 'Chest Width',
-                              defaultVal: '40',
-                            },
-                            { id: 'waist', name: 'Waist', defaultVal: '36' },
-                            {
-                              id: 'neck',
-                              name: 'Collar / Neck Size',
-                              defaultVal: '15',
-                            },
-                            {
-                              id: 'shoulder',
-                              name: 'Shoulder (Teera)',
-                              defaultVal: '18',
-                            },
-                            ...(hasSleeves
-                              ? [
-                                  {
-                                    id: 'sleeve_length',
-                                    name: 'Sleeve Length',
-                                    defaultVal: '24',
-                                  },
-                                  {
-                                    id: 'armhole',
-                                    name: 'Bicep / Armhole',
-                                    defaultVal: '9',
-                                  },
-                                  {
-                                    id: 'cuff',
-                                    name: 'Wrist / Cuff Opening',
-                                    defaultVal: '9.5',
-                                  },
-                                ]
-                              : [
-                                  {
-                                    id: 'armhole',
-                                    name: 'Armhole Opening',
-                                    defaultVal: '9.5',
-                                  },
-                                ]),
-                          ]
-                        : [
-                            {
-                              id: 'shirt_length',
-                              name:
-                                garmentType === 'frock_maxi'
-                                  ? 'Frock Length'
-                                  : garmentType === 'kameez_only'
-                                    ? 'Shirt Length'
-                                    : 'Kameez Length',
-                              defaultVal:
-                                garmentType === 'frock_maxi' ? '48' : '42',
-                            },
-                            {
-                              id: 'bust',
-                              name: 'Chest / Bust',
-                              defaultVal: '38',
-                            },
-                            { id: 'waist', name: 'Waist', defaultVal: '32' },
-                            { id: 'hip', name: 'Hips', defaultVal: '40' },
-                            {
-                              id: 'shoulder',
-                              name: 'Shoulder Width',
-                              defaultVal: '14.5',
-                            },
-                            ...(hasSleeves
-                              ? [
-                                  {
-                                    id: 'sleeve_length',
-                                    name: 'Sleeve Length',
-                                    defaultVal: '22',
-                                  },
-                                ]
-                              : []),
-                          ]
-                      ).map((field) => (
-                        <div key={field.id} className="space-y-1">
-                          <label className="text-[11px] font-bold text-gray-700 block">
-                            {field.name} ({unit === 'inches' ? 'in' : 'cm'}){' '}
-                            <span className="text-[#7E153A]">*</span>
-                          </label>
-                          <Input
-                            type="number"
-                            step="0.5"
-                            value={measurements[field.id] || field.defaultVal}
-                            onFocus={() => setActiveField(field.id)}
-                            onChange={(e) =>
-                              updateMeasurement(field.id, e.target.value)
-                            }
-                            className="h-9 text-xs bg-white font-mono font-bold"
-                            required
-                          />
-                        </div>
-                      ))}
-                    </>
-                  )}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                <div className="md:col-span-2 flex flex-col justify-between h-full min-h-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 sm:gap-x-8 gap-y-5 sm:gap-y-6 w-full">
+                    {activeTab === 'shirt' && (
+                      <>
+                        {(gender === 'male'
+                          ? [
+                              {
+                                id: 'shirt_length',
+                                name:
+                                  garmentType === 'waistcoat'
+                                    ? 'Waist Coat Length'
+                                    : 'Kurta / Kameez Length',
+                                defaultVal:
+                                  garmentType === 'waistcoat' ? '28' : '42',
+                              },
+                              {
+                                id: 'bust',
+                                name: 'Chest Width',
+                                defaultVal: '40',
+                              },
+                              { id: 'waist', name: 'Waist', defaultVal: '36' },
+                              {
+                                id: 'neck',
+                                name: 'Collar / Neck Size',
+                                defaultVal: '15',
+                              },
+                              {
+                                id: 'shoulder',
+                                name: 'Shoulder (Teera)',
+                                defaultVal: '18',
+                              },
+                              ...(hasSleeves
+                                ? [
+                                    {
+                                      id: 'sleeve_length',
+                                      name: 'Sleeve Length',
+                                      defaultVal: '24',
+                                    },
+                                    {
+                                      id: 'armhole',
+                                      name: 'Bicep / Armhole',
+                                      defaultVal: '9',
+                                    },
+                                    {
+                                      id: 'cuff',
+                                      name: 'Wrist / Cuff Opening',
+                                      defaultVal: '9.5',
+                                    },
+                                  ]
+                                : [
+                                    {
+                                      id: 'armhole',
+                                      name: 'Armhole Opening',
+                                      defaultVal: '9.5',
+                                    },
+                                  ]),
+                            ]
+                          : [
+                              {
+                                id: 'shirt_length',
+                                name:
+                                  garmentType === 'frock_maxi'
+                                    ? 'Frock Length'
+                                    : garmentType === 'kameez_only'
+                                      ? 'Shirt Length'
+                                      : 'Kameez Length',
+                                defaultVal:
+                                  garmentType === 'frock_maxi' ? '48' : '42',
+                              },
+                              {
+                                id: 'bust',
+                                name: 'Chest / Bust',
+                                defaultVal: '38',
+                              },
+                              { id: 'waist', name: 'Waist', defaultVal: '32' },
+                              { id: 'hip', name: 'Hips', defaultVal: '40' },
+                              {
+                                id: 'shoulder',
+                                name: 'Shoulder Width',
+                                defaultVal: '14.5',
+                              },
+                              ...(hasSleeves
+                                ? [
+                                    {
+                                      id: 'sleeve_length',
+                                      name: 'Sleeve Length',
+                                      defaultVal: '22',
+                                    },
+                                  ]
+                                : []),
+                            ]
+                        ).map((field) => (
+                          <div key={field.id} className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-700 block">
+                              {field.name} ({unit === 'inches' ? 'in' : 'cm'}){' '}
+                              <span className="text-[#7E153A]">*</span>
+                            </label>
+                            <Input
+                              type="number"
+                              step="0.5"
+                              value={measurements[field.id] || field.defaultVal}
+                              onFocus={() => setActiveField(field.id)}
+                              onChange={(e) =>
+                                updateMeasurement(field.id, e.target.value)
+                              }
+                              className="h-11 text-sm bg-white font-mono font-bold px-3.5 rounded-xl border border-gray-200 focus:border-[#7E153A] focus:ring-2 focus:ring-[#7E153A]/10 shadow-2xs transition-all w-full"
+                              required
+                            />
+                          </div>
+                        ))}
+                      </>
+                    )}
 
-                  {hasTrouser && activeTab === 'trouser' && (
-                    <div className="col-span-2 space-y-3 mb-2">
-                      {/* Quick Trouser Code Selector Bar */}
-                      <div className="bg-white p-3 rounded-2xl border border-gray-200/70 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-extrabold text-gray-700 flex items-center gap-1.5">
-                            <Sliders size={13} className="text-[#7E153A]" />
-                            {gender === 'male'
-                              ? bottomType === 'shalwar'
-                                ? "Standard Men's Shalwar Size Codes:"
-                                : "Standard Men's Trouser Size Codes:"
-                              : bottomType === 'shalwar'
-                                ? "Standard Women's Shalwar Size Codes:"
-                                : "Standard Women's Trouser Size Codes:"}
-                          </span>
-                          <span className="text-[10px] text-gray-400">
-                            Tap to load & inspect dimensions
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
-                          {(gender === 'male'
-                            ? MEN_TROUSER_CODES
-                            : WOMEN_TROUSER_CODES
-                          ).map((item) => {
-                            const isSelected =
-                              selectedTrouserCode === item.code;
-                            return (
-                              <button
-                                key={item.code}
-                                type="button"
-                                onClick={() => handleSelectTrouserCode(item)}
-                                className={`py-1.5 px-2 rounded-xl border text-center transition-all cursor-pointer ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50 text-[#7E153A] ring-2 ring-[#7E153A]/20 font-extrabold shadow-xs'
-                                    : 'border-gray-200 bg-gray-50/60 hover:bg-white text-gray-700 font-bold'
-                                }`}
-                              >
-                                <span className="text-xs font-mono block">
-                                  {item.code}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        {/* Live Trouser Code Breakdown Card */}
-                        {selectedTrouserCode && (
-                          <div className="mt-2 p-2.5 bg-red-50/60 border border-red-100 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
-                            <div className="flex items-center gap-2">
-                              <span className="bg-[#7E153A] text-white font-mono font-bold text-[10px] px-2 py-0.5 rounded-md">
-                                Code: {selectedTrouserCode}
-                              </span>
-                              <span className="text-[11px] text-gray-600 font-medium">
-                                {gender === 'male'
-                                  ? `Length: ${measurements.trouser_length || '40'}${unit === 'inches' ? '"' : 'cm'} · Waist: ${measurements.waist_bottom || '34'}${unit === 'inches' ? '"' : 'cm'} · Paicha: ${measurements.bottom_opening || '16'}${unit === 'inches' ? '"' : 'cm'}`
-                                  : `Length: ${measurements.trouser_length || '39'}${unit === 'inches' ? '"' : 'cm'} · Waist: ${measurements.waist_bottom || '30'}${unit === 'inches' ? '"' : 'cm'} · Paicha: ${measurements.bottom_opening || '14'}${unit === 'inches' ? '"' : 'cm'}`}
-                              </span>
-                            </div>
-                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                              Dimensions Applied
+                    {hasTrouser && activeTab === 'trouser' && (
+                      <div className="col-span-1 sm:col-span-2 space-y-3 mb-2">
+                        {/* Quick Trouser Code Selector Bar */}
+                        <div className="bg-white p-3 rounded-2xl border border-gray-200/70 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-extrabold text-gray-700 flex items-center gap-1.5">
+                              <Sliders size={13} className="text-[#7E153A]" />
+                              {gender === 'male'
+                                ? bottomType === 'shalwar'
+                                  ? "Standard Men's Shalwar Size Codes:"
+                                  : "Standard Men's Trouser Size Codes:"
+                                : bottomType === 'shalwar'
+                                  ? "Standard Women's Shalwar Size Codes:"
+                                  : "Standard Women's Trouser Size Codes:"}
+                            </span>
+                            <span className="text-[10px] text-gray-400">
+                              Tap to load & inspect dimensions
                             </span>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
 
-                  {hasTrouser && activeTab === 'trouser' && (
-                    <>
-                      {(gender === 'male'
-                        ? [
-                            {
-                              id: 'trouser_length',
-                              name: 'Shalwar Length',
-                              defaultVal: '40',
-                            },
-                            {
-                              id: 'waist_bottom',
-                              name: 'Inseam / Asan Depth',
-                              defaultVal: '34',
-                            },
-                            {
-                              id: 'bottom_opening',
-                              name: 'Paicha (Bottom Opening)',
-                              defaultVal: '16',
-                            },
-                            {
-                              id: 'hip_bottom',
-                              name: 'Ghera / Seat Width',
-                              defaultVal: '24',
-                            },
-                          ]
-                        : [
-                            {
-                              id: 'trouser_length',
-                              name: 'Trouser Length',
-                              defaultVal: '39',
-                            },
-                            {
-                              id: 'waist_bottom',
-                              name: 'Trouser Waist',
-                              defaultVal: '30',
-                            },
-                            {
-                              id: 'bottom_opening',
-                              name: 'Ankle Opening (Paicha)',
-                              defaultVal: '14',
-                            },
-                            {
-                              id: 'hip_bottom',
-                              name: 'Hips / Seat',
-                              defaultVal: '42',
-                            },
-                          ]
-                      ).map((field) => (
-                        <div key={field.id} className="space-y-1">
-                          <label className="text-[11px] font-bold text-gray-700 block">
-                            {field.name} ({unit === 'inches' ? 'in' : 'cm'}){' '}
-                            <span className="text-[#7E153A]">*</span>
-                          </label>
-                          <Input
-                            type="number"
-                            step="0.5"
-                            value={measurements[field.id] || field.defaultVal}
-                            onFocus={() => setActiveField(field.id)}
-                            onChange={(e) =>
-                              updateMeasurement(field.id, e.target.value)
-                            }
-                            className="h-9 text-xs bg-white font-mono font-bold"
-                            required
-                          />
+                          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                            {(gender === 'male'
+                              ? MEN_TROUSER_CODES
+                              : WOMEN_TROUSER_CODES
+                            ).map((item) => {
+                              const isSelected =
+                                selectedTrouserCode === item.code;
+                              return (
+                                <button
+                                  key={item.code}
+                                  type="button"
+                                  onClick={() => handleSelectTrouserCode(item)}
+                                  className={`py-1.5 px-2 rounded-xl border text-center transition-all cursor-pointer ${
+                                    isSelected
+                                      ? 'border-[#7E153A] bg-red-50 text-[#7E153A] ring-2 ring-[#7E153A]/20 font-extrabold shadow-xs'
+                                      : 'border-gray-200 bg-gray-50/60 hover:bg-white text-gray-700 font-bold'
+                                  }`}
+                                >
+                                  <span className="text-xs font-mono block">
+                                    {item.code}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Live Trouser Code Breakdown Card */}
+                          {selectedTrouserCode && (
+                            <div className="mt-2 p-2.5 bg-red-50/60 border border-red-100 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
+                              <div className="flex items-center gap-2">
+                                <span className="bg-[#7E153A] text-white font-mono font-bold text-[10px] px-2 py-0.5 rounded-md">
+                                  Code: {selectedTrouserCode}
+                                </span>
+                                <span className="text-[11px] text-gray-600 font-medium">
+                                  {gender === 'male'
+                                    ? `Length: ${measurements.trouser_length || '40'}${unit === 'inches' ? '"' : 'cm'} · Waist: ${measurements.waist_bottom || '34'}${unit === 'inches' ? '"' : 'cm'} · Paicha: ${measurements.bottom_opening || '16'}${unit === 'inches' ? '"' : 'cm'}`
+                                    : `Length: ${measurements.trouser_length || '39'}${unit === 'inches' ? '"' : 'cm'} · Waist: ${measurements.waist_bottom || '30'}${unit === 'inches' ? '"' : 'cm'} · Paicha: ${measurements.bottom_opening || '14'}${unit === 'inches' ? '"' : 'cm'}`}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                                Dimensions Applied
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      ))}
-                    </>
-                  )}
+                      </div>
+                    )}
+
+                    {hasTrouser && activeTab === 'trouser' && (
+                      <>
+                        {(gender === 'male'
+                          ? [
+                              {
+                                id: 'trouser_length',
+                                name: 'Shalwar Length',
+                                defaultVal: '40',
+                              },
+                              {
+                                id: 'waist_bottom',
+                                name: 'Inseam / Asan Depth',
+                                defaultVal: '34',
+                              },
+                              {
+                                id: 'bottom_opening',
+                                name: 'Paicha (Bottom Opening)',
+                                defaultVal: '16',
+                              },
+                              {
+                                id: 'hip_bottom',
+                                name: 'Ghera / Seat Width',
+                                defaultVal: '24',
+                              },
+                            ]
+                          : [
+                              {
+                                id: 'trouser_length',
+                                name: 'Trouser Length',
+                                defaultVal: '39',
+                              },
+                              {
+                                id: 'waist_bottom',
+                                name: 'Trouser Waist',
+                                defaultVal: '30',
+                              },
+                              {
+                                id: 'bottom_opening',
+                                name: 'Ankle Opening (Paicha)',
+                                defaultVal: '14',
+                              },
+                              {
+                                id: 'hip_bottom',
+                                name: 'Hips / Seat',
+                                defaultVal: '42',
+                              },
+                            ]
+                        ).map((field) => (
+                          <div key={field.id} className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-700 block">
+                              {field.name} ({unit === 'inches' ? 'in' : 'cm'}){' '}
+                              <span className="text-[#7E153A]">*</span>
+                            </label>
+                            <Input
+                              type="number"
+                              step="0.5"
+                              value={measurements[field.id] || field.defaultVal}
+                              onFocus={() => setActiveField(field.id)}
+                              onChange={(e) =>
+                                updateMeasurement(field.id, e.target.value)
+                              }
+                              className="h-11 text-sm bg-white font-mono font-bold px-3.5 rounded-xl border border-gray-200 focus:border-[#7E153A] focus:ring-2 focus:ring-[#7E153A]/10 shadow-2xs transition-all w-full"
+                              required
+                            />
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Navigation Controls (Aligned with bottom line of Body Diagram) */}
+                  <div className="flex items-center justify-between mt-auto pt-6 pb-2 gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentStep(2)}
+                      className="h-11 px-4 sm:px-6 text-xs font-semibold rounded-xl cursor-pointer shrink-0"
+                    >
+                      <ArrowLeft size={14} className="mr-1.5" /> Back
+                    </Button>
+
+                    <Button
+                      onClick={() => handleGoToStep(4)}
+                      className="h-11 px-4 sm:px-8 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer shrink-0"
+                    >
+                      <span className="sm:hidden">Continue</span>
+                      <span className="hidden sm:inline">
+                        Continue to Delivery Address
+                      </span>{' '}
+                      <ArrowRight size={14} className="ml-1.5" />
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="flex flex-col items-center justify-center p-2 bg-white rounded-xl border border-gray-100">
+                <div className="flex flex-col items-center justify-center p-2 bg-white rounded-xl border border-gray-100 sticky top-20">
                   <BodyDiagram
                     activeField={activeField}
                     gender={gender}
                     onSelectField={(f) => setActiveField(f)}
-                    onOpenGuideModal={() => setShowHowToMeasure(true)}
                   />
                 </div>
               </div>
             </div>
           )}
 
-          {/* Navigation Controls */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep(2)}
-              className="h-11 px-6 text-xs font-semibold rounded-xl cursor-pointer"
-            >
-              <ArrowLeft size={14} className="mr-1.5" /> Back
-            </Button>
+          {/* Navigation Controls (when Saved Fit Profile is selected) */}
+          {selectedProfileId !== 'custom' && (
+            <div className="flex items-center justify-between pt-4 border-t border-gray-100 gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep(2)}
+                className="h-11 px-4 sm:px-6 text-xs font-semibold rounded-xl cursor-pointer shrink-0"
+              >
+                <ArrowLeft size={14} className="mr-1.5" /> Back
+              </Button>
 
-            <Button
-              onClick={() => handleGoToStep(4)}
-              className="h-11 px-8 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer"
-            >
-              Continue to Delivery Address{' '}
-              <ArrowRight size={14} className="ml-1.5" />
-            </Button>
-          </div>
+              <Button
+                onClick={() => handleGoToStep(4)}
+                className="h-11 px-4 sm:px-8 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer shrink-0"
+              >
+                <span className="sm:hidden">Continue</span>
+                <span className="hidden sm:inline">
+                  Continue to Delivery Address
+                </span>{' '}
+                <ArrowRight size={14} className="ml-1.5" />
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
