@@ -1,37 +1,56 @@
-import { useState, useEffect } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
-import { User } from '@supabase/supabase-js'
+import { useState, useEffect, useMemo } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import {
+  User,
+  type Session,
+  type AuthChangeEvent,
+} from '@supabase/supabase-js';
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null)
-      setLoading(false)
-    })
+    let isMounted = true;
 
-    // Fetch initial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null)
-      setLoading(false)
-    })
+    // Fetch initial session
+    supabase.auth
+      .getSession()
+      .then(({ data }: { data: { session: Session | null } }) => {
+        if (isMounted) {
+          setUser(data.session?.user || null);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        if (isMounted) {
+          setUser(session?.user || null);
+          setLoading(false);
+        }
+      }
+    );
 
     return () => {
-      subscription.unsubscribe()
-    }
-  }, [supabase])
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    window.location.href = '/login'
-  }
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
 
-  return { user, loading, signOut, supabase }
+  return { user, loading, signOut, supabase };
 }

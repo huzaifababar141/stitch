@@ -231,11 +231,26 @@ export default function CustomerStockCatalogPage() {
 
       {/* Catalog Grid */}
       {loading ? (
-        <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#7E153A] mb-3" />
-          <p className="text-sm font-bold text-gray-700">
-            Loading Fabric Catalog...
-          </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 min-w-0 w-full animate-in fade-in duration-200">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-xs flex flex-col justify-between animate-pulse"
+            >
+              <div className="aspect-3/4 bg-gray-100" />
+              <div className="p-5 space-y-3">
+                <div className="h-3 w-20 bg-gray-200 rounded" />
+                <div className="space-y-1.5">
+                  <div className="h-4 w-full bg-gray-300 rounded" />
+                  <div className="h-4 w-3/4 bg-gray-200 rounded" />
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <div className="h-5 w-24 bg-gray-200 rounded" />
+                  <div className="h-4 w-16 bg-gray-100 rounded-full" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : products.length === 0 ? (
         <div className="bg-white rounded-3xl border border-dashed border-gray-200 p-16 text-center space-y-3">

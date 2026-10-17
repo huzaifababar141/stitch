@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { confirmDialog } from '@/components/ui/confirm-dialog';
 import { DragDropImageUploader } from '@/components/admin/DragDropImageUploader';
 
 interface ProductItem {
@@ -99,7 +100,9 @@ export default function AdminStockPage() {
 
   // Modal / Drawer state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
+  const [editingProduct, setEditingProduct] = useState<ProductItem | null>(
+    null
+  );
   const [saving, setSaving] = useState(false);
 
   // Form Fields State
@@ -108,7 +111,9 @@ export default function AdminStockPage() {
   const [formDescription, setFormDescription] = useState('');
   const [formImages, setFormImages] = useState<string[]>([]);
   const [formPrice, setFormPrice] = useState<number | ''>(4500);
-  const [formGender, setFormGender] = useState<'female' | 'male' | 'unisex'>('female');
+  const [formGender, setFormGender] = useState<'female' | 'male' | 'unisex'>(
+    'female'
+  );
   const [formGarmentSubtype, setFormGarmentSubtype] = useState('full_suit');
   const [formFabricType, setFormFabricType] = useState('lawn');
   const [formPiecesCount, setFormPiecesCount] = useState('3 Piece');
@@ -116,9 +121,15 @@ export default function AdminStockPage() {
   const [formSku, setFormSku] = useState('');
   const [formColorTags, setFormColorTags] = useState<string[]>(['Maroon']);
   const [colorInput, setColorInput] = useState('');
-  const [formShirtFabric, setFormShirtFabric] = useState('Embroidered Lawn 3.0 Meters');
-  const [formDupattaFabric, setFormDupattaFabric] = useState('Printed Chiffon 2.5 Meters');
-  const [formTrouserFabric, setFormTrouserFabric] = useState('Dyed Cambric Cotton 2.5 Meters');
+  const [formShirtFabric, setFormShirtFabric] = useState(
+    'Embroidered Lawn 3.0 Meters'
+  );
+  const [formDupattaFabric, setFormDupattaFabric] = useState(
+    'Printed Chiffon 2.5 Meters'
+  );
+  const [formTrouserFabric, setFormTrouserFabric] = useState(
+    'Dyed Cambric Cotton 2.5 Meters'
+  );
   const [formInStock, setFormInStock] = useState(true);
 
   // Fetch articles from API
@@ -166,7 +177,9 @@ export default function AdminStockPage() {
     setEditingProduct(null);
     setFormName('');
     setFormBrand('TailorLink Studio');
-    setFormDescription('Pure unstitched boutique quality fabric. Ready for bespoke tailoring.');
+    setFormDescription(
+      'Pure unstitched boutique quality fabric. Ready for bespoke tailoring.'
+    );
     setFormImages([]);
     setFormPrice(4500);
     setFormGender('female');
@@ -192,7 +205,9 @@ export default function AdminStockPage() {
     setFormImages(Array.isArray(p.images) ? (p.images as string[]) : []);
     setFormPrice(Number(p.priceOriginal || 0));
     setFormGender((p.parseMetadata?.gender as any) || 'female');
-    setFormGarmentSubtype(p.parseMetadata?.garmentSubtype || p.garmentType || 'full_suit');
+    setFormGarmentSubtype(
+      p.parseMetadata?.garmentSubtype || p.garmentType || 'full_suit'
+    );
     setFormFabricType(p.fabricType || 'lawn');
     setFormPiecesCount(p.parseMetadata?.piecesCount || '3 Piece');
     setFormStockQty(p.parseMetadata?.stockQuantity ?? 10);
@@ -201,7 +216,7 @@ export default function AdminStockPage() {
     setFormShirtFabric(p.parseMetadata?.specifications?.shirtFabric || '');
     setFormDupattaFabric(p.parseMetadata?.specifications?.dupattaFabric || '');
     setFormTrouserFabric(p.parseMetadata?.specifications?.trouserFabric || '');
-    setFormInStock(p.isActive && (p.parseMetadata?.inStock !== false));
+    setFormInStock(p.isActive && p.parseMetadata?.inStock !== false);
     setIsModalOpen(true);
   };
 
@@ -223,15 +238,27 @@ export default function AdminStockPage() {
     e.preventDefault();
 
     if (!formName.trim()) {
-      toast({ title: 'Validation Error', description: 'Article name is required.', variant: 'destructive' });
+      toast({
+        title: 'Validation Error',
+        description: 'Article name is required.',
+        variant: 'destructive',
+      });
       return;
     }
     if (formImages.length === 0) {
-      toast({ title: 'Validation Error', description: 'Please upload at least 1 photo for this article.', variant: 'destructive' });
+      toast({
+        title: 'Validation Error',
+        description: 'Please upload at least 1 photo for this article.',
+        variant: 'destructive',
+      });
       return;
     }
     if (typeof formPrice !== 'number' || formPrice <= 0) {
-      toast({ title: 'Validation Error', description: 'Please provide a valid price in PKR.', variant: 'destructive' });
+      toast({
+        title: 'Validation Error',
+        description: 'Please provide a valid price in PKR.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -305,10 +332,17 @@ export default function AdminStockPage() {
 
   // Delete Article
   const handleDeleteArticle = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to remove "${name}" from stock?`)) return;
+    const ok = await confirmDialog({
+      title: `Remove "${name}"?`,
+      confirmText: 'Remove',
+      variant: 'destructive',
+    });
+    if (!ok) return;
 
     try {
-      const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/products/${id}`, {
+        method: 'DELETE',
+      });
       const json = await res.json();
       if (!res.ok) {
         throw new Error(json.error?.message || 'Failed to delete article.');
@@ -342,13 +376,18 @@ export default function AdminStockPage() {
             </h1>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            Manage your unstitched fabric articles, reorder gallery photos, and set PKR prices for direct tailoring.
+            Manage your unstitched fabric articles, reorder gallery photos, and
+            set PKR prices for direct tailoring.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <Link href="/stock" target="_blank">
-            <Button variant="outline" size="sm" className="rounded-xl border-gray-200 text-xs font-bold gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl border-gray-200 text-xs font-bold gap-1.5"
+            >
               <ExternalLink size={14} /> Preview Storefront
             </Button>
           </Link>
@@ -367,24 +406,36 @@ export default function AdminStockPage() {
           <span className="text-[11px] uppercase font-bold text-gray-400 tracking-wider">
             Total Articles
           </span>
-          <p className="text-2xl font-black text-gray-900">{stats.totalArticles}</p>
-          <span className="text-[11px] text-gray-500 font-medium">Curated unstitched suits</span>
+          <p className="text-2xl font-black text-gray-900">
+            {stats.totalArticles}
+          </p>
+          <span className="text-[11px] text-gray-500 font-medium">
+            Curated unstitched suits
+          </span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-1">
           <span className="text-[11px] uppercase font-bold text-emerald-600 tracking-wider">
             Active In Stock
           </span>
-          <p className="text-2xl font-black text-emerald-700">{stats.inStockCount}</p>
-          <span className="text-[11px] text-gray-500 font-medium">Ready for customer ordering</span>
+          <p className="text-2xl font-black text-emerald-700">
+            {stats.inStockCount}
+          </p>
+          <span className="text-[11px] text-gray-500 font-medium">
+            Ready for customer ordering
+          </span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-1">
           <span className="text-[11px] uppercase font-bold text-amber-600 tracking-wider">
             Low Stock Alert
           </span>
-          <p className="text-2xl font-black text-amber-700">{stats.lowStockCount}</p>
-          <span className="text-[11px] text-gray-500 font-medium">3 or fewer units remaining</span>
+          <p className="text-2xl font-black text-amber-700">
+            {stats.lowStockCount}
+          </p>
+          <span className="text-[11px] text-gray-500 font-medium">
+            3 or fewer units remaining
+          </span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-1">
@@ -394,7 +445,9 @@ export default function AdminStockPage() {
           <p className="text-2xl font-black font-mono text-[#7E153A]">
             PKR {Math.round(stats.totalValuation).toLocaleString()}
           </p>
-          <span className="text-[11px] text-gray-500 font-medium">Retail stock valuation</span>
+          <span className="text-[11px] text-gray-500 font-medium">
+            Retail stock valuation
+          </span>
         </div>
       </div>
 
@@ -463,7 +516,9 @@ export default function AdminStockPage() {
       {loading ? (
         <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#7E153A] mb-3" />
-          <p className="text-sm font-bold text-gray-700">Loading In-House Inventory...</p>
+          <p className="text-sm font-bold text-gray-700">
+            Loading In-House Inventory...
+          </p>
         </div>
       ) : products.length === 0 ? (
         <div className="bg-white rounded-3xl border border-dashed border-gray-200 p-16 text-center space-y-4">
@@ -471,9 +526,12 @@ export default function AdminStockPage() {
             <Package size={28} />
           </div>
           <div>
-            <h3 className="text-base font-extrabold text-gray-900">No Stock Articles Found</h3>
+            <h3 className="text-base font-extrabold text-gray-900">
+              No Stock Articles Found
+            </h3>
             <p className="text-xs text-gray-500 max-w-sm mx-auto mt-1">
-              Start building your in-house catalog by uploading your first article with photos and tailoring prices.
+              Start building your in-house catalog by uploading your first
+              article with photos and tailoring prices.
             </p>
           </div>
           <Button
@@ -486,12 +544,15 @@ export default function AdminStockPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {products.map((item) => {
-            const images = Array.isArray(item.images) ? (item.images as string[]) : [];
+            const images = Array.isArray(item.images)
+              ? (item.images as string[])
+              : [];
             const coverImage = images[0] || '/placeholder.jpg';
             const price = Number(item.priceOriginal || 0);
             const meta = item.parseMetadata || {};
             const qty = meta.stockQuantity ?? 0;
-            const isAvailable = item.isActive && (meta.inStock !== false) && qty > 0;
+            const isAvailable =
+              item.isActive && meta.inStock !== false && qty > 0;
 
             return (
               <div
@@ -533,7 +594,9 @@ export default function AdminStockPage() {
                   <div>
                     <div className="flex items-center justify-between text-[11px] text-gray-400 font-bold uppercase tracking-wider">
                       <span>{item.brand}</span>
-                      <span className="text-[#7E153A] font-semibold capitalize">{item.fabricType}</span>
+                      <span className="text-[#7E153A] font-semibold capitalize">
+                        {item.fabricType}
+                      </span>
                     </div>
 
                     <h3 className="font-extrabold text-sm text-gray-900 line-clamp-2 mt-1 leading-snug">
@@ -541,7 +604,9 @@ export default function AdminStockPage() {
                     </h3>
 
                     <p className="text-[11px] text-gray-500 mt-1 line-clamp-1">
-                      {meta.piecesCount || '3-Piece'} · {meta.garmentSubtype?.replace('_', ' ') || item.garmentType}
+                      {meta.piecesCount || '3-Piece'} ·{' '}
+                      {meta.garmentSubtype?.replace('_', ' ') ||
+                        item.garmentType}
                     </p>
                   </div>
 
@@ -598,10 +663,13 @@ export default function AdminStockPage() {
                 </span>
                 <div>
                   <h2 className="text-lg font-black text-gray-900 leading-tight">
-                    {editingProduct ? 'Edit Stock Article & Photos' : 'Add New Article to In-House Stock'}
+                    {editingProduct
+                      ? 'Edit Stock Article & Photos'
+                      : 'Add New Article to In-House Stock'}
                   </h2>
                   <p className="text-xs text-gray-500">
-                    Upload photos, arrange cover picture, and specify Pakistani tailoring details.
+                    Upload photos, arrange cover picture, and specify Pakistani
+                    tailoring details.
                   </p>
                 </div>
               </div>
@@ -615,7 +683,10 @@ export default function AdminStockPage() {
             </div>
 
             {/* Modal Body Form */}
-            <form onSubmit={handleSubmitArticle} className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+            <form
+              onSubmit={handleSubmitArticle}
+              className="p-6 overflow-y-auto space-y-6 flex-1 text-xs"
+            >
               {/* Image Reordering Studio */}
               <div className="bg-stone-50/70 p-5 rounded-3xl border border-stone-200">
                 <DragDropImageUploader
@@ -634,7 +705,8 @@ export default function AdminStockPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="font-bold text-gray-700">
-                      Article Name / Title <span className="text-[#7E153A]">*</span>
+                      Article Name / Title{' '}
+                      <span className="text-[#7E153A]">*</span>
                     </label>
                     <Input
                       placeholder="e.g. Khaadi Embroidered 3-Piece Lawn"
@@ -647,7 +719,8 @@ export default function AdminStockPage() {
 
                   <div className="space-y-1.5">
                     <label className="font-bold text-gray-700">
-                      Brand / Studio Label <span className="text-[#7E153A]">*</span>
+                      Brand / Studio Label{' '}
+                      <span className="text-[#7E153A]">*</span>
                     </label>
                     <Input
                       placeholder="e.g. TailorLink Studio, Sapphire, J."
@@ -661,7 +734,9 @@ export default function AdminStockPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
-                    <label className="font-bold text-gray-700">Target Gender</label>
+                    <label className="font-bold text-gray-700">
+                      Target Gender
+                    </label>
                     <select
                       value={formGender}
                       onChange={(e) => setFormGender(e.target.value as any)}
@@ -674,7 +749,9 @@ export default function AdminStockPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="font-bold text-gray-700">Garment Style</label>
+                    <label className="font-bold text-gray-700">
+                      Garment Style
+                    </label>
                     <select
                       value={formGarmentSubtype}
                       onChange={(e) => setFormGarmentSubtype(e.target.value)}
@@ -689,7 +766,9 @@ export default function AdminStockPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="font-bold text-gray-700">Fabric Weave Type</label>
+                    <label className="font-bold text-gray-700">
+                      Fabric Weave Type
+                    </label>
                     <select
                       value={formFabricType}
                       onChange={(e) => setFormFabricType(e.target.value)}
@@ -714,20 +793,27 @@ export default function AdminStockPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div className="space-y-1.5">
                     <label className="font-bold text-gray-700">
-                      Fabric Retail Price (PKR) <span className="text-[#7E153A]">*</span>
+                      Fabric Retail Price (PKR){' '}
+                      <span className="text-[#7E153A]">*</span>
                     </label>
                     <Input
                       type="number"
                       placeholder="e.g. 4500"
                       value={formPrice}
-                      onChange={(e) => setFormPrice(e.target.value ? Number(e.target.value) : '')}
+                      onChange={(e) =>
+                        setFormPrice(
+                          e.target.value ? Number(e.target.value) : ''
+                        )
+                      }
                       className="h-10 text-xs rounded-xl font-mono font-bold"
                       required
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="font-bold text-gray-700">Pieces Included</label>
+                    <label className="font-bold text-gray-700">
+                      Pieces Included
+                    </label>
                     <select
                       value={formPiecesCount}
                       onChange={(e) => setFormPiecesCount(e.target.value)}
@@ -740,18 +826,26 @@ export default function AdminStockPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="font-bold text-gray-700">Available Stock Quantity</label>
+                    <label className="font-bold text-gray-700">
+                      Available Stock Quantity
+                    </label>
                     <Input
                       type="number"
                       placeholder="e.g. 10"
                       value={formStockQty}
-                      onChange={(e) => setFormStockQty(Math.max(0, parseInt(e.target.value) || 0))}
+                      onChange={(e) =>
+                        setFormStockQty(
+                          Math.max(0, parseInt(e.target.value) || 0)
+                        )
+                      }
                       className="h-10 text-xs rounded-xl font-mono font-bold"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="font-bold text-gray-700">SKU / Article Code</label>
+                    <label className="font-bold text-gray-700">
+                      SKU / Article Code
+                    </label>
                     <Input
                       placeholder="e.g. TLK-L26-001"
                       value={formSku}
@@ -763,7 +857,9 @@ export default function AdminStockPage() {
 
                 {/* Color Tags */}
                 <div className="space-y-2">
-                  <label className="font-bold text-gray-700 block">Color Palette Tags</label>
+                  <label className="font-bold text-gray-700 block">
+                    Color Palette Tags
+                  </label>
                   <div className="flex flex-wrap items-center gap-2">
                     {formColorTags.map((tag) => (
                       <span
@@ -815,7 +911,9 @@ export default function AdminStockPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
-                    <label className="font-bold text-gray-700">Shirt / Kameez Cut</label>
+                    <label className="font-bold text-gray-700">
+                      Shirt / Kameez Cut
+                    </label>
                     <Input
                       placeholder="e.g. Embroidered Lawn 3.0 Meters"
                       value={formShirtFabric}
@@ -825,7 +923,9 @@ export default function AdminStockPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="font-bold text-gray-700">Dupatta / Sadri Cut</label>
+                    <label className="font-bold text-gray-700">
+                      Dupatta / Sadri Cut
+                    </label>
                     <Input
                       placeholder="e.g. Printed Chiffon 2.5 Meters"
                       value={formDupattaFabric}
@@ -835,7 +935,9 @@ export default function AdminStockPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="font-bold text-gray-700">Trouser / Bottom Cut</label>
+                    <label className="font-bold text-gray-700">
+                      Trouser / Bottom Cut
+                    </label>
                     <Input
                       placeholder="e.g. Dyed Cambric Cotton 2.5 Meters"
                       value={formTrouserFabric}
@@ -846,7 +948,9 @@ export default function AdminStockPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-bold text-gray-700">Description & Care Instructions</label>
+                  <label className="font-bold text-gray-700">
+                    Description & Care Instructions
+                  </label>
                   <textarea
                     rows={3}
                     placeholder="Article highlights, texture description, shrink before wash guidelines..."
@@ -860,9 +964,12 @@ export default function AdminStockPage() {
               {/* Availability Switch */}
               <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100">
                 <div>
-                  <h4 className="font-extrabold text-gray-900 text-xs">Visible on Customer Storefront</h4>
+                  <h4 className="font-extrabold text-gray-900 text-xs">
+                    Visible on Customer Storefront
+                  </h4>
                   <p className="text-[11px] text-gray-500">
-                    When active, customers can discover this article and order bespoke tailoring.
+                    When active, customers can discover this article and order
+                    bespoke tailoring.
                   </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">

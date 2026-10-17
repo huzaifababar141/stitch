@@ -20,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { confirmDialog } from '@/components/ui/confirm-dialog';
 import { useTailorRealtime } from '@/hooks/useTailorRealtime';
 
 export default function TailorDashboardPage() {
@@ -76,12 +77,11 @@ export default function TailorDashboardPage() {
   ) => {
     const actionLabel =
       newStatus === 'in_stitching' ? 'Start Stitching' : 'Complete Stitching';
-    if (
-      !confirm(
-        `Are you sure you want to ${actionLabel.toLowerCase()} on this order?`
-      )
-    )
-      return;
+    const ok = await confirmDialog({
+      title: `${actionLabel}?`,
+      confirmText: actionLabel,
+    });
+    if (!ok) return;
 
     setUpdatingId(orderId);
     try {

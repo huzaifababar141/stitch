@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ShoppingBag,
   Ruler,
@@ -11,17 +12,17 @@ import {
   Package,
   ChevronRight,
   Plus,
-  Star,
-  TrendingUp,
   AlertCircle,
   Scissors,
   Sparkles,
   Gift,
-  Bell,
-  ArrowRight,
+  Boxes,
+  Zap,
+  Tag,
+  Wallet,
+  Shirt,
   Eye,
   Loader2,
-  Boxes,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -223,45 +224,6 @@ function getTimelineForStatus(status: string) {
   }));
 }
 
-// ─── Sub-Components ───────────────────────────────────────────────────────────
-
-function StatCard({
-  icon: Icon,
-  value,
-  label,
-  sublabel,
-  color,
-}: {
-  icon: React.ElementType;
-  value: string | number;
-  label: string;
-  sublabel?: string;
-  color: string;
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3.5 sm:p-5 flex flex-col sm:flex-row items-start gap-2.5 sm:gap-4 hover:shadow-md transition-shadow">
-      <div
-        className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 ${color}`}
-      >
-        <Icon size={18} className="sm:w-[22px] sm:h-[22px]" />
-      </div>
-      <div className="min-w-0 w-full">
-        <p className="text-xl sm:text-2xl font-extrabold text-gray-900 leading-none truncate font-mono">
-          {value}
-        </p>
-        <p className="text-xs sm:text-sm font-semibold text-gray-700 mt-1 truncate">
-          {label}
-        </p>
-        {sublabel && (
-          <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5 truncate">
-            {sublabel}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function OrderProgressBar({ progress }: { progress: number }) {
   return (
     <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
@@ -324,6 +286,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchDashboardData() {
+      if (authLoading) return;
       try {
         setLoadingData(true);
         const [profileRes, ordersRes, measurementsRes] = await Promise.all([
@@ -357,14 +320,14 @@ export default function DashboardPage() {
     }
 
     fetchDashboardData();
-  }, [user]);
+  }, [user, authLoading]);
 
   // Derived user details
   const displayName = profile?.firstName
     ? `${profile.firstName} ${profile.lastName || ''}`.trim()
     : user?.user_metadata?.first_name
       ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`.trim()
-      : user?.email?.split('@')[0] || 'Valued Customer';
+      : user?.email?.split('@')[0] || 'Customer';
 
   // Derived Stats
   const activeOrders = orders.filter(
@@ -373,98 +336,248 @@ export default function DashboardPage() {
       o.status !== 'cancelled' &&
       o.status !== 'refunded'
   );
-  const completedOrders = orders.filter((o) => o.status === 'delivered');
   const defaultMeasurement =
     measurementProfiles.find((m) => m.isDefault) || measurementProfiles[0];
   const referralCredit = profile?.metadata?.referralCredit || 0;
 
   if (authLoading || loadingData) {
     return (
-      <div className="max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[400px] text-gray-500">
-        <Loader2 size={36} className="animate-spin text-[#7E153A] mb-3" />
-        <p className="text-sm font-medium">Loading your dashboard...</p>
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 font-sans min-w-0 w-full animate-in fade-in duration-300">
+        {/* Hero banner skeleton */}
+        <div className="bg-gradient-to-r from-[#F8E9E0] via-[#F7ECE4] to-[#F5DDD8] rounded-2xl p-6 sm:p-8 min-h-[130px] flex items-center justify-between shadow-xs animate-pulse">
+          <div className="space-y-2">
+            <div className="h-4 w-28 bg-[#7A1038]/15 rounded" />
+            <div className="h-7 w-48 bg-[#7A1038]/25 rounded-md" />
+            <div className="h-3 w-64 bg-[#7A1038]/15 rounded" />
+          </div>
+          <div className="hidden sm:flex items-center gap-2 bg-white/70 rounded-xl px-4 py-2 border border-[#7A1038]/10 text-xs font-semibold text-[#7A1038]">
+            <Loader2 size={16} className="animate-spin text-[#7A1038]" />
+            <span>Loading dashboard...</span>
+          </div>
+        </div>
+
+        {/* Metric cards skeletons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl border border-gray-100 p-4.5 flex items-center justify-between shadow-xs h-[100px] animate-pulse"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-full bg-gray-100" />
+                <div className="space-y-2">
+                  <div className="h-6 w-12 bg-gray-200 rounded" />
+                  <div className="h-3 w-20 bg-gray-100 rounded" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Content area skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 space-y-4 shadow-xs animate-pulse">
+            <div className="h-5 w-40 bg-gray-200 rounded" />
+            <div className="h-28 bg-gray-50 rounded-xl" />
+            <div className="h-28 bg-gray-50 rounded-xl" />
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 shadow-xs animate-pulse">
+            <div className="h-5 w-32 bg-gray-200 rounded" />
+            <div className="h-36 bg-gray-50 rounded-xl" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-4 sm:space-y-8 font-sans min-w-0 w-full">
-      {/* Welcome Banner ───────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#7E153A] to-[#911642] rounded-3xl p-5 sm:p-8 text-white shadow-xl shadow-[#7E153A]/15 z-0">
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 translate-x-24 -translate-y-24 pointer-events-none" />
-        <div className="absolute bottom-0 right-16 w-32 h-32 rounded-full bg-white/5 pointer-events-none" />
-
-        <div className="relative z-[1] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <p className="text-xs sm:text-sm font-medium text-white/80 mb-1">
-              Welcome back,
-            </p>
-            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-              {displayName}
-            </h1>
-            <p className="text-xs sm:text-sm text-white/90 mt-1">
-              You have{' '}
-              <span className="font-bold underline underline-offset-4 decoration-white/40">
-                {activeOrders.length}{' '}
-                {activeOrders.length === 1 ? 'active order' : 'active orders'}
-              </span>{' '}
-              in tailoring production.
-            </p>
-          </div>
-          <Link href="/new-order" className="w-full sm:w-auto">
-            <button className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white text-[#7E153A] font-bold text-xs sm:text-sm px-5 py-3 rounded-xl hover:bg-red-50 transition-all shadow-md active:scale-95 cursor-pointer">
-              <Plus size={16} className="stroke-[3]" />
-              Place New Order
-            </button>
-          </Link>
+    <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 font-sans min-w-0 w-full">
+      {/* ── 1. WELCOME HERO BANNER ── */}
+      {/*
+        Layout (left → right):
+          [greeting block]   [tagline – flex center]   [image – absolute, right edge]   [button]
+        The image is pinned to the right, strictly behind the button (right-[168px]).
+        The tagline is a flex item that naturally centers between greeting and button.
+        overflow-hidden clips the top of the tall image cleanly.
+      */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#F8E9E0] via-[#F7ECE4] to-[#F5DDD8] pl-6 sm:pl-8 pr-5 sm:pr-6 py-5 min-h-[130px] flex items-center gap-6 shadow-[0_4px_20px_rgba(122,16,56,0.05)] border border-[#F1E6E1]/70">
+        {/* 1. Greeting block – fixed width so it never shrinks */}
+        <div className="relative z-10 shrink-0 w-[260px] sm:w-[300px]">
+          <p className="text-[14px] font-medium text-[#6B6B7B] leading-tight">
+            Welcome back,
+          </p>
+          <h1 className="text-[26px] sm:text-[28px] font-bold text-[#1A1A2E] tracking-tight mt-0.5 leading-snug">
+            {displayName}
+          </h1>
+          <p className="text-[13px] text-[#6B6B7B] mt-1 leading-normal">
+            You have{' '}
+            <strong className="font-bold text-[#7A1038]">
+              {activeOrders.length} active{' '}
+              {activeOrders.length === 1 ? 'order' : 'orders'}
+            </strong>{' '}
+            in tailoring production.
+          </p>
+          <div className="h-[2px] w-[36px] bg-[#7A1038] mt-2.5 rounded-full" />
         </div>
+
+        {/* 2. Tagline – flex-1 so it stretches and centers between greeting and button */}
+        <div className="hidden lg:flex flex-1 items-center justify-center relative z-10 select-none">
+          <p className="font-serif italic text-[#1A1A2E] text-[18px] xl:text-[20px] leading-snug text-center">
+            Traditional Craft
+            <br />
+            Modern Comfort
+          </p>
+        </div>
+
+        {/* 3. Suit image – absolute, right-aligned, behind the button */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute right-[150px] top-0 hidden lg:block h-full w-[210px] z-0"
+        >
+          <Image
+            src="/images/dashboard/suit_banner.png"
+            alt=""
+            fill
+            priority
+            className="object-contain object-right-bottom"
+          />
+        </div>
+
+        {/* 4. Button – shrink-0 so it always stays at its natural width */}
+        <Link href="/new-order" className="relative z-10 shrink-0 ml-auto">
+          <button className="h-10 px-5 rounded-[10px] bg-[#7A1038] hover:bg-[#650D2F] text-white text-[13px] font-semibold flex items-center gap-1.5 shadow-sm shadow-[#7A1038]/25 transition-all duration-150 active:scale-[0.98] cursor-pointer whitespace-nowrap">
+            <Plus size={15} className="stroke-[2.5]" />
+            <span>Place New Order</span>
+          </button>
+        </Link>
       </div>
 
-      {/* Stats Row ─────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <StatCard
-          icon={ShoppingBag}
-          value={orders.length}
-          label="Total Orders"
-          sublabel="Lifetime"
-          color="bg-red-50 text-[#7E153A]"
-        />
-        <StatCard
-          icon={Clock}
-          value={activeOrders.length}
-          label="Active Orders"
-          sublabel="In production"
-          color="bg-red-50 text-[#7E153A]"
-        />
-        <StatCard
-          icon={Ruler}
-          value={measurementProfiles.length}
-          label="Saved Profiles"
-          sublabel={
-            defaultMeasurement
-              ? `Default: ${defaultMeasurement.label}`
-              : 'No profiles saved'
-          }
-          color="bg-[#7E153A]/10 text-[#7E153A]"
-        />
-        <StatCard
-          icon={TrendingUp}
-          value={`PKR ${Number(referralCredit).toLocaleString()}`}
-          label="Referral Credit"
-          sublabel="Available to redeem"
-          color="bg-red-50 text-[#7E153A]"
-        />
+      {/* ── 2. SUMMARY METRIC CARDS (4 Columns) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* Total Orders */}
+        <Link
+          href="/orders"
+          className="bg-white rounded-2xl border border-[#F1E6E1] p-4 sm:p-4.5 flex items-center justify-between shadow-[0_4px_20px_rgba(122,16,56,0.04)] hover:shadow-[0_8px_24px_rgba(122,16,56,0.08)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer h-[100px] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
+        >
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-[#FBE3E8] text-[#7A1038] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
+              <ShoppingBag size={20} className="stroke-[2]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[22px] font-bold text-[#1A1A2E] leading-none font-mono tracking-tight">
+                {orders.length}
+              </p>
+              <p className="text-[13px] font-medium text-[#1A1A2E] mt-1 leading-tight truncate">
+                Total Orders
+              </p>
+              <p className="text-xs text-[#A0A0AD] mt-0.5 leading-tight truncate">
+                Lifetime
+              </p>
+            </div>
+          </div>
+          <ChevronRight
+            size={16}
+            className="text-[#A0A0AD] group-hover:text-[#7A1038] group-hover:translate-x-0.5 transition-all shrink-0 ml-2"
+          />
+        </Link>
+
+        {/* Active Orders */}
+        <Link
+          href="/orders"
+          className="bg-white rounded-2xl border border-[#F1E6E1] p-4 sm:p-4.5 flex items-center justify-between shadow-[0_4px_20px_rgba(122,16,56,0.04)] hover:shadow-[0_8px_24px_rgba(122,16,56,0.08)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer h-[100px] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
+        >
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-[#FDEBDD] text-[#E8863A] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
+              <Clock size={20} className="stroke-[2]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[22px] font-bold text-[#1A1A2E] leading-none font-mono tracking-tight">
+                {activeOrders.length}
+              </p>
+              <p className="text-[13px] font-medium text-[#1A1A2E] mt-1 leading-tight truncate">
+                Active Orders
+              </p>
+              <p className="text-xs text-[#A0A0AD] mt-0.5 leading-tight truncate">
+                In production
+              </p>
+            </div>
+          </div>
+          <ChevronRight
+            size={16}
+            className="text-[#A0A0AD] group-hover:text-[#7A1038] group-hover:translate-x-0.5 transition-all shrink-0 ml-2"
+          />
+        </Link>
+
+        {/* Saved Profiles */}
+        <Link
+          href="/measurements"
+          className="bg-white rounded-2xl border border-[#F1E6E1] p-4 sm:p-4.5 flex items-center justify-between shadow-[0_4px_20px_rgba(122,16,56,0.04)] hover:shadow-[0_8px_24px_rgba(122,16,56,0.08)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer h-[100px] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
+        >
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-[#EDE6F8] text-[#6B4FB3] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
+              <Tag size={20} className="stroke-[2]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[22px] font-bold text-[#1A1A2E] leading-none font-mono tracking-tight">
+                {measurementProfiles.length}
+              </p>
+              <p className="text-[13px] font-medium text-[#1A1A2E] mt-1 leading-tight truncate">
+                Saved Profiles
+              </p>
+              <p className="text-xs text-[#A0A0AD] mt-0.5 leading-tight truncate">
+                {defaultMeasurement
+                  ? defaultMeasurement.label
+                  : 'No profiles saved'}
+              </p>
+            </div>
+          </div>
+          <ChevronRight
+            size={16}
+            className="text-[#A0A0AD] group-hover:text-[#7A1038] group-hover:translate-x-0.5 transition-all shrink-0 ml-2"
+          />
+        </Link>
+
+        {/* Referral Credit */}
+        <Link
+          href="/referral"
+          className="bg-white rounded-2xl border border-[#F1E6E1] p-4 sm:p-4.5 flex items-center justify-between shadow-[0_4px_20px_rgba(122,16,56,0.04)] hover:shadow-[0_8px_24px_rgba(122,16,56,0.08)] hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer h-[100px] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1038]/40"
+        >
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-[#DFF3E8] text-[#2E9E6A] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
+              <Wallet size={20} className="stroke-[2]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[22px] font-bold text-[#1A1A2E] leading-none font-mono tracking-tight">
+                PKR {Number(referralCredit).toLocaleString()}
+              </p>
+              <p className="text-[13px] font-medium text-[#1A1A2E] mt-1 leading-tight truncate">
+                Referral Credit
+              </p>
+              <p className="text-xs text-[#A0A0AD] mt-0.5 leading-tight whitespace-nowrap">
+                Available to redeem
+              </p>
+            </div>
+          </div>
+          <ChevronRight
+            size={16}
+            className="text-[#A0A0AD] group-hover:text-[#7A1038] group-hover:translate-x-0.5 transition-all shrink-0 ml-2"
+          />
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-        {/* LEFT: Active Orders & Recent Orders ─────────────────────────────── */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* ── 3. MAIN DASHBOARD SPLIT ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* LEFT COLUMN: Active Orders & Popular Categories */}
+        <div className="lg:col-span-8 space-y-7 min-w-0">
           {/* Active Orders Section */}
           <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-gray-900">
-                Active Orders
-              </h2>
+            <div className="flex items-center justify-between mb-3.5">
+              <div>
+                <h2 className="text-sm sm:text-base font-bold text-gray-900">
+                  Active Orders
+                </h2>
+                <div className="h-0.5 w-6 bg-[#7E153A] mt-1 rounded-full" />
+              </div>
               {activeOrders.length > 0 && (
                 <Link
                   href="/orders"
@@ -476,10 +589,48 @@ export default function DashboardPage() {
             </div>
 
             {activeOrders.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 text-center">
-                <div className="w-12 h-12 rounded-full bg-red-50 text-[#7E153A] flex items-center justify-center mx-auto mb-3">
-                  <Package size={24} />
+              /* Empty State Card matching reference */
+              <div className="bg-white rounded-3xl border border-[#F2EAE5] p-8 sm:p-12 text-center relative overflow-hidden shadow-xs">
+                {/* Decorative botanical branch in bottom-left */}
+                <div className="absolute -bottom-2 -left-2 pointer-events-none opacity-40">
+                  <svg width="90" height="90" viewBox="0 0 100 100" fill="none">
+                    <path
+                      d="M10 90C30 70 50 60 70 50"
+                      stroke="#C8A59B"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M25 75C28 65 38 68 35 78C32 88 22 85 25 75Z"
+                      fill="#E8D2CC"
+                    />
+                    <path
+                      d="M45 65C48 55 58 58 55 68C52 78 42 75 45 65Z"
+                      fill="#E8D2CC"
+                    />
+                    <path
+                      d="M35 70C45 68 50 78 40 82"
+                      stroke="#C8A59B"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
                 </div>
+
+                <div className="w-14 h-14 rounded-full bg-[#FDF0F3] text-[#7E153A] flex items-center justify-center mx-auto mb-3">
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 2a3 3 0 0 0-3 3c0 1.3.8 2.4 2 2.8V9L2.8 16.2A2 2 0 0 0 4.2 19h15.6a2 2 0 0 0 1.4-2.8L13 9V7.8A3 3 0 0 0 12 2z" />
+                  </svg>
+                </div>
+
                 <h3 className="text-base font-bold text-gray-900 mb-1">
                   No Active Orders
                 </h3>
@@ -489,12 +640,13 @@ export default function DashboardPage() {
                   doorstep delivery.
                 </p>
                 <Link href="/new-order">
-                  <button className="inline-flex items-center gap-2 bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-[#7E153A]/20 active:scale-95 cursor-pointer">
-                    <Plus size={16} /> Place Your First Order
+                  <button className="inline-flex items-center gap-2 bg-[#7E153A] hover:bg-[#68102f] text-white text-xs sm:text-sm font-semibold px-6 py-2.5 rounded-xl transition-all shadow-sm shadow-[#7E153A]/20 active:scale-95 cursor-pointer">
+                    <Plus size={15} /> Place Your First Order
                   </button>
                 </Link>
               </div>
             ) : (
+              /* Active Orders List */
               <div className="space-y-4">
                 {activeOrders.map((order) => {
                   const statusCfg =
@@ -524,7 +676,7 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={order.id}
-                      className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 hover:shadow-md transition-shadow"
+                      className="bg-white rounded-2xl border border-[#F2EAE5] shadow-xs p-4 sm:p-5 hover:shadow-md transition-shadow"
                     >
                       {/* Order Header */}
                       <div className="flex gap-3 sm:gap-4 mb-4">
@@ -609,7 +761,7 @@ export default function DashboardPage() {
                       {/* Actions */}
                       <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-gray-100">
                         <Link href={`/orders/${order.id}`}>
-                          <button className="flex items-center gap-1.5 text-xs font-semibold text-[#7E153A] bg-red-50 hover:bg-red-100 px-3.5 py-2 rounded-xl transition-colors cursor-pointer">
+                          <button className="flex items-center gap-1.5 text-xs font-semibold text-[#7E153A] bg-[#FDF0F3] hover:bg-[#FCE6EA] px-3.5 py-2 rounded-xl transition-colors cursor-pointer">
                             <Eye size={14} /> Track Order
                           </button>
                         </Link>
@@ -630,112 +782,203 @@ export default function DashboardPage() {
             )}
           </section>
 
-          {/* Completed Orders Section */}
-          {completedOrders.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-bold text-gray-900">
-                  Recently Delivered
-                </h2>
-                <Link
-                  href="/orders"
-                  className="text-xs text-[#7E153A] font-semibold hover:underline flex items-center gap-1"
-                >
-                  All Orders <ChevronRight size={14} />
-                </Link>
-              </div>
+          {/* ── Popular Categories ── */}
+          <section>
+            <div className="flex items-center justify-between mb-3.5">
+              <h2 className="text-sm sm:text-base font-bold text-gray-900">
+                Popular Categories
+              </h2>
+              <Link
+                href="/stock"
+                className="text-xs text-[#7E153A] font-semibold hover:underline flex items-center gap-1"
+              >
+                View All <ChevronRight size={13} />
+              </Link>
+            </div>
 
-              <div className="space-y-3">
-                {completedOrders.slice(0, 3).map((order) => {
-                  const brand =
-                    order.product?.brand ||
-                    order.productSnapshot?.brand ||
-                    'Designer Brand';
-                  const title =
-                    order.product?.name ||
-                    order.productSnapshot?.name ||
-                    `${order.garmentType?.replace(/_/g, ' ').toUpperCase()} Custom Stitch`;
-                  const imageUrl =
-                    order.product?.images?.[0] ||
-                    order.productSnapshot?.images?.[0] ||
-                    '/login_bg.jpg';
-                  const deliveredDate = new Date(
-                    order.updatedAt
-                  ).toLocaleDateString('en-PK', {
-                    month: 'short',
-                    day: 'numeric',
-                  });
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+              {/* Men's Wear */}
+              <Link
+                href="/new-order?category=men"
+                className="bg-[#FDF3F3] border border-[#FBE6E6] rounded-2xl p-4 flex flex-col justify-between hover:shadow-xs hover:border-[#F7D2D2] transition-all group"
+              >
+                <div className="w-10 h-10 mb-3 text-[#7E153A] group-hover:scale-105 transition-transform">
+                  <svg
+                    viewBox="0 0 40 40"
+                    fill="none"
+                    className="w-full h-full"
+                  >
+                    <path
+                      d="M14 6L20 10L26 6L29 11L25 13V34H15V13L11 11L14 6Z"
+                      stroke="#7E153A"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M20 10V22"
+                      stroke="#7E153A"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M17 14H23"
+                      stroke="#7E153A"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-xs sm:text-sm">
+                    Men&apos;s Wear
+                  </h3>
+                  <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">
+                    Kurtas, Shalwar Kameez, Waistcoats
+                  </p>
+                </div>
+              </Link>
 
-                  return (
-                    <div
-                      key={order.id}
-                      className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow flex flex-col sm:flex-row gap-3 sm:gap-4"
-                    >
-                      <div className="flex gap-3 sm:gap-4 flex-1 min-w-0">
-                        <div className="w-14 h-16 rounded-xl overflow-hidden shrink-0 bg-gray-100 border border-gray-100">
-                          <img
-                            src={imageUrl}
-                            alt={title}
-                            className="object-cover w-full h-full"
-                            onError={(e: any) => {
-                              e.currentTarget.src =
-                                'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300&auto=format&fit=crop&q=60';
-                            }}
-                          />
-                        </div>
+              {/* Women's Wear */}
+              <Link
+                href="/new-order?category=women"
+                className="bg-[#FDF5F7] border border-[#FCECF0] rounded-2xl p-4 flex flex-col justify-between hover:shadow-xs hover:border-[#F8D9E1] transition-all group"
+              >
+                <div className="w-10 h-10 mb-3 text-[#7E153A] group-hover:scale-105 transition-transform">
+                  <svg
+                    viewBox="0 0 40 40"
+                    fill="none"
+                    className="w-full h-full"
+                  >
+                    <path
+                      d="M16 8C17.5 10 22.5 10 24 8L27 15L23 18L28 34H12L17 18L13 15L16 8Z"
+                      stroke="#7E153A"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M20 10V18"
+                      stroke="#7E153A"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-xs sm:text-sm">
+                    Women&apos;s Wear
+                  </h3>
+                  <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">
+                    Kurtis, Frocks, Dupattas
+                  </p>
+                </div>
+              </Link>
 
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-bold text-[#7E153A] uppercase tracking-wider">
-                            {brand}
-                          </p>
-                          <h3 className="text-sm font-bold text-gray-900 truncate">
-                            {title}
-                          </h3>
-                          <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-gray-500">
-                            <span>Delivered {deliveredDate}</span>
-                            <span>·</span>
-                            <span className="font-semibold text-gray-900 font-mono">
-                              PKR {Number(order.totalAmount).toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+              {/* Fabric Collection */}
+              <Link
+                href="/stock"
+                className="bg-[#F4F9F6] border border-[#E7F3EC] rounded-2xl p-4 flex flex-col justify-between hover:shadow-xs hover:border-[#D0EADB] transition-all group"
+              >
+                <div className="w-10 h-10 mb-3 text-[#2E9B63] group-hover:scale-105 transition-transform">
+                  <svg
+                    viewBox="0 0 40 40"
+                    fill="none"
+                    className="w-full h-full"
+                  >
+                    <path
+                      d="M10 14C10 11.8 11.8 10 14 10H26C28.2 10 30 11.8 30 14V26C30 28.2 28.2 30 26 30H14C11.8 30 10 28.2 10 26V14Z"
+                      stroke="#2E9B63"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M10 20C15 18 25 22 30 20"
+                      stroke="#2E9B63"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M14 10L26 30"
+                      stroke="#2E9B63"
+                      strokeWidth="1.3"
+                      strokeDasharray="2 2"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-xs sm:text-sm">
+                    Fabric Collection
+                  </h3>
+                  <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">
+                    Premium & Everyday
+                  </p>
+                </div>
+              </Link>
 
-                      <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-between pt-2.5 sm:pt-0 border-t sm:border-t-0 border-gray-100 shrink-0">
-                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-green-50 text-green-700 flex items-center gap-1">
-                          <CheckCircle2 size={11} /> Delivered
-                        </span>
-                        <Link href={`/orders/${order.id}`}>
-                          <button className="text-xs text-[#7E153A] font-bold hover:underline flex items-center gap-1 cursor-pointer">
-                            View & Alter <ArrowRight size={12} />
-                          </button>
-                        </Link>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
+              {/* Custom Designs */}
+              <Link
+                href="/new-order"
+                className="bg-[#FAF5FB] border border-[#F4EBF7] rounded-2xl p-4 flex flex-col justify-between hover:shadow-xs hover:border-[#E8D4EC] transition-all group"
+              >
+                <div className="w-10 h-10 mb-3 text-[#7E153A] group-hover:scale-105 transition-transform">
+                  <svg
+                    viewBox="0 0 40 40"
+                    fill="none"
+                    className="w-full h-full"
+                  >
+                    <path
+                      d="M12 28L28 12"
+                      stroke="#7E153A"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M12 12L19 19L16 22L12 18L8 22L5 19L9 15L12 12Z"
+                      stroke="#7E153A"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="28" cy="12" r="1.5" fill="#7E153A" />
+                    <path
+                      d="M26 14C23 18 20 25 24 29"
+                      stroke="#7E153A"
+                      strokeWidth="1.3"
+                      strokeLinecap="round"
+                      strokeDasharray="2 2"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-xs sm:text-sm">
+                    Custom Designs
+                  </h3>
+                  <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">
+                    Your style, your way
+                  </p>
+                </div>
+              </Link>
+            </div>
+          </section>
         </div>
 
-        {/* RIGHT: Sidebar Widgets ────────────────────────────────────────── */}
-        <div className="space-y-6">
-          {/* Saved Measurements Widget */}
-          <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5">
-            <div className="flex items-center justify-between mb-4">
+        {/* RIGHT COLUMN: My Measurements & Quick Actions */}
+        <div className="lg:col-span-4 space-y-6 min-w-0">
+          {/* My Measurements Widget */}
+          <section className="bg-white rounded-3xl border border-[#F2EAE5] p-5 relative overflow-hidden shadow-xs">
+            <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                 <Ruler size={16} className="text-[#7E153A]" />
                 My Measurements
               </h2>
-              {defaultMeasurement && (
-                <Link
-                  href="/measurements"
-                  className="text-[11px] text-[#7E153A] font-semibold hover:underline"
-                >
-                  Edit Profiles
-                </Link>
-              )}
+              <Link
+                href="/measurements"
+                className="text-xs text-[#7E153A] font-semibold hover:underline flex items-center gap-1"
+              >
+                View All <ChevronRight size={13} />
+              </Link>
             </div>
 
             {defaultMeasurement ? (
@@ -772,122 +1015,153 @@ export default function DashboardPage() {
                         ? `${defaultMeasurement.shoulderWidth}"`
                         : '-',
                     },
-                    {
-                      label: 'Kameez Length',
-                      val: defaultMeasurement.kameezLength
-                        ? `${defaultMeasurement.kameezLength}"`
-                        : '-',
-                    },
-                    {
-                      label: 'Sleeve',
-                      val: defaultMeasurement.sleeveLength
-                        ? `${defaultMeasurement.sleeveLength}"`
-                        : '-',
-                    },
                   ].map((item) => (
                     <div
                       key={item.label}
-                      className="bg-gray-50 rounded-xl p-2.5 text-center border border-gray-100"
+                      className="bg-[#FAF7F5] rounded-xl p-2.5 text-center border border-[#F2EAE5]"
                     >
                       <p className="text-sm font-extrabold text-gray-900 font-mono">
                         {item.val}
                       </p>
-                      <p className="text-[10px] text-gray-500 capitalize mt-0.5 truncate">
+                      <p className="text-[10px] text-gray-500 capitalize mt-0.5">
                         {item.label}
                       </p>
                     </div>
                   ))}
                 </div>
-
-                <Link href="/new-order">
-                  <button className="w-full mt-4 flex items-center justify-center gap-2 text-xs font-bold text-[#7E153A] bg-red-50 hover:bg-red-100 py-2.5 rounded-xl transition-colors cursor-pointer">
-                    <Plus size={14} /> Use in New Order
-                  </button>
+                <Link href="/measurements" className="block mt-3 text-right">
+                  <span className="text-xs text-[#7E153A] font-semibold hover:underline">
+                    Edit Profiles
+                  </span>
                 </Link>
               </>
             ) : (
-              <div className="text-center py-4">
-                <p className="text-xs text-gray-500 mb-3">
+              <div className="relative z-10">
+                <p className="text-xs text-gray-500 leading-relaxed">
                   No saved measurement profile yet. Save your body dimensions
-                  once to use across all future orders.
+                  easily for a perfect fit and faster ordering.
                 </p>
                 <Link href="/measurements">
-                  <button className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-white bg-[#7E153A] hover:bg-[#630F2D] py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
-                    <Plus size={14} /> Add Measurements
+                  <button className="w-full mt-3.5 py-2.5 rounded-xl border border-[#F2D7DE] bg-[#FDF5F7] text-[#7E153A] font-semibold text-xs hover:bg-[#FCEEF2] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                    <Plus size={14} className="stroke-[2.5]" /> Add Measurements
                   </button>
                 </Link>
               </div>
             )}
-          </section>
 
-          {/* Quick Actions Widget */}
-          <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5">
-            <h2 className="text-sm font-bold text-gray-900 mb-3">
-              Quick Actions
-            </h2>
-            <div className="space-y-2">
-              {[
-                {
-                  icon: Plus,
-                  label: 'Place Custom Order',
-                  href: '/new-order',
-                  color: 'bg-[#7E153A] text-white',
-                },
-                {
-                  icon: Boxes,
-                  label: 'Browse Fabric Stock',
-                  href: '/stock',
-                  color: 'bg-red-50 text-[#7E153A]',
-                },
-                {
-                  icon: Package,
-                  label: 'Track All Orders',
-                  href: '/orders',
-                  color: 'bg-red-50 text-[#7E153A]',
-                },
-                {
-                  icon: Ruler,
-                  label: 'Update Measurements',
-                  href: '/measurements',
-                  color: 'bg-red-50 text-[#7E153A]',
-                },
-                {
-                  icon: Gift,
-                  label: 'Refer & Earn Credits',
-                  href: '/referral',
-                  color: 'bg-red-50 text-[#7E153A]',
-                },
-              ].map((action) => (
-                <Link key={action.label} href={action.href}>
-                  <button
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all hover:opacity-90 cursor-pointer ${action.color}`}
-                  >
-                    <action.icon size={16} />
-                    <span>{action.label}</span>
-                    <ChevronRight size={14} className="ml-auto opacity-60" />
-                  </button>
-                </Link>
-              ))}
+            {/* Decorative measuring tape graphic in bottom-right corner */}
+            <div className="absolute -bottom-2 -right-2 pointer-events-none opacity-25">
+              <svg width="70" height="70" viewBox="0 0 80 80" fill="none">
+                <path
+                  d="M10 70C25 40 45 60 70 30"
+                  stroke="#C8A59B"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M22 55L24 51M30 52L32 48M38 53L40 49M46 51L48 47M54 45L56 41M62 38L64 34"
+                  stroke="#7E153A"
+                  strokeWidth="2"
+                />
+              </svg>
             </div>
           </section>
 
-          {/* Referral Box Widget */}
-          <section className="relative overflow-hidden bg-[#7E153A] rounded-2xl p-4 sm:p-5 text-white z-0">
-            <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/10 translate-x-8 -translate-y-8 pointer-events-none" />
-            <Gift
-              size={40}
-              className="absolute -bottom-2 -right-2 text-white/20 pointer-events-none"
-            />
-            <div className="relative z-[1]">
-              <h3 className="font-bold text-sm mb-1">Refer & Earn PKR 500</h3>
-              <p className="text-xs text-white/80 mb-4 leading-relaxed">
-                Invite friends to TailorLink. Earn PKR 500 tailoring credit for
-                each successful referral.
-              </p>
-              <Link href="/referral">
-                <button className="bg-white text-[#7E153A] text-xs font-bold px-4 py-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer">
-                  Go to Referrals
-                </button>
+          {/* Quick Actions Widget */}
+          <section className="bg-white rounded-3xl border border-[#F2EAE5] p-5 shadow-xs">
+            <h2 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <Zap size={16} className="text-[#7E153A]" />
+              Quick Actions
+            </h2>
+            <div className="space-y-2">
+              {/* Row 1: Place Custom Order */}
+              <Link href="/new-order" className="block">
+                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-[#FDF0F2] text-[#7E153A] hover:bg-[#FCE6EA] transition-colors cursor-pointer group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-lg bg-[#7E153A]/10 flex items-center justify-center">
+                      <Shirt size={14} className="text-[#7E153A]" />
+                    </div>
+                    <span className="text-xs sm:text-sm font-semibold">
+                      Place Custom Order
+                    </span>
+                  </div>
+                  <ChevronRight
+                    size={15}
+                    className="text-[#7E153A]/60 group-hover:translate-x-0.5 transition-transform"
+                  />
+                </div>
+              </Link>
+
+              {/* Row 2: Browse Fabric Stock */}
+              <Link href="/stock" className="block">
+                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-[#FAF7F5] transition-colors cursor-pointer group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-lg bg-orange-50 flex items-center justify-center">
+                      <Boxes size={14} className="text-[#C97A3E]" />
+                    </div>
+                    <span className="text-xs sm:text-sm font-medium">
+                      Browse Fabric Stock
+                    </span>
+                  </div>
+                  <ChevronRight
+                    size={15}
+                    className="text-gray-400 group-hover:translate-x-0.5 transition-transform"
+                  />
+                </div>
+              </Link>
+
+              {/* Row 3: Track All Orders */}
+              <Link href="/orders" className="block">
+                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-[#FAF7F5] transition-colors cursor-pointer group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center">
+                      <Package size={14} className="text-blue-600" />
+                    </div>
+                    <span className="text-xs sm:text-sm font-medium">
+                      Track All Orders
+                    </span>
+                  </div>
+                  <ChevronRight
+                    size={15}
+                    className="text-gray-400 group-hover:translate-x-0.5 transition-transform"
+                  />
+                </div>
+              </Link>
+
+              {/* Row 4: Update Measurements */}
+              <Link href="/measurements" className="block">
+                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-[#FAF7F5] transition-colors cursor-pointer group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-lg bg-purple-50 flex items-center justify-center">
+                      <Ruler size={14} className="text-[#7C3AED]" />
+                    </div>
+                    <span className="text-xs sm:text-sm font-medium">
+                      Update Measurements
+                    </span>
+                  </div>
+                  <ChevronRight
+                    size={15}
+                    className="text-gray-400 group-hover:translate-x-0.5 transition-transform"
+                  />
+                </div>
+              </Link>
+
+              {/* Row 5: Refer & Earn Credits */}
+              <Link href="/referral" className="block">
+                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-gray-700 hover:bg-[#FAF7F5] transition-colors cursor-pointer group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-lg bg-emerald-50 flex items-center justify-center">
+                      <Gift size={14} className="text-emerald-600" />
+                    </div>
+                    <span className="text-xs sm:text-sm font-medium">
+                      Refer & Earn Credits
+                    </span>
+                  </div>
+                  <ChevronRight
+                    size={15}
+                    className="text-gray-400 group-hover:translate-x-0.5 transition-transform"
+                  />
+                </div>
               </Link>
             </div>
           </section>

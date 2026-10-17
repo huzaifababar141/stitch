@@ -36,6 +36,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { BodyDiagram } from '@/components/measurement-studio/BodyDiagram';
 import { HowToMeasureModal } from '@/components/measurement-studio/HowToMeasureModal';
 import { SizeChartModal } from '@/components/measurement-studio/SizeChartModal';
+import { confirmDialog } from '@/components/ui/confirm-dialog';
 import {
   MeasurementGarmentType,
   GARMENT_CATEGORIES,
@@ -318,12 +319,14 @@ export default function MeasurementsStudioPage() {
 
   // Load user measurement profiles from API
   const loadProfiles = useCallback(async () => {
+    if (authLoading) return;
     if (!user) {
       setLoading(false);
       return;
     }
 
     try {
+      setLoading(true);
       const res = await fetch('/api/measurements');
       if (res.ok) {
         const json = await res.json();
@@ -339,7 +342,7 @@ export default function MeasurementsStudioPage() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     loadProfiles();
@@ -771,7 +774,12 @@ export default function MeasurementsStudioPage() {
 
   // Delete Profile
   const handleDeleteProfile = async (profileId: string, label: string) => {
-    if (!confirm(`Are you sure you want to delete "${label}"?`)) return;
+    const ok = await confirmDialog({
+      title: `Delete "${label}"?`,
+      confirmText: 'Delete',
+      variant: 'destructive',
+    });
+    if (!ok) return;
 
     try {
       const res = await fetch(`/api/measurements/${profileId}`, {
@@ -979,20 +987,52 @@ export default function MeasurementsStudioPage() {
                     : 'bg-gray-100 text-gray-600'
                 }`}
               >
-                {tab.count}
+                {loading || authLoading ? '...' : tab.count}
               </span>
             </button>
           );
         })}
       </div>
 
-      {/* ── Saved Profiles List ── */}
       {loading || authLoading ? (
-        <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-12 sm:p-16 flex flex-col items-center justify-center text-center shadow-xs min-w-0 w-full">
-          <Loader2 size={32} className="animate-spin text-[#7E153A] mb-3" />
-          <p className="text-xs sm:text-sm font-medium text-gray-600">
-            Loading your measurement profiles...
-          </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 min-w-0 w-full animate-in fade-in duration-200">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 shadow-xs flex flex-col justify-between space-y-4 sm:space-y-5 animate-pulse min-w-0 w-full"
+            >
+              <div className="space-y-3 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2">
+                      <div className="h-5 w-36 bg-gray-200 rounded-md" />
+                      <div className="h-4 w-20 bg-gray-100 rounded-full" />
+                    </div>
+                    <div className="h-3 w-28 bg-gray-100 rounded" />
+                  </div>
+                  <div className="h-5 w-24 bg-emerald-50 rounded-full" />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                  {[1, 2, 3, 4].map((j) => (
+                    <div
+                      key={j}
+                      className="bg-gray-50 rounded-xl p-2.5 space-y-1.5 border border-gray-100"
+                    >
+                      <div className="h-2.5 w-12 bg-gray-200 rounded" />
+                      <div className="h-4 w-10 bg-gray-300 rounded" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <div className="h-8 w-24 bg-gray-100 rounded-xl" />
+                <div className="flex items-center gap-1.5">
+                  <div className="h-8 w-8 bg-gray-100 rounded-xl" />
+                  <div className="h-8 w-8 bg-gray-100 rounded-xl" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : filteredProfiles.length === 0 ? (
         <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-8 sm:p-16 flex flex-col items-center justify-center text-center shadow-xs space-y-4 min-w-0 w-full">
