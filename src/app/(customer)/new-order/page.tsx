@@ -53,6 +53,7 @@ import {
 import {
   WOMEN_COLLARS,
   WOMEN_CUFFS,
+  WOMEN_SLEEVES,
   WOMEN_TROUSERS,
   WOMEN_SHALWARS,
   MEN_COLLARS,
@@ -108,6 +109,12 @@ function NewOrderContent() {
   const [frockSleeveType, setFrockSleeveType] = useState<
     'with_sleeves' | 'sleeveless'
   >('with_sleeves');
+  const [womenSleeveType, setWomenSleeveType] = useState<
+    'with_sleeves' | 'sleeveless'
+  >('with_sleeves');
+  const [womenSleeveLength, setWomenSleeveLength] = useState<
+    'Half sleeve' | 'Three Quarter' | 'Full sleeve'
+  >('Full sleeve');
   const [frockStyle, setFrockStyle] = useState('A-Line');
   // Men's / Women's Styles
   const [collarStyle, setCollarStyle] = useState('Band Collar');
@@ -173,7 +180,9 @@ function NewOrderContent() {
       setCuffStyle('Straight Sleeve');
       setNeckStyle('Round');
       setFrockSleeveType('with_sleeves');
-      setSleeveStyle('Full');
+      setWomenSleeveType('with_sleeves');
+      setWomenSleeveLength('Full sleeve');
+      setSleeveStyle('Full sleeve');
       setFrockStyle('A-Line');
       setDamanStyle('Straight');
       setBottomType('trouser');
@@ -225,7 +234,9 @@ function NewOrderContent() {
       ? waistcoatSleeveType === 'full_sleeves'
       : garmentType === 'frock_maxi'
         ? frockSleeveType === 'with_sleeves'
-        : true;
+        : gender === 'female'
+          ? womenSleeveType === 'with_sleeves'
+          : true;
 
   useEffect(() => {
     if (!hasTrouser && activeTab === 'trouser') {
@@ -255,6 +266,9 @@ function NewOrderContent() {
         }
         if (!WOMEN_CUFFS.some((c) => c.name === cuffStyle)) {
           setCuffStyle(WOMEN_CUFFS[0].name);
+        }
+        if (!WOMEN_SLEEVES.some((s) => s.name === womenSleeveLength)) {
+          setWomenSleeveLength('Full sleeve');
         }
       }
       if (bottomType === 'shalwar') {
@@ -308,6 +322,7 @@ function NewOrderContent() {
     trouserStyle,
     neckStyle,
     sleeveStyle,
+    womenSleeveLength,
     frockStyle,
     damanStyle,
     pantCoatStyle,
@@ -955,9 +970,13 @@ function NewOrderContent() {
               ? waistcoatSleeveType === 'full_sleeves'
                 ? cuffStyle
                 : undefined
-              : hasSleeves
-                ? cuffStyle
-                : undefined,
+              : gender === 'female'
+                ? womenSleeveType === 'with_sleeves'
+                  ? womenSleeveLength
+                  : undefined
+                : hasSleeves
+                  ? cuffStyle
+                  : undefined,
         pocketStyle:
           garmentType === 'pant_coat'
             ? pantCoatPocket
@@ -975,11 +994,13 @@ function NewOrderContent() {
                 ? frockSleeveType === 'sleeveless'
                   ? 'Sleeveless'
                   : sleeveStyle
-                : hasSleeves
-                  ? gender === 'female'
-                    ? cuffStyle
-                    : sleeveStyle
-                  : undefined,
+                : gender === 'female'
+                  ? womenSleeveType === 'sleeveless'
+                    ? 'Sleeveless'
+                    : womenSleeveLength
+                  : hasSleeves
+                    ? sleeveStyle
+                    : undefined,
         frockStyle: garmentType === 'frock_maxi' ? frockStyle : undefined,
         damanStyle,
         bottomType: hasTrouser ? bottomType : undefined,
@@ -3172,7 +3193,181 @@ function NewOrderContent() {
                   </div>
                 </div>
 
-                {/* 2. Cuff / Sleeve Design Row (Only for garments with sleeves) */}
+                {/* 2. Sleeve Style Row for Women */}
+                {gender === 'female' && (
+                  <div className="space-y-2 border-t border-gray-100 pt-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-gray-800">
+                            Sleeve Style
+                          </span>
+                          <span className="text-[10px] text-[#7E153A] font-semibold bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
+                            {womenSleeveType === 'sleeveless'
+                              ? 'Sleeveless'
+                              : womenSleeveLength}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-400">
+                          Choose whether you prefer sleeves or a sleeveless
+                          design.
+                        </p>
+                      </div>
+
+                      {/* Sleeve or Sleeveless Toggle */}
+                      <div className="flex bg-gray-100 p-1 rounded-xl self-start sm:self-auto border border-gray-200/50">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setWomenSleeveType('with_sleeves');
+                            setSleeveStyle(womenSleeveLength);
+                          }}
+                          className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                            womenSleeveType === 'with_sleeves'
+                              ? 'bg-white text-[#7E153A] shadow-xs'
+                              : 'text-gray-500 hover:text-gray-900'
+                          }`}
+                        >
+                          With Sleeves
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setWomenSleeveType('sleeveless');
+                            setSleeveStyle('Sleeveless');
+                          }}
+                          className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                            womenSleeveType === 'sleeveless'
+                              ? 'bg-white text-[#7E153A] shadow-xs'
+                              : 'text-gray-500 hover:text-gray-900'
+                          }`}
+                        >
+                          Sleeveless
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row gap-3 items-stretch">
+                      {womenSleeveType === 'with_sleeves' ? (
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                          {WOMEN_SLEEVES.map((item) => {
+                            const isSelected = womenSleeveLength === item.name;
+                            return (
+                              <div
+                                key={item.name}
+                                onClick={() => {
+                                  setWomenSleeveLength(item.name as any);
+                                  setSleeveStyle(item.name);
+                                }}
+                                className={`rounded-2xl border-2 p-2.5 text-left cursor-pointer transition-all flex flex-col justify-between ${
+                                  isSelected
+                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
+                                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                                }`}
+                              >
+                                <div className="w-full h-24 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    className="h-full w-auto object-contain"
+                                  />
+                                  {isSelected && (
+                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
+                                      <Check
+                                        size={9}
+                                        className="text-white"
+                                        strokeWidth={3.5}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="mt-2 text-center">
+                                  <p
+                                    className={`text-xs font-extrabold leading-tight ${
+                                      isSelected
+                                        ? 'text-[#7E153A]'
+                                        : 'text-gray-800'
+                                    }`}
+                                  >
+                                    {item.name}
+                                  </p>
+                                  <span className="text-[10px] text-gray-400 block mt-0.5">
+                                    {item.name === 'Half sleeve'
+                                      ? 'Elbow Length'
+                                      : item.name === 'Three Quarter'
+                                        ? 'Mid Forearm'
+                                        : 'Wrist Length'}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="flex-1 rounded-2xl border-2 border-dashed border-[#7E153A]/30 bg-red-50/20 p-5 flex flex-col sm:flex-row items-center gap-3.5 text-center sm:text-left">
+                          <div className="w-11 h-11 rounded-2xl bg-[#7E153A]/10 text-[#7E153A] flex items-center justify-center shrink-0">
+                            <Scissors size={20} />
+                          </div>
+                          <div>
+                            <div className="flex items-center justify-center sm:justify-start gap-2">
+                              <h4 className="text-xs font-extrabold text-gray-900">
+                                Sleeveless Kurta / Kameez Selected
+                              </h4>
+                              <span className="text-[9px] font-bold bg-[#7E153A] text-white px-2 py-0.5 rounded-full">
+                                Active
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-500 mt-1">
+                              No sleeve measurements will be required in the
+                              next step. Our master tailors will neatly finish
+                              the armholes with custom facing or piping.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* "Your Selection" Preview Card */}
+                      <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
+                        <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
+                          Your Selection
+                        </span>
+                        {womenSleeveType === 'sleeveless' ? (
+                          <>
+                            <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs text-[#7E153A]">
+                              <Scissors size={24} />
+                            </div>
+                            <span className="text-[10px] font-extrabold text-gray-800 mt-1.5">
+                              Sleeveless
+                            </span>
+                          </>
+                        ) : (
+                          (() => {
+                            const activeSleeve =
+                              WOMEN_SLEEVES.find(
+                                (s) => s.name === womenSleeveLength
+                              ) || WOMEN_SLEEVES[2];
+                            return (
+                              <>
+                                <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
+                                  <img
+                                    src={activeSleeve.image}
+                                    alt={activeSleeve.name}
+                                    className="h-full w-auto object-contain"
+                                  />
+                                </div>
+                                <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
+                                  {activeSleeve.name}
+                                </span>
+                              </>
+                            );
+                          })()
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Cuff / Sleeve Design Row (Only for garments with sleeves) */}
                 {hasSleeves && (
                   <div className="space-y-2 border-t border-gray-100 pt-4">
                     <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
@@ -3953,43 +4148,97 @@ function NewOrderContent() {
                       </div>
                     </div>
 
-                    {/* Cuff Design */}
-                    {hasSleeves && (
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
-                          {(() => {
-                            const activeList =
-                              gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS;
-                            const activeCuff =
-                              activeList.find((c) => c.name === cuffStyle) ||
-                              activeList[0];
-                            return (
+                    {/* Cuff / Sleeve Design */}
+                    {gender === 'female' ? (
+                      <>
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                            {womenSleeveType === 'sleeveless' ? (
+                              <Scissors size={18} className="text-[#7E153A]" />
+                            ) : (
                               <img
-                                src={activeCuff.image}
-                                alt={activeCuff.name}
+                                src={
+                                  (
+                                    WOMEN_SLEEVES.find(
+                                      (s) => s.name === womenSleeveLength
+                                    ) || WOMEN_SLEEVES[2]
+                                  ).image
+                                }
+                                alt={womenSleeveLength}
                                 className="h-full w-auto object-contain"
                               />
-                            );
-                          })()}
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-[10px] text-gray-400 block leading-tight">
+                              Sleeve Length
+                            </span>
+                            <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+                              {womenSleeveType === 'sleeveless'
+                                ? 'Sleeveless'
+                                : womenSleeveLength}
+                            </span>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <span className="text-[10px] text-gray-400 block leading-tight">
-                            {gender === 'female'
-                              ? 'Sleeve Design'
-                              : 'Cuff Design'}
-                          </span>
-                          <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+
+                        {hasSleeves && (
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                              <img
+                                src={
+                                  (
+                                    WOMEN_CUFFS.find(
+                                      (c) => c.name === cuffStyle
+                                    ) || WOMEN_CUFFS[0]
+                                  ).image
+                                }
+                                alt={cuffStyle}
+                                className="h-full w-auto object-contain"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-[10px] text-gray-400 block leading-tight">
+                                Sleeve Design
+                              </span>
+                              <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+                                {cuffStyle}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      hasSleeves && (
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
                             {(() => {
-                              const activeList =
-                                gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS;
+                              const activeCuff =
+                                MEN_CUFFS.find((c) => c.name === cuffStyle) ||
+                                MEN_CUFFS[0];
                               return (
-                                activeList.find((c) => c.name === cuffStyle) ||
-                                activeList[0]
-                              ).name;
+                                <img
+                                  src={activeCuff.image}
+                                  alt={activeCuff.name}
+                                  className="h-full w-auto object-contain"
+                                />
+                              );
                             })()}
-                          </span>
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-[10px] text-gray-400 block leading-tight">
+                              Cuff Design
+                            </span>
+                            <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
+                              {(() => {
+                                return (
+                                  MEN_CUFFS.find((c) => c.name === cuffStyle) ||
+                                  MEN_CUFFS[0]
+                                ).name;
+                              })()}
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      )
                     )}
 
                     {/* Trouser Design */}
@@ -4707,7 +4956,20 @@ function NewOrderContent() {
                                     {
                                       id: 'sleeve_length',
                                       name: 'Sleeve Length',
-                                      defaultVal: '22',
+                                      defaultVal:
+                                        unit === 'inches'
+                                          ? womenSleeveLength === 'Half sleeve'
+                                            ? '11'
+                                            : womenSleeveLength ===
+                                                'Three Quarter'
+                                              ? '17'
+                                              : '22'
+                                          : womenSleeveLength === 'Half sleeve'
+                                            ? '28'
+                                            : womenSleeveLength ===
+                                                'Three Quarter'
+                                              ? '43'
+                                              : '56',
                                     },
                                   ]
                                 : []),
@@ -5267,9 +5529,9 @@ function NewOrderContent() {
                               ? frockSleeveType === 'sleeveless'
                                 ? 'Sleeveless'
                                 : sleeveStyle
-                              : hasSleeves
-                                ? cuffStyle
-                                : null,
+                              : womenSleeveType === 'sleeveless'
+                                ? 'Sleeveless'
+                                : `${womenSleeveLength} · ${cuffStyle}`,
                             garmentType === 'frock_maxi' ? frockStyle : null,
                             garmentType === 'frock_maxi' ? damanStyle : null,
                             hasTrouser ? trouserStyle : null,

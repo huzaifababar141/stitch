@@ -17,6 +17,12 @@ export const WOMEN_CUFFS: DesignOption[] = [
   { name: 'Bell Sleeve', image: '/images/tailor/w_cuff_folded.png' },
 ];
 
+export const WOMEN_SLEEVES: DesignOption[] = [
+  { name: 'Half sleeve', image: '/images/tailor/w_sleeve_half.png' },
+  { name: 'Three Quarter', image: '/images/tailor/w_sleeve_threequarter.png' },
+  { name: 'Full sleeve', image: '/images/tailor/w_sleeve_full.png' },
+];
+
 export const WOMEN_TROUSERS: DesignOption[] = [
   { name: 'Straight Trouser', image: '/images/tailor/w_trouser_straight.png' },
   { name: 'Cigarette Trouser', image: '/images/tailor/w_trouser_slim.png' },
