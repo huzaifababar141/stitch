@@ -16,6 +16,7 @@ interface SizeChartModalProps {
 
 interface SizePreset {
   name: string;
+  code: string;
   tag: string;
   measurements: Record<string, string>;
 }
@@ -34,7 +35,8 @@ interface TrouserCodeItem {
 const WOMEN_SIZE_PRESETS: SizePreset[] = [
   {
     name: 'Extra Small (XS)',
-    tag: '34"',
+    code: 'XS',
+    tag: '34" Bust Standard',
     measurements: {
       shoulder: '13.5',
       bust: '34',
@@ -49,7 +51,8 @@ const WOMEN_SIZE_PRESETS: SizePreset[] = [
   },
   {
     name: 'Small (S)',
-    tag: '36"',
+    code: 'S',
+    tag: '36" Bust Standard',
     measurements: {
       shoulder: '14',
       bust: '36',
@@ -64,7 +67,8 @@ const WOMEN_SIZE_PRESETS: SizePreset[] = [
   },
   {
     name: 'Medium (M)',
-    tag: '38"',
+    code: 'M',
+    tag: '38" Bust Standard',
     measurements: {
       shoulder: '14.5',
       bust: '38',
@@ -79,7 +83,8 @@ const WOMEN_SIZE_PRESETS: SizePreset[] = [
   },
   {
     name: 'Large (L)',
-    tag: '42"',
+    code: 'L',
+    tag: '42" Bust Standard',
     measurements: {
       shoulder: '15',
       bust: '42',
@@ -94,7 +99,8 @@ const WOMEN_SIZE_PRESETS: SizePreset[] = [
   },
   {
     name: 'Extra Large (XL)',
-    tag: '46"',
+    code: 'XL',
+    tag: '46" Bust Standard',
     measurements: {
       shoulder: '16',
       bust: '46',
@@ -112,7 +118,8 @@ const WOMEN_SIZE_PRESETS: SizePreset[] = [
 const MEN_SIZE_PRESETS: SizePreset[] = [
   {
     name: 'Small (S)',
-    tag: '38" Chest / 14.5" Collar',
+    code: 'S',
+    tag: '38" Chest • 14.5" Collar',
     measurements: {
       neck: '14.5',
       shoulder: '17.5',
@@ -130,7 +137,8 @@ const MEN_SIZE_PRESETS: SizePreset[] = [
   },
   {
     name: 'Medium (M)',
-    tag: '40" Chest / 15" Collar',
+    code: 'M',
+    tag: '40" Chest • 15" Collar',
     measurements: {
       neck: '15',
       shoulder: '18.5',
@@ -148,7 +156,8 @@ const MEN_SIZE_PRESETS: SizePreset[] = [
   },
   {
     name: 'Large (L)',
-    tag: '43" Chest / 16" Collar',
+    code: 'L',
+    tag: '43" Chest • 16" Collar',
     measurements: {
       neck: '16',
       shoulder: '19.5',
@@ -166,7 +175,8 @@ const MEN_SIZE_PRESETS: SizePreset[] = [
   },
   {
     name: 'Extra Large (XL)',
-    tag: '46" Chest / 17" Collar',
+    code: 'XL',
+    tag: '46" Chest • 17" Collar',
     measurements: {
       neck: '17',
       shoulder: '20.5',
@@ -184,7 +194,8 @@ const MEN_SIZE_PRESETS: SizePreset[] = [
   },
   {
     name: 'Double XL (XXL)',
-    tag: '48" Chest / 17.5" Collar',
+    code: 'XXL',
+    tag: '48" Chest • 17.5" Collar',
     measurements: {
       neck: '17.5',
       shoulder: '21',
@@ -470,8 +481,8 @@ export function SizeChartModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-200 font-sans">
-      <div className="w-full max-w-3xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-5 lg:p-6 animate-in fade-in duration-200 font-sans">
+      <div className="w-full max-w-5xl xl:max-w-6xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-gray-100 bg-gray-50/50">
           <div className="min-w-0">
@@ -600,52 +611,118 @@ export function SizeChartModal({
               </div>
 
               <div className="overflow-x-auto rounded-xl border border-gray-200 scrollbar-none">
-                <table className="w-full text-left text-xs min-w-[540px]">
+                <table className="w-full text-left text-xs">
                   <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
                     <tr>
-                      <th className="p-2.5 sm:p-3">Size</th>
+                      <th className="py-3 px-3 text-left font-bold text-gray-900 whitespace-nowrap">
+                        Size
+                      </th>
                       {activeGender === 'male' ? (
                         <>
-                          <th className="p-2.5 sm:p-3">
-                            Collar ({activeUnit})
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Collar{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
                           </th>
-                          <th className="p-2.5 sm:p-3">
-                            Shoulder ({activeUnit})
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Shoulder{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
                           </th>
-                          <th className="p-2.5 sm:p-3">Chest ({activeUnit})</th>
-                          <th className="p-2.5 sm:p-3">Waist ({activeUnit})</th>
-                          <th className="p-2.5 sm:p-3">Kurta ({activeUnit})</th>
-                          <th className="p-2.5 sm:p-3">
-                            Sleeve ({activeUnit})
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Chest{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
                           </th>
-                          <th className="p-2.5 sm:p-3">
-                            Shalwar ({activeUnit})
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Waist{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
                           </th>
-                          <th className="p-2.5 sm:p-3">
-                            Paicha ({activeUnit})
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Kurta{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
+                          </th>
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Sleeve{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
+                          </th>
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Shalwar{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
+                          </th>
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Paicha{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
                           </th>
                         </>
                       ) : (
                         <>
-                          <th className="p-2.5 sm:p-3">
-                            Shoulder ({activeUnit})
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Shoulder{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
                           </th>
-                          <th className="p-2.5 sm:p-3">Bust ({activeUnit})</th>
-                          <th className="p-2.5 sm:p-3">Waist ({activeUnit})</th>
-                          <th className="p-2.5 sm:p-3">Hips ({activeUnit})</th>
-                          <th className="p-2.5 sm:p-3">
-                            Kameez ({activeUnit})
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Bust{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
                           </th>
-                          <th className="p-2.5 sm:p-3">
-                            Sleeve ({activeUnit})
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Waist{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
                           </th>
-                          <th className="p-2.5 sm:p-3">
-                            Trouser ({activeUnit})
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Hips{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
                           </th>
-                          <th className="p-2.5 sm:p-3">Ankle ({activeUnit})</th>
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Kameez{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
+                          </th>
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Sleeve{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
+                          </th>
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Trouser{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
+                          </th>
+                          <th className="py-3 px-2 text-center whitespace-nowrap">
+                            Ankle{' '}
+                            <span className="text-[10px] text-gray-400 font-normal">
+                              ({activeUnit === 'inches' ? 'in' : 'cm'})
+                            </span>
+                          </th>
                         </>
                       )}
-                      <th className="p-2.5 sm:p-3 text-right">Action</th>
+                      <th className="py-3 px-3 text-right whitespace-nowrap">
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-gray-600">
@@ -654,72 +731,83 @@ export function SizeChartModal({
                         key={preset.name}
                         className="hover:bg-red-50/30 transition-colors"
                       >
-                        <td className="p-2.5 sm:p-3 font-bold text-gray-900 flex items-center gap-1.5 sm:gap-2">
-                          <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-[#7E153A]/10 text-[#7E153A] flex items-center justify-center text-[10px] font-mono shrink-0">
-                            {preset.tag}
-                          </span>
-                          <span className="truncate">{preset.name}</span>
+                        <td className="py-3 px-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2.5">
+                            <span className="min-w-[34px] px-1.5 h-7 rounded-md bg-[#7E153A]/10 text-[#7E153A] flex items-center justify-center text-xs font-mono font-bold shrink-0 border border-[#7E153A]/20">
+                              {preset.code}
+                            </span>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-gray-900 text-xs leading-snug">
+                                {preset.name}
+                              </span>
+                              {preset.tag && (
+                                <span className="text-[10px] text-gray-400 font-normal leading-snug">
+                                  {preset.tag}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </td>
                         {activeGender === 'male' ? (
                           <>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.neck)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.shoulder)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.bust)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.waist)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.shirt_length)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.sleeve_length)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.trouser_length)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.bottom_opening)}
                             </td>
                           </>
                         ) : (
                           <>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.shoulder)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.bust)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.waist)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.hip)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.shirt_length)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.sleeve_length)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.trouser_length)}
                             </td>
-                            <td className="p-2.5 sm:p-3 font-mono">
+                            <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                               {formatVal(preset.measurements.bottom_opening)}
                             </td>
                           </>
                         )}
-                        <td className="p-2.5 sm:p-3 text-right">
+                        <td className="py-3 px-3 text-right whitespace-nowrap">
                           <Button
                             onClick={() => handleApplyPreset(preset)}
                             size="sm"
-                            className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-[11px] sm:text-xs h-8 px-2.5 sm:px-3 rounded-lg cursor-pointer shrink-0"
+                            className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs h-8 px-3.5 rounded-lg cursor-pointer shrink-0 font-bold"
                           >
                             Apply
                           </Button>
@@ -864,23 +952,47 @@ export function SizeChartModal({
 
               {/* Comprehensive Pant Code Matrix Table */}
               <div className="overflow-x-auto rounded-xl border border-gray-200 scrollbar-none">
-                <table className="w-full text-left text-xs min-w-[500px]">
+                <table className="w-full text-left text-xs">
                   <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
                     <tr>
-                      <th className="p-2.5 sm:p-3">Code</th>
-                      <th className="p-2.5 sm:p-3">Waist ({activeUnit})</th>
-                      <th className="p-2.5 sm:p-3">Length ({activeUnit})</th>
-                      <th className="p-2.5 sm:p-3">
-                        Inseam / Asan ({activeUnit})
+                      <th className="py-3 px-3 text-left font-bold text-gray-900 whitespace-nowrap">
+                        Code
                       </th>
-                      <th className="p-2.5 sm:p-3">Paicha ({activeUnit})</th>
-                      <th className="p-2.5 sm:p-3">
+                      <th className="py-3 px-2 text-center whitespace-nowrap">
+                        Waist{' '}
+                        <span className="text-[10px] text-gray-400 font-normal">
+                          ({activeUnit === 'inches' ? 'in' : 'cm'})
+                        </span>
+                      </th>
+                      <th className="py-3 px-2 text-center whitespace-nowrap">
+                        Length{' '}
+                        <span className="text-[10px] text-gray-400 font-normal">
+                          ({activeUnit === 'inches' ? 'in' : 'cm'})
+                        </span>
+                      </th>
+                      <th className="py-3 px-2 text-center whitespace-nowrap">
+                        Inseam / Asan{' '}
+                        <span className="text-[10px] text-gray-400 font-normal">
+                          ({activeUnit === 'inches' ? 'in' : 'cm'})
+                        </span>
+                      </th>
+                      <th className="py-3 px-2 text-center whitespace-nowrap">
+                        Paicha{' '}
+                        <span className="text-[10px] text-gray-400 font-normal">
+                          ({activeUnit === 'inches' ? 'in' : 'cm'})
+                        </span>
+                      </th>
+                      <th className="py-3 px-2 text-center whitespace-nowrap">
                         {activeGender === 'male'
                           ? 'Ghera / Seat'
                           : 'Hips / Seat'}{' '}
-                        ({activeUnit})
+                        <span className="text-[10px] text-gray-400 font-normal">
+                          ({activeUnit === 'inches' ? 'in' : 'cm'})
+                        </span>
                       </th>
-                      <th className="p-2.5 sm:p-3 text-right">Action</th>
+                      <th className="py-3 px-3 text-right whitespace-nowrap">
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-gray-600">
@@ -893,29 +1005,29 @@ export function SizeChartModal({
                             : ''
                         }`}
                       >
-                        <td className="p-2.5 sm:p-3 font-bold text-gray-900 font-mono">
+                        <td className="py-3 px-3 font-bold text-gray-900 font-mono whitespace-nowrap">
                           {item.code}
                         </td>
-                        <td className="p-2.5 sm:p-3 font-mono">
+                        <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                           {formatVal(item.waist)}
                         </td>
-                        <td className="p-2.5 sm:p-3 font-mono">
+                        <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                           {formatVal(item.length)}
                         </td>
-                        <td className="p-2.5 sm:p-3 font-mono">
+                        <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                           {formatVal(item.inseam)}
                         </td>
-                        <td className="p-2.5 sm:p-3 font-mono">
+                        <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                           {formatVal(item.bottom)}
                         </td>
-                        <td className="p-2.5 sm:p-3 font-mono">
+                        <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
                           {formatVal(item.seat)}
                         </td>
-                        <td className="p-2.5 sm:p-3 text-right">
+                        <td className="py-3 px-3 text-right whitespace-nowrap">
                           <Button
                             onClick={() => handleApplyTrouserCode(item)}
                             size="sm"
-                            className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-[11px] sm:text-xs h-7 px-2.5 rounded-lg cursor-pointer shrink-0"
+                            className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs h-7 px-3 rounded-lg cursor-pointer shrink-0 font-bold"
                           >
                             Apply
                           </Button>
