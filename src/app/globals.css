@@ -64,6 +64,7 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -81,35 +82,51 @@ body {
     opacity: 0;
     transform: translateX(1rem);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
   }
 }
+
 @keyframes fade-in {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
+
 @keyframes dialog-in {
   from {
     opacity: 0;
     transform: scale(0.96) translateY(0.5rem);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
 }
+
 .animate-in-toast {
   animation: toast-in 0.18s ease-out;
 }
+
 .animate-in-fade {
   animation: fade-in 0.2s ease-out;
 }
+
 .animate-in-dialog {
   animation: dialog-in 0.18s ease-out;
+}
+
+/* Password dots normalization */
+input[type='password'],
+.password-input[type='password'] {
+  font-size: 20px !important;
+  letter-spacing: 0.2em !important;
+  line-height: 1 !important;
 }
