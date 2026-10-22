@@ -101,11 +101,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 py-8 sm:py-12 font-sans isolate">
+    <div className="relative flex min-h-screen min-h-[100dvh] w-full flex-col items-center p-4 py-8 sm:py-12 font-sans isolate">
       {/* ── Unique Atelier Tailoring Graphics Background ── */}
       <AuthBackground />
 
-      <div className="relative z-10 w-full flex flex-col items-center">
+      <div className="relative z-10 w-full flex flex-col items-center my-auto">
         {/* ── TOP LOGO (Centered above card) ── */}
         <div className="w-full flex justify-center items-center mb-6 sm:mb-8">
           <Link
@@ -122,7 +122,7 @@ export default function LoginPage() {
         </div>
 
         {/* ── CARD CONTAINER (with subtle radial overlay behind) ── */}
-        <div className="relative mx-auto w-[calc(100%-32px)] sm:w-full max-w-[480px]">
+        <div className="relative mx-auto w-[calc(100%-32px)] sm:w-full max-w-[560px]">
           {/* Subtle radial white overlay behind the card (rgba(255,255,255,0.35), blur) so background doesn't compete */}
           <div
             aria-hidden="true"
@@ -134,7 +134,7 @@ export default function LoginPage() {
           />
 
           {/* ── CENTERED CARD ── */}
-          <div className="relative w-full overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 sm:p-9 shadow-[0_12px_45px_rgba(0,0,0,0.06)] isolate">
+          <div className="relative w-full overflow-clip rounded-3xl border border-gray-100 bg-white p-6 sm:p-9 shadow-[0_12px_45px_rgba(0,0,0,0.06)] isolate">
             {/* Top vibrant brand accent bar following card's rounded corners */}
             <div className="absolute inset-x-0 top-0 h-1 sm:h-1.5 rounded-t-3xl bg-gradient-to-r from-[#7E153A] via-[#9B1B4A] to-[#7E153A]" />
 

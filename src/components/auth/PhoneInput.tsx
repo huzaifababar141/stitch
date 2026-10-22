@@ -1,6 +1,4 @@
-import { Input } from '@/components/ui/input';
-import { ChangeEvent, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChangeEvent } from 'react';
 
 interface PhoneInputProps {
   value: string;
@@ -9,64 +7,49 @@ interface PhoneInputProps {
   error?: string;
 }
 
-const COUNTRY_CODES = [
-  { code: '+92', flag: '🇵🇰', label: 'PK' },
-  { code: '+971', flag: '🇦🇪', label: 'UAE' },
-  { code: '+44', flag: '🇬🇧', label: 'UK' },
-  { code: '+1', flag: '🇺🇸', label: 'US' },
-];
-
 export function PhoneInput({
   value,
   onChange,
   disabled,
   error,
 }: PhoneInputProps) {
-  const [countryCode, setCountryCode] = useState('+92');
-
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, '');
+    let val = e.target.value.replace(/\D/g, '');
+    if (val.startsWith('0')) {
+      val = val.substring(1);
+    }
     if (val.length <= 10) {
       onChange(val);
     }
   };
 
-  const selectedCountry =
-    COUNTRY_CODES.find((c) => c.code === countryCode) || COUNTRY_CODES[0];
-
   return (
-    <div className="space-y-1.5">
-      <div className="flex rounded-lg shadow-sm">
-        {/* Interactive Country Code Selector */}
-        <div className="relative flex items-center shrink-0">
-          <select
-            value={countryCode}
-            onChange={(e) => setCountryCode(e.target.value)}
-            disabled={disabled}
-            aria-label="Select Country Code"
-            className="appearance-none h-11 sm:h-12 pl-3 pr-8 bg-gray-50/70 hover:bg-gray-100/80 text-gray-800 text-sm font-semibold border border-r-0 border-gray-200 rounded-l-xl cursor-pointer focus:outline-none focus:ring-4 focus:ring-[#7E153A]/10 focus:border-[#7E153A] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {COUNTRY_CODES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.flag} {c.code}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="w-4 h-4 text-gray-500 absolute right-2.5 pointer-events-none" />
+    <div className="space-y-1">
+      {/* Unified bordered container matching all other inputs */}
+      <div
+        className={`group flex items-stretch h-12 min-h-[48px] sm:h-[52px] w-full rounded-xl border bg-white transition-all duration-150 focus-within:ring-4 ${
+          error
+            ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500/10'
+            : 'border-gray-200 focus-within:border-[#7E153A] focus-within:ring-[#7E153A]/10'
+        }`}
+      >
+        {/* Fixed Country Code for Pakistan — no dropdown */}
+        <div className="flex items-center shrink-0 px-3.5 select-none text-gray-700 text-sm font-semibold tracking-wide bg-white rounded-l-xl">
+          PK +92
         </div>
+
+        {/* Thin 1px divider */}
+        <div className="w-[1px] my-2 bg-gray-200 shrink-0" />
 
         {/* Input Field */}
         <input
+          id="phone"
           type="tel"
           placeholder="300 1234567"
           value={value}
           onChange={handleChange}
           disabled={disabled}
-          className={`h-11 sm:h-12 w-full rounded-l-none rounded-r-xl border border-gray-200 bg-white px-4 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 tracking-wider transition-all duration-150 focus:outline-none ${
-            error
-              ? 'border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
-              : 'focus:border-[#7E153A] focus:ring-4 focus:ring-[#7E153A]/10'
-          }`}
+          className="h-full w-full rounded-r-xl bg-white px-3.5 text-sm sm:text-[16px] text-gray-900 placeholder:text-gray-400 tracking-wide transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
           required
         />
       </div>
