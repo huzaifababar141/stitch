@@ -40,7 +40,7 @@ export default function PaymentsPage() {
     {
       id: 'cod',
       title: 'Cash on Delivery (COD)',
-      desc: 'Pay cash to TCS / Leopards courier upon doorstep suit delivery.',
+      desc: 'Pay cash to courier upon doorstep suit delivery.',
       icon: Wallet,
       isDefault: true,
       badge: 'Most Popular',
@@ -94,7 +94,7 @@ export default function PaymentsPage() {
   const formatMethod = (method: string) => {
     switch (method?.toLowerCase()) {
       case 'cod':
-        return 'Cash on Delivery (TCS)';
+        return 'Cash on Delivery';
       case 'jazzcash':
         return 'JazzCash Mobile';
       case 'easypaisa':
@@ -156,7 +156,7 @@ export default function PaymentsPage() {
             </div>
             <div>
               <p><strong>Payment Status:</strong> <span style="color: ${tx.status === 'completed' ? '#059669' : '#d97706'}; font-weight: bold; text-transform: uppercase;">${tx.status}</span></p>
-              <p><strong>Courier Logistics:</strong> TCS Tracked Doorstep Delivery</p>
+              <p><strong>Courier Logistics:</strong> Tracked Doorstep Delivery</p>
               <p><strong>Currency:</strong> PKR (Pakistani Rupee)</p>
             </div>
           </div>
@@ -178,7 +178,7 @@ export default function PaymentsPage() {
               </tr>
               <tr>
                 <td>
-                  <strong>Nationwide TCS Courier Transit</strong><br>
+                  <strong>Nationwide Express Courier Transit</strong><br>
                   <span style="color: #059669; font-size: 12px;">Doorstep delivery across Pakistan</span>
                 </td>
                 <td style="text-align: right; color: #059669; font-weight: bold;">Included</td>
@@ -617,7 +617,7 @@ export default function PaymentsPage() {
                     Logistics:
                   </span>
                   <span className="font-bold text-gray-900">
-                    TCS Doorstep Courier
+                    Tracked Doorstep Courier
                   </span>
                 </div>
               </div>

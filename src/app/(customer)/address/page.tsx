@@ -418,7 +418,7 @@ export default function AddressBookPage() {
               No Saved Addresses Yet
             </h3>
             <p className="text-xs text-gray-500 leading-relaxed">
-              Add your home, office, or boutique address to enable instant TCS
+              Add your home, office, or boutique address to enable express
               tracked delivery on every bespoke tailoring order.
             </p>
           </div>
@@ -514,12 +514,10 @@ export default function AddressBookPage() {
                     </p>
                   </div>
 
-                  {/* TCS Courier Eligibility */}
+                  {/* Courier Eligibility */}
                   <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50/80 border border-emerald-200/60 px-2.5 py-1.5 rounded-xl">
                     <Truck size={13} className="shrink-0" />
-                    <span className="truncate">
-                      TCS Direct Doorstep Coverage
-                    </span>
+                    <span className="truncate">Direct Doorstep Coverage</span>
                   </div>
                 </div>
 

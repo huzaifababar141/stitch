@@ -33,7 +33,7 @@ const ADMIN_NAV = [
   { icon: Scissors, label: 'Tailor Management', href: '/admin/tailors' },
   { icon: Users, label: 'Users & Roles', href: '/admin/users' },
   { icon: ShieldCheck, label: 'Quality Control', href: '/admin/qc' },
-  { icon: Truck, label: 'TCS Delivery Sync', href: '/admin/delivery' },
+  { icon: Truck, label: 'Courier Delivery Sync', href: '/admin/delivery' },
   { icon: TrendingUp, label: 'Revenue Analytics', href: '/admin/analytics' },
   { icon: Ticket, label: 'Coupons', href: '/admin/coupons' },
   { icon: Settings, label: 'System Settings', href: '/admin/settings' },

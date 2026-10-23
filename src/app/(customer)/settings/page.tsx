@@ -421,8 +421,8 @@ export default function SettingsPage() {
                       </h4>
                     </div>
                     <p className="text-[11px] text-gray-500 pl-8 leading-relaxed">
-                      Receive SMS when TCS / Leopards courier rider is out for
-                      delivery with parcel tracking code.
+                      Receive SMS when courier rider is out for delivery with
+                      live tracking code.
                     </p>
                   </div>
                   <input

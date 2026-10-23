@@ -128,7 +128,7 @@ export default function CustomerStockCatalogPage() {
               24-Point QC Protocol
             </span>
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={14} className="text-emerald-300" /> TCS
+              <CheckCircle2 size={14} className="text-emerald-300" /> Tracked
               Express Delivery
             </span>
           </div>

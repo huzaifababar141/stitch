@@ -108,8 +108,8 @@ export default function PublicTrackPage() {
         </h1>
         <p className="text-sm text-gray-500 max-w-md mx-auto mb-8">
           Enter your Order Reference Number from your SMS / WhatsApp
-          confirmation to see real-time cutting, stitching, QC, and TCS delivery
-          progress.
+          confirmation to see real-time cutting, stitching, QC, and express
+          delivery progress.
         </p>
 
         <div className="w-full bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-sm">
@@ -189,7 +189,7 @@ export default function PublicTrackPage() {
             </div>
             <div>
               <h4 className="text-xs font-bold text-gray-900">
-                TCS Express Courier
+                Express Courier Delivery
               </h4>
               <p className="text-[11px] text-gray-500 mt-0.5">
                 Doorstep delivery across 200+ Pakistani cities.

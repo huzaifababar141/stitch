@@ -45,7 +45,7 @@ export default function HelpSupportPage() {
 
   const faqs = [
     {
-      q: 'How does custom tailoring & TCS delivery work?',
+      q: 'How does custom tailoring & delivery work?',
       a: 'Once you select your design options and submit measurements (or paste an unstitched brand suit link for us to source), our centralized stitching workshop crafts your suit to perfection and returns the finished tailored suit to your doorstep within 5-7 working days across Pakistan.',
     },
     {
@@ -62,7 +62,7 @@ export default function HelpSupportPage() {
     },
     {
       q: 'How can I track my tailoring order progression?',
-      a: 'You can track all 7 production stages live in the Customer Portal: Order Placed → Master Assigned → Precision Cutting → Master Stitching → 14-Point QC → TCS Dispatched → Delivered. You will also receive real-time WhatsApp alerts at each milestone.',
+      a: 'You can track all 7 production stages live in the Customer Portal: Order Placed → Master Assigned → Precision Cutting → Master Stitching → 14-Point QC → Dispatched via Courier → Delivered. You will also receive real-time WhatsApp alerts at each milestone.',
     },
   ];
 

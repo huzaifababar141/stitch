@@ -7,7 +7,7 @@ import { logger } from '../utils/logger';
 
 export class DeliveryService {
   /**
-   * Admin dispatches an order via TCS
+   * Admin dispatches an order via courier
    */
   static async dispatchOrder(orderId: string, adminId: string) {
     const order = await prisma.order.findUnique({
@@ -42,7 +42,7 @@ export class DeliveryService {
       throw AppError.badRequest('Delivery address is required to dispatch');
     }
 
-    // Attempt to book with TCS
+    // Attempt to book with courier service
     const bookingResult = await TcsService.bookShipment({
       orderId: order.id,
       customerName:
@@ -56,7 +56,7 @@ export class DeliveryService {
 
     if (!bookingResult.success) {
       throw AppError.internal(
-        'Failed to book shipment with TCS: ' + bookingResult.error
+        'Failed to book shipment with courier: ' + bookingResult.error
       );
     }
 
@@ -66,7 +66,7 @@ export class DeliveryService {
         where: { orderId: order.id },
         create: {
           orderId: order.id,
-          courierName: 'TCS',
+          courierName: process.env.COURIER_NAME || 'Courier Partner',
           trackingNumber: bookingResult.trackingNumber,
           courierBookingId: bookingResult.bookingId,
           status: 'pending',
@@ -74,14 +74,14 @@ export class DeliveryService {
           statusHistory: {
             create: {
               status: 'pending',
-              notes: 'Booked with TCS',
+              notes: 'Booked with courier partner',
               recordedById: adminId,
               source: 'admin',
             },
           },
         },
         update: {
-          courierName: 'TCS',
+          courierName: process.env.COURIER_NAME || 'Courier Partner',
           trackingNumber: bookingResult.trackingNumber,
           courierBookingId: bookingResult.bookingId,
           status: 'pending',
@@ -99,7 +99,7 @@ export class DeliveryService {
           orderId: order.id,
           fromStatus: order.status,
           toStatus: 'dispatched',
-          notes: `Dispatched via TCS Tracking #${bookingResult.trackingNumber}`,
+          notes: `Dispatched via Courier Tracking #${bookingResult.trackingNumber}`,
           changedById: adminId,
         },
       });

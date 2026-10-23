@@ -33,7 +33,11 @@ const TRACKING_STEPS = [
     desc: 'Active at machine',
   },
   { id: 'qc', label: 'Quality Audit', desc: 'Measurement tolerance pass' },
-  { id: 'dispatched', label: 'Dispatched via TCS', desc: 'Courier on route' },
+  {
+    id: 'dispatched',
+    label: 'Dispatched via Courier',
+    desc: 'Courier on route',
+  },
   { id: 'delivered', label: 'Delivered', desc: 'Doorstep handover complete' },
 ];
 
@@ -248,10 +252,12 @@ export default function PublicOrderResultPage() {
             </div>
             <div>
               <p className="text-xs font-bold text-gray-900">
-                TCS Express Consignment
+                {delivery.courierName
+                  ? `${delivery.courierName} Consignment`
+                  : 'Express Consignment'}
               </p>
               <p className="text-xs text-gray-500 font-mono">
-                {delivery.trackingNumber || `TCS-${orderNumber}`}
+                {delivery.trackingNumber || `TRK-${orderNumber}`}
               </p>
             </div>
           </div>

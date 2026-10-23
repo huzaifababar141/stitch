@@ -197,7 +197,7 @@ const ORDER_STEPS = [
   },
   {
     key: 'dispatched',
-    label: 'Dispatched TCS',
+    label: 'Dispatched',
     statuses: [
       'dispatched',
       'in_transit',
@@ -802,7 +802,8 @@ export default function DashboardPage() {
                                 <span>·</span>
                                 <span className="flex items-center gap-1 text-[#7E153A] font-semibold">
                                   <Truck size={11} className="shrink-0" />
-                                  TCS: {order.delivery.trackingNumber}
+                                  {order.delivery.courierName ||
+                                    'Courier'}: {order.delivery.trackingNumber}
                                 </span>
                               </>
                             )}

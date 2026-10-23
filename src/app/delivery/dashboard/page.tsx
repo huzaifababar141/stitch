@@ -108,7 +108,7 @@ export default function DeliveryDashboardPage() {
       <div className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-2">
-            <Truck size={14} /> TCS Express & Doorstep Logistics
+            <Truck size={14} /> Express Courier & Doorstep Logistics
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
             Active Delivery Runs
@@ -164,7 +164,7 @@ export default function DeliveryDashboardPage() {
               const trackingNumber =
                 order.delivery?.trackingNumber ||
                 order.trackingNumber ||
-                `TCS-${order.id.substring(0, 8).toUpperCase()}`;
+                `TRK-${order.id.substring(0, 8).toUpperCase()}`;
 
               return (
                 <div
@@ -179,7 +179,7 @@ export default function DeliveryDashboardPage() {
                             order.id.substring(0, 10).toUpperCase()}
                         </span>
                         <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
-                          TCS Track: {trackingNumber}
+                          Tracking: {trackingNumber}
                         </span>
                       </div>
                       <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider">

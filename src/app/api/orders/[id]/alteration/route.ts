@@ -44,7 +44,7 @@ export async function POST(
       items: items || [],
       notes: notes.trim(),
       pickupAddressId: pickupAddressId || order.deliveryAddressId,
-      pickupNotes: pickupNotes || 'Standard doorstep sample pickup',
+      pickupNotes: pickupNotes || 'Standard doorstep suit collection',
     };
 
     const updatedOrder = await prisma.order.update({
@@ -66,7 +66,7 @@ export async function POST(
         channel: 'in_app',
         status: 'sent',
         subject: '7-Day Free Alteration Request Received',
-        body: `Your alteration request for order #${order.orderNumber || order.id.slice(0, 8)} has been recorded. Our rider will contact you for suit pickup.`,
+        body: `Your alteration request for order #${order.orderNumber || order.id.slice(0, 8)} has been recorded. Our courier partner will contact you for suit collection.`,
         metadata: { alteration: alterationRecord },
       },
     });
@@ -80,7 +80,7 @@ export async function POST(
       201,
       {
         message:
-          '7-Day Free Alteration request submitted successfully. A courier rider will be dispatched for pickup.',
+          '7-Day Free Alteration request submitted successfully. A courier rider will be dispatched for collection.',
       }
     );
   } catch (error) {
