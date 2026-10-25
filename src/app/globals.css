@@ -47,8 +47,10 @@
   --radius: 0.5rem;
 }
 
-html {
-  overflow-x: clip;
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
@@ -211,4 +213,25 @@ input.border-red-500:autofill:focus {
   box-shadow:
     0 0 0 1000px #ffffff inset,
     0 0 0 4px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Continuous E-commerce Sliding Marquee Animation */
+@keyframes marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }

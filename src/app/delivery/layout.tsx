@@ -72,7 +72,7 @@ export default function DeliveryLayout({
       </main>
 
       <footer className="bg-white border-t border-gray-100 py-4 text-center text-xs text-gray-400">
-        <p>TailorLink Courier Logistics & TCS Dispatch Fleet</p>
+        <p>TailorLink Courier Logistics & Dispatch Fleet</p>
       </footer>
     </div>
   );

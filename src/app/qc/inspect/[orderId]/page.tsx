@@ -67,7 +67,7 @@ export default function QCInspectPage() {
   ) => {
     const actionDescriptions = {
       approved:
-        'APPROVE this garment for courier delivery dispatch? (TCS Consignment will be generated)',
+        'APPROVE this garment for courier delivery dispatch? (Courier consignment will be generated)',
       needs_minor_fix:
         'return this garment to the master tailor with minor alteration notes?',
       rejected: 'REJECT this garment and issue a complete re-stitch order?',

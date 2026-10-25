@@ -69,7 +69,7 @@ const STATUS_STEPS = [
   },
   {
     id: 'dispatched',
-    label: 'Dispatched via TCS',
+    label: 'Dispatched via Courier',
     desc: 'Handed over to courier',
     icon: Truck,
   },
@@ -252,7 +252,7 @@ export default function OrderTrackingPage() {
         toast({
           title: 'Alteration Request Submitted',
           description:
-            'Our rider will arrive for doorstep suit pickup. Free of charge under 7-Day Guarantee!',
+            'Our courier partner will collect the suit for adjustment under our 7-Day Guarantee.',
         });
         setIsAlterationModalOpen(false);
         setOrder((prev: any) => ({
@@ -466,7 +466,7 @@ export default function OrderTrackingPage() {
               7-Day Free Alteration in Progress
             </h3>
             <p className="text-xs text-amber-700 leading-relaxed">
-              Our courier rider is scheduled to pick up your suit from your
+              Our courier partner is scheduled to collect your suit from your
               registered address. Once adjusted by our master tailor, it will be
               re-delivered back to your doorstep free of charge.
             </p>
@@ -837,9 +837,9 @@ export default function OrderTrackingPage() {
                   Courier Tracking
                 </span>
                 <p className="font-bold text-gray-900 mt-0.5">
-                  {delivery.courierName || 'TCS Express'}:{' '}
+                  {delivery.courierName || 'Express Courier'}:{' '}
                   <span className="text-[#7E153A] font-mono">
-                    {delivery.trackingNumber || 'Pending pickup'}
+                    {delivery.trackingNumber || 'Pending dispatch'}
                   </span>
                 </p>
               </div>
@@ -927,7 +927,8 @@ export default function OrderTrackingPage() {
               <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 text-[11px] text-gray-600 flex items-center gap-2">
                 <Truck size={16} className="text-[#7E153A] shrink-0" />
                 <span>
-                  Complimentary rider pickup from your registered doorstep.
+                  Complimentary courier collection under our 7-Day Fit
+                  Guarantee.
                 </span>
               </div>
 
@@ -948,7 +949,7 @@ export default function OrderTrackingPage() {
                   {submittingAlteration ? (
                     <Loader2 size={14} className="animate-spin mr-1.5" />
                   ) : null}
-                  Schedule Free Pickup
+                  Submit Alteration
                 </Button>
               </div>
             </form>

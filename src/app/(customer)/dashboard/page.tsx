@@ -197,7 +197,7 @@ const ORDER_STEPS = [
   },
   {
     key: 'dispatched',
-    label: 'Dispatched TCS',
+    label: 'Dispatched',
     statuses: [
       'dispatched',
       'in_transit',
@@ -405,13 +405,72 @@ export default function DashboardPage() {
         The tagline is a flex item that naturally centers between greeting and button.
         overflow-hidden clips the top of the tall image cleanly.
       */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#F8E9E0] via-[#F7ECE4] to-[#F5DDD8] p-4 sm:p-5 sm:pl-8 sm:pr-6 min-h-[130px] flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 shadow-[0_4px_20px_rgba(122,16,56,0.05)] border border-[#F1E6E1]/70">
-        {/* 1. Greeting block – fluid on mobile, fixed width on tablet/desktop */}
-        <div className="relative z-10 w-full sm:w-[260px] lg:w-[300px] sm:shrink-0">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#F8E9E0] via-[#F7ECE4] to-[#F5DDD8] p-4 sm:p-5 sm:pl-8 sm:pr-6 min-h-[135px] flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 shadow-[0_4px_20px_rgba(122,16,56,0.05)] border border-[#F1E6E1]/70">
+        {/* Ambient warm tailoring glow in upper-right */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute -top-8 -right-8 w-36 h-36 sm:w-56 sm:h-56 rounded-full bg-gradient-to-br from-[#FCE1E5]/70 via-[#F8D2DA]/35 to-transparent blur-xl z-0"
+        />
+
+        {/* Decorative tailoring craft art in top-right corner */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute top-0 right-0 w-24 h-24 sm:w-28 sm:h-28 z-10 overflow-hidden"
+        >
+          <svg
+            viewBox="0 0 100 100"
+            fill="none"
+            className="w-full h-full opacity-80 drop-shadow-[0_1px_3px_rgba(122,16,56,0.12)]"
+          >
+            {/* Curved dashed hand-stitch line hugging the corner */}
+            <path
+              d="M94 26 C82 26, 64 34, 52 48"
+              stroke="#B3806D"
+              strokeWidth="1.5"
+              strokeDasharray="3 3"
+              strokeLinecap="round"
+              opacity="0.65"
+            />
+
+            {/* Graceful swirling maroon thread wave */}
+            <path
+              d="M66 6 C76 8, 88 18, 84 32 C80 44, 62 40, 54 30 C46 20, 56 8, 68 10 C82 12, 92 30, 86 46 C80 58, 60 62, 46 54"
+              stroke="#7A1038"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+
+            {/* Slender golden tailoring needle pointing into the banner */}
+            <path
+              d="M88 8 L72 24"
+              stroke="#9B6C45"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            {/* Needle eye */}
+            <circle cx="86" cy="10" r="1.3" fill="#7A1038" />
+
+            {/* Delicate gold craft sparkle stars */}
+            <path
+              d="M48 16 L50 20 L54 22 L50 24 L48 28 L46 24 L42 22 L46 20 Z"
+              fill="#C89758"
+              opacity="0.9"
+            />
+            <path
+              d="M32 34 L33.2 36.5 L36 37.7 L33.2 38.9 L32 41.5 L30.8 38.9 L28 37.7 L30.8 36.5 Z"
+              fill="#7A1038"
+              opacity="0.6"
+            />
+            <circle cx="92" cy="40" r="1.5" fill="#C89758" opacity="0.7" />
+          </svg>
+        </div>
+
+        {/* 1. Greeting block – text-safe width on mobile to avoid overlapping suit */}
+        <div className="relative z-10 w-full sm:w-[260px] lg:w-[300px] sm:shrink-0 max-w-[calc(100%-110px)] sm:max-w-none">
           <p className="text-xs sm:text-[14px] font-medium text-[#6B6B7B] leading-tight">
             Welcome back,
           </p>
-          <h1 className="text-[20px] sm:text-[24px] lg:text-[28px] font-bold text-[#1A1A2E] tracking-tight mt-0.5 leading-snug">
+          <h1 className="text-[20px] sm:text-[24px] lg:text-[28px] font-bold text-[#1A1A2E] tracking-tight mt-0.5 leading-snug truncate sm:whitespace-normal">
             {displayName}
           </h1>
           <p className="text-xs sm:text-[13px] text-[#6B6B7B] mt-1 leading-normal">
@@ -425,7 +484,7 @@ export default function DashboardPage() {
           <div className="h-[2px] w-[36px] bg-[#7A1038] mt-2 sm:mt-2.5 rounded-full" />
         </div>
 
-        {/* 2. Tagline – reduced font size and shifted leftward */}
+        {/* 2. Tagline – desktop only */}
         <div className="hidden lg:flex flex-1 items-center justify-center relative z-10 select-none -translate-x-6 xl:-translate-x-10">
           <p className="font-serif italic text-[#1A1A2E] text-[13.5px] xl:text-[15px] leading-snug text-center">
             Traditional Craft
@@ -434,26 +493,27 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* 3. Suit image – shifted left so button does not overlap */}
+        {/* 3. Suit image – anchored in upper-right with seamless bottom fade on mobile */}
         <div
           aria-hidden="true"
-          className="pointer-events-none select-none absolute right-[215px] xl:right-[235px] top-0 hidden lg:block h-full w-[195px] xl:w-[210px] z-0"
+          className="pointer-events-none select-none absolute right-0 sm:right-3 lg:right-[215px] xl:right-[235px] top-0 sm:top-0 h-[135px] sm:h-full w-[120px] sm:w-[150px] lg:w-[195px] xl:w-[210px] z-0 [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)] lg:[mask-image:none] lg:[-webkit-mask-image:none]"
         >
           <Image
             src="/images/dashboard/suit_banner.png"
-            alt=""
+            alt="Bespoke tailoring suit"
             fill
             priority
-            className="object-contain object-right-bottom"
+            sizes="(max-width: 640px) 120px, (max-width: 1024px) 150px, (min-width: 1280px) 210px, 195px"
+            className="object-contain object-right-bottom drop-shadow-[0_4px_12px_rgba(122,16,56,0.08)]"
           />
         </div>
 
-        {/* 4. Button – full-width on mobile, auto on tablet/desktop */}
+        {/* 4. Button – full-width on mobile with comfortable touch target, auto on tablet/desktop */}
         <Link
           href="/new-order"
-          className="relative z-10 w-full sm:w-auto sm:shrink-0 sm:ml-auto"
+          className="relative z-10 w-full sm:w-auto sm:shrink-0 sm:ml-auto mt-1 sm:mt-0"
         >
-          <button className="w-full sm:w-auto h-10 px-4 sm:px-5 rounded-[10px] bg-[#7A1038] hover:bg-[#650D2F] text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 shadow-sm shadow-[#7A1038]/25 transition-all duration-150 active:scale-[0.98] cursor-pointer whitespace-nowrap">
+          <button className="w-full sm:w-auto h-11 sm:h-10 px-4 sm:px-5 rounded-xl sm:rounded-[10px] bg-gradient-to-r from-[#7A1038] to-[#8E1342] hover:from-[#650D2F] hover:to-[#7A1038] text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 shadow-sm shadow-[#7A1038]/25 transition-all duration-150 active:scale-[0.98] cursor-pointer whitespace-nowrap">
             <Plus size={15} className="stroke-[2.5]" />
             <span>Place New Order</span>
           </button>
@@ -742,7 +802,8 @@ export default function DashboardPage() {
                                 <span>·</span>
                                 <span className="flex items-center gap-1 text-[#7E153A] font-semibold">
                                   <Truck size={11} className="shrink-0" />
-                                  TCS: {order.delivery.trackingNumber}
+                                  {order.delivery.courierName ||
+                                    'Courier'}: {order.delivery.trackingNumber}
                                 </span>
                               </>
                             )}

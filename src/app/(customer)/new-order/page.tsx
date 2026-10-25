@@ -599,9 +599,6 @@ function NewOrderContent() {
   };
 
   const validateStep3 = (): boolean => {
-    if (selectedProfileId === 'sample_suit') {
-      return true;
-    }
     if (selectedProfileId && selectedProfileId !== 'custom') {
       const exists = savedProfiles.some((p) => p.id === selectedProfileId);
       if (exists) return true;
@@ -5209,8 +5206,8 @@ function NewOrderContent() {
               4. Delivery Destination
             </h2>
             <p className="text-xs text-gray-500">
-              Select where TCS courier should deliver your tailored garments
-              upon quality inspection.
+              Select where courier should deliver your tailored garments upon
+              quality inspection.
             </p>
           </div>
 
@@ -5260,7 +5257,7 @@ function NewOrderContent() {
                       </div>
 
                       <div className="flex items-center justify-between border-t border-gray-100 pt-3 text-[11px] font-bold text-emerald-700">
-                        <span>TCS Doorstep Eligible</span>
+                        <span>Doorstep Delivery Eligible</span>
                         <div
                           className={`w-5 h-5 rounded-full flex items-center justify-center border ${
                             isSelected
@@ -5653,7 +5650,7 @@ function NewOrderContent() {
                 </div>
 
                 <div className="flex items-center justify-between text-gray-600">
-                  <span>TCS Doorstep Courier</span>
+                  <span>Tracked Doorstep Courier</span>
                   <span className="font-mono font-semibold text-gray-900">
                     PKR {deliveryFee.toLocaleString()}
                   </span>
@@ -5683,8 +5680,8 @@ function NewOrderContent() {
                   Doorstep Quality Inspection Included
                 </p>
                 <p>
-                  Each stitch is verified by our QC inspector before TCS courier
-                  dispatch.
+                  Each stitch is verified by our QC inspector before express
+                  courier dispatch.
                 </p>
               </div>
             </div>

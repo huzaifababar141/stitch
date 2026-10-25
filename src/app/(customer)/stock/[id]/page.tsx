@@ -398,7 +398,7 @@ export default function ArticleDetailPage() {
                   Guarantee
                 </span>
                 <span className="flex items-center gap-1">
-                  <Truck size={14} className="text-[#7E153A]" /> TCS Express
+                  <Truck size={14} className="text-[#7E153A]" /> Express
                   Delivery
                 </span>
               </div>

@@ -5,7 +5,7 @@ export default function DeliverySyncPage() {
   return (
     <ComingSoon
       icon={Truck}
-      title="TCS Delivery Sync"
+      title="Courier Delivery Sync"
       description="Courier dispatch, tracking sync, and delivery status oversight will live here."
     />
   );
