@@ -1,7 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, Check, Ruler, Sliders, Layers } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import {
+  X,
+  Check,
+  Ruler,
+  Sliders,
+  Layers,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface SizeChartModalProps {
@@ -429,6 +437,27 @@ export function SizeChartModal({
     setActiveUnit(initialUnit);
   }, [initialUnit]);
 
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const trouserTableRef = useRef<HTMLDivElement>(null);
+
+  const handleStepScroll = (direction: 'left' | 'right') => {
+    if (!tableContainerRef.current) return;
+    const step = 220;
+    tableContainerRef.current.scrollBy({
+      left: direction === 'right' ? step : -step,
+      behavior: 'smooth',
+    });
+  };
+
+  const handleTrouserStepScroll = (direction: 'left' | 'right') => {
+    if (!trouserTableRef.current) return;
+    const step = 220;
+    trouserTableRef.current.scrollBy({
+      left: direction === 'right' ? step : -step,
+      behavior: 'smooth',
+    });
+  };
+
   if (!isOpen) return null;
 
   const presets =
@@ -599,18 +628,44 @@ export function SizeChartModal({
           {/* ── 1. Full Suit Presets View ── */}
           {viewTab === 'full' && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-700">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-gray-700 truncate">
                   {activeGender === 'male'
                     ? "Men's Complete Kameez Shalwar / Kurta Sizes:"
                     : "Women's Complete 3-Piece / 2-Piece Suit Sizes:"}
                 </span>
-                <span className="text-[11px] text-gray-400">
-                  Tap &apos;Apply Size&apos; to load all fields
-                </span>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[11px] text-gray-400 hidden sm:inline">
+                    Tap &apos;Apply Size&apos; to load all fields
+                  </span>
+
+                  {/* Two clean navigation buttons to slide chart left & right */}
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleStepScroll('left')}
+                      aria-label="Slide chart left"
+                      className="w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-700 transition-colors cursor-pointer shadow-xs active:scale-95"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleStepScroll('right')}
+                      aria-label="Slide chart right"
+                      className="w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-700 transition-colors cursor-pointer shadow-xs active:scale-95"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-gray-200 scrollbar-none">
+              <div
+                ref={tableContainerRef}
+                className="overflow-x-auto rounded-xl border border-gray-200 scrollbar-none scroll-smooth"
+              >
                 <table className="w-full text-left text-xs">
                   <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
                     <tr>
@@ -951,91 +1006,120 @@ export function SizeChartModal({
               )}
 
               {/* Comprehensive Pant Code Matrix Table */}
-              <div className="overflow-x-auto rounded-xl border border-gray-200 scrollbar-none">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
-                    <tr>
-                      <th className="py-3 px-3 text-left font-bold text-gray-900 whitespace-nowrap">
-                        Code
-                      </th>
-                      <th className="py-3 px-2 text-center whitespace-nowrap">
-                        Waist{' '}
-                        <span className="text-[10px] text-gray-400 font-normal">
-                          ({activeUnit === 'inches' ? 'in' : 'cm'})
-                        </span>
-                      </th>
-                      <th className="py-3 px-2 text-center whitespace-nowrap">
-                        Length{' '}
-                        <span className="text-[10px] text-gray-400 font-normal">
-                          ({activeUnit === 'inches' ? 'in' : 'cm'})
-                        </span>
-                      </th>
-                      <th className="py-3 px-2 text-center whitespace-nowrap">
-                        Inseam / Asan{' '}
-                        <span className="text-[10px] text-gray-400 font-normal">
-                          ({activeUnit === 'inches' ? 'in' : 'cm'})
-                        </span>
-                      </th>
-                      <th className="py-3 px-2 text-center whitespace-nowrap">
-                        Paicha{' '}
-                        <span className="text-[10px] text-gray-400 font-normal">
-                          ({activeUnit === 'inches' ? 'in' : 'cm'})
-                        </span>
-                      </th>
-                      <th className="py-3 px-2 text-center whitespace-nowrap">
-                        {activeGender === 'male'
-                          ? 'Ghera / Seat'
-                          : 'Hips / Seat'}{' '}
-                        <span className="text-[10px] text-gray-400 font-normal">
-                          ({activeUnit === 'inches' ? 'in' : 'cm'})
-                        </span>
-                      </th>
-                      <th className="py-3 px-3 text-right whitespace-nowrap">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 text-gray-600">
-                    {trouserCodes.map((item) => (
-                      <tr
-                        key={item.code}
-                        className={`hover:bg-red-50/30 transition-colors ${
-                          selectedTrouserCode === item.code
-                            ? 'bg-red-50/20'
-                            : ''
-                        }`}
-                      >
-                        <td className="py-3 px-3 font-bold text-gray-900 font-mono whitespace-nowrap">
-                          {item.code}
-                        </td>
-                        <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
-                          {formatVal(item.waist)}
-                        </td>
-                        <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
-                          {formatVal(item.length)}
-                        </td>
-                        <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
-                          {formatVal(item.inseam)}
-                        </td>
-                        <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
-                          {formatVal(item.bottom)}
-                        </td>
-                        <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
-                          {formatVal(item.seat)}
-                        </td>
-                        <td className="py-3 px-3 text-right whitespace-nowrap">
-                          <Button
-                            onClick={() => handleApplyTrouserCode(item)}
-                            size="sm"
-                            className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs h-7 px-3 rounded-lg cursor-pointer shrink-0 font-bold"
-                          >
-                            Apply
-                          </Button>
-                        </td>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-gray-700 truncate">
+                    Complete Dimension Breakdown Table:
+                  </span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleTrouserStepScroll('left')}
+                      aria-label="Slide table left"
+                      className="w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-700 transition-colors cursor-pointer shadow-xs active:scale-95"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTrouserStepScroll('right')}
+                      aria-label="Slide table right"
+                      className="w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-700 transition-colors cursor-pointer shadow-xs active:scale-95"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  ref={trouserTableRef}
+                  className="overflow-x-auto rounded-xl border border-gray-200 scrollbar-none scroll-smooth"
+                >
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
+                      <tr>
+                        <th className="py-3 px-3 text-left font-bold text-gray-900 whitespace-nowrap">
+                          Code
+                        </th>
+                        <th className="py-3 px-2 text-center whitespace-nowrap">
+                          Waist{' '}
+                          <span className="text-[10px] text-gray-400 font-normal">
+                            ({activeUnit === 'inches' ? 'in' : 'cm'})
+                          </span>
+                        </th>
+                        <th className="py-3 px-2 text-center whitespace-nowrap">
+                          Length{' '}
+                          <span className="text-[10px] text-gray-400 font-normal">
+                            ({activeUnit === 'inches' ? 'in' : 'cm'})
+                          </span>
+                        </th>
+                        <th className="py-3 px-2 text-center whitespace-nowrap">
+                          Inseam / Asan{' '}
+                          <span className="text-[10px] text-gray-400 font-normal">
+                            ({activeUnit === 'inches' ? 'in' : 'cm'})
+                          </span>
+                        </th>
+                        <th className="py-3 px-2 text-center whitespace-nowrap">
+                          Paicha{' '}
+                          <span className="text-[10px] text-gray-400 font-normal">
+                            ({activeUnit === 'inches' ? 'in' : 'cm'})
+                          </span>
+                        </th>
+                        <th className="py-3 px-2 text-center whitespace-nowrap">
+                          {activeGender === 'male'
+                            ? 'Ghera / Seat'
+                            : 'Hips / Seat'}{' '}
+                          <span className="text-[10px] text-gray-400 font-normal">
+                            ({activeUnit === 'inches' ? 'in' : 'cm'})
+                          </span>
+                        </th>
+                        <th className="py-3 px-3 text-right whitespace-nowrap">
+                          Action
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-gray-600">
+                      {trouserCodes.map((item) => (
+                        <tr
+                          key={item.code}
+                          className={`hover:bg-red-50/30 transition-colors ${
+                            selectedTrouserCode === item.code
+                              ? 'bg-red-50/20'
+                              : ''
+                          }`}
+                        >
+                          <td className="py-3 px-3 font-bold text-gray-900 font-mono whitespace-nowrap">
+                            {item.code}
+                          </td>
+                          <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
+                            {formatVal(item.waist)}
+                          </td>
+                          <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
+                            {formatVal(item.length)}
+                          </td>
+                          <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
+                            {formatVal(item.inseam)}
+                          </td>
+                          <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
+                            {formatVal(item.bottom)}
+                          </td>
+                          <td className="py-3 px-2 text-center font-mono font-medium text-gray-800">
+                            {formatVal(item.seat)}
+                          </td>
+                          <td className="py-3 px-3 text-right whitespace-nowrap">
+                            <Button
+                              onClick={() => handleApplyTrouserCode(item)}
+                              size="sm"
+                              className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs h-7 px-3 rounded-lg cursor-pointer shrink-0 font-bold"
+                            >
+                              Apply
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

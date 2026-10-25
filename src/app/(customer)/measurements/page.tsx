@@ -856,29 +856,22 @@ export default function MeasurementsStudioPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 py-1 sm:py-2 font-sans min-w-0 w-full">
       {/* ── Top Header Banner ── */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-6 lg:p-8 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 min-w-0 w-full">
-        <div className="space-y-1.5 min-w-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-red-50 text-[#7E153A] flex items-center justify-center font-bold shrink-0">
-              <Ruler size={18} className="sm:w-5 sm:h-5" />
-            </div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">
-              Measurement Studio
-            </h1>
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-5 lg:p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 min-w-0 w-full">
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-red-50 text-[#7E153A] flex items-center justify-center font-bold shrink-0">
+            <Ruler size={18} className="sm:w-5 sm:h-5" />
           </div>
-          <p className="text-xs text-gray-500 max-w-xl leading-relaxed">
-            Manage personalized fitting profiles for Men&apos;s, Women&apos;s,
-            Pants, Coats, Shalwars, and custom tailoring with instant order
-            reuse.
-          </p>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">
+            Measurement Studio
+          </h1>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
           {/* Unit Toggle */}
           <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200/60 justify-center">
             <button
               onClick={() => handleToggleUnit('inches')}
-              className={`flex-1 sm:flex-none px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              className={`px-3 sm:px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 unit === 'inches'
                   ? 'bg-white text-[#7E153A] shadow-xs'
                   : 'text-gray-500 hover:text-gray-900'
@@ -888,7 +881,7 @@ export default function MeasurementsStudioPage() {
             </button>
             <button
               onClick={() => handleToggleUnit('cm')}
-              className={`flex-1 sm:flex-none px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              className={`px-3 sm:px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 unit === 'cm'
                   ? 'bg-white text-[#7E153A] shadow-xs'
                   : 'text-gray-500 hover:text-gray-900'
@@ -898,7 +891,7 @@ export default function MeasurementsStudioPage() {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:flex items-center gap-2">
+          <div className="flex items-center gap-2">
             {/* Guide Buttons */}
             <Button
               onClick={() => setShowHowToMeasure(true)}
@@ -922,7 +915,7 @@ export default function MeasurementsStudioPage() {
           {/* New Profile CTA */}
           <Button
             onClick={() => handleOpenCreate('women_suit')}
-            className="h-10 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white px-5 rounded-xl shadow-md shadow-[#7E153A]/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            className="h-9 sm:h-10 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white px-4 sm:px-5 rounded-xl shadow-md shadow-[#7E153A]/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
             <Plus size={16} /> New Profile
           </Button>
