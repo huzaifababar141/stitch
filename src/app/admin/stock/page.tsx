@@ -71,13 +71,102 @@ const FABRIC_TYPES = [
   'other',
 ];
 
-const GARMENT_OPTIONS = [
-  { key: 'full_suit', label: 'Shalwar Kameez / Pajama (Full Suit)' },
+export interface CategoryPreset {
+  key: string;
+  label: string;
+  sublabel: string;
+  defaultPieces: string;
+  shirtCut: string;
+  dupattaCut: string;
+  trouserCut: string;
+}
+
+export const WOMEN_GARMENTS: CategoryPreset[] = [
+  {
+    key: 'full_suit',
+    label: 'Shalwar Kameez / Pajama',
+    sublabel: 'Full Suit (3-Piece / 2-Piece)',
+    defaultPieces: '3 Piece',
+    shirtCut: 'Embroidered Lawn 3.0 Meters',
+    dupattaCut: 'Printed Chiffon 2.5 Meters',
+    trouserCut: 'Dyed Cambric Cotton 2.5 Meters',
+  },
+  {
+    key: 'kameez_only',
+    label: 'Only Shirt / Kurti',
+    sublabel: 'Single Piece Top',
+    defaultPieces: '1 Piece',
+    shirtCut: 'Digital Printed Lawn 2.5 Meters',
+    dupattaCut: '',
+    trouserCut: '',
+  },
+  {
+    key: 'frock_maxi',
+    label: 'Frock / Maxi Cut',
+    sublabel: 'Flared, Anarkali or Tiered Maxi',
+    defaultPieces: '3 Piece',
+    shirtCut: 'Embroidered Chiffon 4.0 Meters (16 Kalis)',
+    dupattaCut: 'Zari Tissue Dupatta 2.5 Meters',
+    trouserCut: 'Dyed Silk Trouser 2.5 Meters',
+  },
+  {
+    key: 'trouser_only',
+    label: 'Trouser / Bottom Only',
+    sublabel: 'Straight Trouser / Shalwar',
+    defaultPieces: '1 Piece',
+    shirtCut: '',
+    dupattaCut: '',
+    trouserCut: 'Pure Cotton / Cambric 2.5 Meters',
+  },
+];
+
+export const MEN_GARMENTS: CategoryPreset[] = [
+  {
+    key: 'full_suit',
+    label: 'Shalwar Kameez',
+    sublabel: 'Traditional Kurta & Shalwar',
+    defaultPieces: '2 Piece',
+    shirtCut: 'Pure Wash & Wear Cotton 4.5 Meters',
+    dupattaCut: '',
+    trouserCut: '',
+  },
+  {
+    key: 'waistcoat',
+    label: 'Waist Coat / Sadri',
+    sublabel: 'Formal Sadri / Vest',
+    defaultPieces: '1 Piece',
+    shirtCut: 'Jamawar / Tropical Wool 1.5 Meters',
+    dupattaCut: 'Inner Silk/Viscose Lining 1.5 Meters',
+    trouserCut: '',
+  },
+  {
+    key: 'pant_coat',
+    label: 'Pent Coat (2-Piece)',
+    sublabel: 'Blazer Jacket & Trouser',
+    defaultPieces: '2 Piece',
+    shirtCut: 'Italian Tropical Wool 3.5 Meters',
+    dupattaCut: 'Imported Bemberg Silk Lining 2.0 Meters',
+    trouserCut: 'Matching Wool Trouser Included',
+  },
+  {
+    key: 'trouser_only',
+    label: "Men's Trouser Only",
+    sublabel: 'Formal Trousers / Chinos Bottom',
+    defaultPieces: '1 Piece',
+    shirtCut: '',
+    dupattaCut: '',
+    trouserCut: 'Cotton Twill / Wool Blend 2.0 Meters',
+  },
+];
+
+export const ALL_CATEGORIES = [
+  { key: 'all', label: 'All Categories' },
+  { key: 'full_suit', label: 'Shalwar Kameez' },
   { key: 'kameez_only', label: 'Only Shirt / Kurti' },
-  { key: 'frock_maxi', label: 'Frock / Maxi Cut' },
-  { key: 'waistcoat', label: 'Sadri / Waistcoat' },
-  { key: 'pant_coat', label: 'Pant Coat (2-Piece Suit)' },
-  { key: 'trouser_only', label: 'Trouser / Bottom Only' },
+  { key: 'frock_maxi', label: 'Frock / Maxi' },
+  { key: 'waistcoat', label: 'Waist Coat / Sadri' },
+  { key: 'pant_coat', label: 'Pent Coat' },
+  { key: 'trouser_only', label: 'Trouser / Bottom' },
 ];
 
 export default function AdminStockPage() {
@@ -95,6 +184,7 @@ export default function AdminStockPage() {
   // Filters & Search
   const [search, setSearch] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [fabricFilter, setFabricFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all');
 
@@ -139,6 +229,7 @@ export default function AdminStockPage() {
       const params = new URLSearchParams();
       if (search.trim()) params.append('search', search.trim());
       if (genderFilter !== 'all') params.append('gender', genderFilter);
+      if (categoryFilter !== 'all') params.append('category', categoryFilter);
       if (fabricFilter !== 'all') params.append('fabricType', fabricFilter);
       if (stockFilter !== 'all') params.append('inStock', stockFilter);
 
@@ -165,11 +256,31 @@ export default function AdminStockPage() {
   useEffect(() => {
     fetchArticles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [genderFilter, fabricFilter, stockFilter]);
+  }, [genderFilter, categoryFilter, fabricFilter, stockFilter]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     fetchArticles();
+  };
+
+  const handleSelectGender = (newGender: 'female' | 'male' | 'unisex') => {
+    setFormGender(newGender);
+    const presets = newGender === 'male' ? MEN_GARMENTS : WOMEN_GARMENTS;
+    const match =
+      presets.find((p) => p.key === formGarmentSubtype) || presets[0];
+    setFormGarmentSubtype(match.key);
+    setFormPiecesCount(match.defaultPieces);
+    setFormShirtFabric(match.shirtCut);
+    setFormDupattaFabric(match.dupattaCut);
+    setFormTrouserFabric(match.trouserCut);
+  };
+
+  const handleSelectCategory = (preset: CategoryPreset) => {
+    setFormGarmentSubtype(preset.key);
+    setFormPiecesCount(preset.defaultPieces);
+    setFormShirtFabric(preset.shirtCut);
+    setFormDupattaFabric(preset.dupattaCut);
+    setFormTrouserFabric(preset.trouserCut);
   };
 
   // Open Form for Adding New Product
@@ -475,6 +586,19 @@ export default function AdminStockPage() {
             <option value="male">Men's Collection</option>
           </select>
 
+          {/* Category Filter */}
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-700 font-medium"
+          >
+            {ALL_CATEGORIES.map((c) => (
+              <option key={c.key} value={c.key}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+
           {/* Fabric Filter */}
           <select
             value={fabricFilter}
@@ -583,7 +707,10 @@ export default function AdminStockPage() {
                     </span>
                   </div>
 
-                  {/* Photos count */}
+                  {/* Cover Badge & Photos count */}
+                  <div className="absolute bottom-2.5 left-2.5 bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs uppercase tracking-wider">
+                    <Star size={9} fill="currentColor" /> Cover
+                  </div>
                   <div className="absolute bottom-2.5 right-2.5 bg-black/70 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                     <Layers size={10} /> {images.length} Photos
                   </div>
@@ -603,11 +730,20 @@ export default function AdminStockPage() {
                       {item.name}
                     </h3>
 
-                    <p className="text-[11px] text-gray-500 mt-1 line-clamp-1">
-                      {meta.piecesCount || '3-Piece'} ·{' '}
-                      {meta.garmentSubtype?.replace('_', ' ') ||
-                        item.garmentType}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-[10px] font-bold bg-[#FAF0F2] text-[#7E153A] px-2 py-0.5 rounded-md border border-[#7E153A]/20">
+                        {meta.gender === 'male' ? 'Men' : 'Women'} ·{' '}
+                        {ALL_CATEGORIES.find(
+                          (c) =>
+                            c.key === (meta.garmentSubtype || item.garmentType)
+                        )?.label ||
+                          meta.garmentSubtype?.replace('_', ' ') ||
+                          item.garmentType}
+                      </span>
+                      <span className="text-[10px] text-gray-500 font-medium">
+                        {meta.piecesCount || '3-Piece'}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Price & Actions */}
@@ -622,6 +758,17 @@ export default function AdminStockPage() {
                     </div>
 
                     <div className="flex items-center gap-1.5">
+                      <Link href={`/stock/${item.id}`} target="_blank">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0 rounded-lg text-gray-600 hover:text-[#7E153A] cursor-pointer"
+                          title="Preview on Customer Storefront"
+                        >
+                          <ExternalLink size={13} />
+                        </Button>
+                      </Link>
                       <Button
                         type="button"
                         onClick={() => handleOpenEditModal(item)}
@@ -732,40 +879,95 @@ export default function AdminStockPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-1.5">
+                {/* Target Gender & Garment Category */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
                     <label className="font-bold text-gray-700">
-                      Target Gender
+                      Target Gender & Collection{' '}
+                      <span className="text-[#7E153A]">*</span>
                     </label>
-                    <select
-                      value={formGender}
-                      onChange={(e) => setFormGender(e.target.value as any)}
-                      className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-800"
-                    >
-                      <option value="female">Women's Collection</option>
-                      <option value="male">Men's Collection</option>
-                      <option value="unisex">Unisex Fabric</option>
-                    </select>
+                    <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectGender('female')}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          formGender === 'female'
+                            ? 'bg-[#7E153A] text-white shadow-xs'
+                            : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                      >
+                        Women's Collection
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectGender('male')}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          formGender === 'male'
+                            ? 'bg-[#7E153A] text-white shadow-xs'
+                            : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                      >
+                        Men's Collection
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="font-bold text-gray-700">
-                      Garment Style
+                  {/* Garment Category Selection Cards */}
+                  <div>
+                    <label className="font-bold text-gray-700 block mb-2">
+                      Select Garment Category{' '}
+                      <span className="text-[#7E153A]">*</span>
                     </label>
-                    <select
-                      value={formGarmentSubtype}
-                      onChange={(e) => setFormGarmentSubtype(e.target.value)}
-                      className="w-full h-10 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-800"
-                    >
-                      {GARMENT_OPTIONS.map((g) => (
-                        <option key={g.key} value={g.key}>
-                          {g.label}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      {(formGender === 'male'
+                        ? MEN_GARMENTS
+                        : WOMEN_GARMENTS
+                      ).map((preset) => {
+                        const isSelected = formGarmentSubtype === preset.key;
+                        return (
+                          <button
+                            key={preset.key}
+                            type="button"
+                            onClick={() => handleSelectCategory(preset)}
+                            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
+                              isSelected
+                                ? 'border-[#7E153A] bg-red-50/60 ring-2 ring-[#7E153A]/20 shadow-xs'
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center justify-between">
+                                <span
+                                  className={`text-xs font-extrabold ${
+                                    isSelected
+                                      ? 'text-[#7E153A]'
+                                      : 'text-gray-900'
+                                  }`}
+                                >
+                                  {preset.label}
+                                </span>
+                                {isSelected && (
+                                  <CheckCircle2
+                                    size={13}
+                                    className="text-[#7E153A]"
+                                  />
+                                )}
+                              </div>
+                              <p className="text-[10px] text-gray-500 line-clamp-1 mt-0.5">
+                                {preset.sublabel}
+                              </p>
+                            </div>
+                            <span className="text-[9px] font-bold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full w-fit">
+                              {preset.defaultPieces}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  {/* Fabric Weave Dropdown */}
+                  <div className="space-y-1.5 pt-1">
                     <label className="font-bold text-gray-700">
                       Fabric Weave Type
                     </label>
@@ -912,10 +1114,26 @@ export default function AdminStockPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
                     <label className="font-bold text-gray-700">
-                      Shirt / Kameez Cut
+                      {formGarmentSubtype === 'frock_maxi'
+                        ? 'Frock / Flare Fabric Cut'
+                        : formGarmentSubtype === 'waistcoat'
+                          ? 'Outer Waistcoat Fabric Cut'
+                          : formGarmentSubtype === 'pant_coat'
+                            ? 'Coat & Suit Fabric Cut'
+                            : formGarmentSubtype === 'kameez_only'
+                              ? 'Shirt / Kurti Cut'
+                              : formGarmentSubtype === 'trouser_only'
+                                ? 'Trouser Cut'
+                                : 'Shirt / Kameez Cut'}
                     </label>
                     <Input
-                      placeholder="e.g. Embroidered Lawn 3.0 Meters"
+                      placeholder={
+                        formGarmentSubtype === 'waistcoat'
+                          ? 'e.g. Jamawar / Tropical Wool 1.5 Meters'
+                          : formGarmentSubtype === 'pant_coat'
+                            ? 'e.g. Fine Tropical Wool 3.5 Meters'
+                            : 'e.g. Embroidered Lawn 3.0 Meters'
+                      }
                       value={formShirtFabric}
                       onChange={(e) => setFormShirtFabric(e.target.value)}
                       className="h-10 text-xs rounded-xl"
@@ -924,10 +1142,20 @@ export default function AdminStockPage() {
 
                   <div className="space-y-1.5">
                     <label className="font-bold text-gray-700">
-                      Dupatta / Sadri Cut
+                      {formGarmentSubtype === 'waistcoat' ||
+                      formGarmentSubtype === 'pant_coat'
+                        ? 'Inner Lining Fabric'
+                        : formGarmentSubtype === 'frock_maxi'
+                          ? 'Dupatta / Flare Accents'
+                          : 'Dupatta / Sadri Cut'}
                     </label>
                     <Input
-                      placeholder="e.g. Printed Chiffon 2.5 Meters"
+                      placeholder={
+                        formGarmentSubtype === 'waistcoat' ||
+                        formGarmentSubtype === 'pant_coat'
+                          ? 'e.g. Silk / Viscose Lining 1.5 Meters'
+                          : 'e.g. Printed Chiffon 2.5 Meters'
+                      }
                       value={formDupattaFabric}
                       onChange={(e) => setFormDupattaFabric(e.target.value)}
                       className="h-10 text-xs rounded-xl"
@@ -936,7 +1164,9 @@ export default function AdminStockPage() {
 
                   <div className="space-y-1.5">
                     <label className="font-bold text-gray-700">
-                      Trouser / Bottom Cut
+                      {formGarmentSubtype === 'pant_coat'
+                        ? 'Trouser Cut / Details'
+                        : 'Trouser / Bottom Cut'}
                     </label>
                     <Input
                       placeholder="e.g. Dyed Cambric Cotton 2.5 Meters"

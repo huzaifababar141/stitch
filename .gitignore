@@ -10,3 +10,4 @@ supabase/.branches/
 supabase/.temp/
 *.tsbuildinfo
 tsconfig.tsbuildinfo
+public/uploads/

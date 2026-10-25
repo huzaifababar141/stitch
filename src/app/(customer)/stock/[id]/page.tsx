@@ -20,6 +20,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import {
+  getStitchingTiers,
+  formatPKR,
+  type StitchingTierKey,
+} from '@/lib/constants/pricing';
 
 interface ProductDetail {
   id: string;
@@ -59,6 +64,8 @@ export default function ArticleDetailPage() {
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedTier, setSelectedTier] =
+    useState<StitchingTierKey>('standard');
 
   useEffect(() => {
     if (!id) return;
@@ -134,6 +141,32 @@ export default function ArticleDetailPage() {
   const qty = meta.stockQuantity ?? 0;
   const isAvailable = product.isActive && meta.inStock !== false && qty > 0;
 
+  const genderKey = (meta.gender === 'male' ? 'male' : 'female') as
+    'male' | 'female';
+  const garmentKey = meta.garmentSubtype || product.garmentType || 'full_suit';
+  const stitchingTiers = getStitchingTiers(genderKey, garmentKey);
+  const activeTierInfo =
+    stitchingTiers.find((t) => t.key === selectedTier) ||
+    stitchingTiers[1] ||
+    stitchingTiers[0];
+  const stitchingFee = activeTierInfo?.price || 0;
+  const totalPrice = price + stitchingFee;
+
+  const categoryLabelMap: Record<string, string> = {
+    full_suit:
+      genderKey === 'male'
+        ? "Men's Shalwar Kameez"
+        : "Women's Shalwar Kameez / Pajama",
+    kameez_only: 'Only Shirt / Kurti',
+    frock_maxi: "Women's Frock / Maxi Cut",
+    waistcoat: "Men's Waist Coat / Sadri",
+    pant_coat: "Men's Pent Coat (2-Piece)",
+    trouser_only:
+      genderKey === 'male' ? "Men's Trouser" : "Women's Trouser & Bottom",
+  };
+  const categoryLabel =
+    categoryLabelMap[garmentKey] || garmentKey.replace('_', ' ');
+
   return (
     <div className="space-y-8 pb-16">
       {/* Back Button & Breadcrumbs */}
@@ -180,7 +213,7 @@ export default function ArticleDetailPage() {
             {/* In-Stock / Badge */}
             <div className="absolute top-4 left-4 flex items-center gap-2">
               <span className="bg-[#7E153A] text-white text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                {meta.gender === 'male' ? "Men's Fabric" : "Women's Fabric"}
+                {categoryLabel}
               </span>
               <span className="bg-white/90 backdrop-blur-xs text-gray-900 text-[11px] font-extrabold px-3 py-1 rounded-full shadow-sm capitalize">
                 {product.fabricType}
@@ -215,7 +248,7 @@ export default function ArticleDetailPage() {
                       className="w-full h-full object-cover object-center"
                     />
                     {idx === 0 && (
-                      <span className="absolute bottom-1 left-1 right-1 bg-[#7E153A] text-white text-[8px] font-extrabold py-0.5 rounded text-center">
+                      <span className="absolute bottom-1 left-1 right-1 bg-amber-500 text-white text-[8px] font-black py-0.5 rounded text-center uppercase tracking-wider">
                         Cover
                       </span>
                     )}
@@ -245,45 +278,117 @@ export default function ArticleDetailPage() {
                 {product.name}
               </h1>
 
-              {meta.sku && (
-                <p className="text-[11px] font-mono text-gray-400">
-                  Article Code:{' '}
-                  <span className="font-bold text-gray-700">{meta.sku}</span>
-                </p>
-              )}
+              <div className="flex items-center gap-3 pt-1">
+                <span className="text-xs font-extrabold bg-[#FAF0F2] text-[#7E153A] px-2.5 py-1 rounded-lg border border-[#7E153A]/20">
+                  {categoryLabel}
+                </span>
+                {meta.sku && (
+                  <p className="text-[11px] font-mono text-gray-400">
+                    SKU:{' '}
+                    <span className="font-bold text-gray-700">{meta.sku}</span>
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Price Breakdown in PKR */}
-            <div className="bg-[#FAF0F2]/70 p-4 rounded-2xl border border-[#7E153A]/20 space-y-2">
-              <div className="flex items-baseline justify-between">
+            {/* Real-Time Bespoke Stitching & Price Calculator */}
+            <div className="bg-[#FAF0F2]/80 p-4 sm:p-5 rounded-3xl border border-[#7E153A]/20 space-y-4">
+              <div className="flex items-center justify-between">
                 <div>
                   <span className="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">
                     Unstitched Fabric Price
                   </span>
-                  <span className="text-2xl font-black font-mono text-[#7E153A]">
-                    PKR {price.toLocaleString()}
+                  <span className="text-xl font-black font-mono text-[#7E153A]">
+                    {formatPKR(price)}
                   </span>
                 </div>
-                <span className="text-xs font-semibold text-gray-500">
+                <span className="text-xs font-bold text-gray-600 bg-white px-2.5 py-1 rounded-full border border-gray-200">
                   {meta.piecesCount || '3-Piece Suit'}
                 </span>
               </div>
-              <p className="text-[11px] text-gray-500 leading-relaxed">
-                Stitching service can be seamlessly added in the next step. Our
-                master craftsmen will stitch this fabric according to your exact
-                measurements.
-              </p>
+
+              {/* Stitching Tiers Selector */}
+              <div className="space-y-2 pt-2 border-t border-[#7E153A]/15">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-extrabold text-gray-800 flex items-center gap-1.5">
+                    <Scissors size={14} className="text-[#7E153A]" /> Bespoke
+                    Tailoring Add-On:
+                  </span>
+                  <span className="text-[11px] text-[#7E153A] font-bold">
+                    {activeTierInfo.days} turnaround
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {stitchingTiers.map((tier) => {
+                    const isTierSelected = tier.key === selectedTier;
+                    return (
+                      <button
+                        key={tier.key}
+                        type="button"
+                        onClick={() => setSelectedTier(tier.key)}
+                        className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                          isTierSelected
+                            ? 'bg-[#7E153A] text-white border-[#7E153A] shadow-md shadow-[#7E153A]/20'
+                            : 'bg-white border-gray-200 text-gray-800 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="space-y-0.5">
+                          <span
+                            className={`text-[11px] font-extrabold block ${
+                              isTierSelected ? 'text-white' : 'text-gray-900'
+                            }`}
+                          >
+                            {tier.name
+                              .replace(' Stitching', '')
+                              .replace(' Designer', '')}
+                          </span>
+                          <span
+                            className={`text-[9px] block ${
+                              isTierSelected ? 'text-red-200' : 'text-gray-400'
+                            }`}
+                          >
+                            {tier.days}
+                          </span>
+                        </div>
+                        <span
+                          className={`text-xs font-black font-mono mt-1 ${
+                            isTierSelected ? 'text-amber-300' : 'text-[#7E153A]'
+                          }`}
+                        >
+                          +{formatPKR(tier.price)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Total Calculation Display */}
+              <div className="pt-2 border-t border-[#7E153A]/15 flex items-baseline justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-gray-500 block tracking-wider">
+                    Total (Fabric + {activeTierInfo.name})
+                  </span>
+                  <span className="text-2xl font-black font-mono text-[#7E153A]">
+                    {formatPKR(totalPrice)}
+                  </span>
+                </div>
+                <span className="text-[11px] text-gray-500 font-medium">
+                  {formatPKR(price)} + {formatPKR(stitchingFee)}
+                </span>
+              </div>
             </div>
 
             {/* Primary Order Action Button */}
             <div className="space-y-3 pt-2">
               <Link
-                href={`/new-order?productId=${product.id}`}
+                href={`/new-order?productId=${product.id}&stitchingTier=${selectedTier}`}
                 className="w-full block"
               >
                 <Button className="w-full h-12 rounded-2xl bg-[#7E153A] hover:bg-[#630f2d] text-white font-extrabold text-sm shadow-lg shadow-[#7E153A]/25 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01]">
                   <Scissors size={18} />
-                  Tailor This Suit Now
+                  Tailor This Garment ({formatPKR(totalPrice)})
                 </Button>
               </Link>
 
@@ -299,6 +404,68 @@ export default function ArticleDetailPage() {
               </div>
             </div>
 
+            {/* Available Customization Options Preview */}
+            <div className="bg-stone-50/80 p-4 rounded-2xl border border-stone-200 text-xs space-y-2">
+              <span className="font-extrabold text-gray-900 block uppercase tracking-wider text-[10px]">
+                Customization Options in Order Wizard:
+              </span>
+              <div className="flex flex-wrap gap-1.5 text-[11px] text-gray-700">
+                {garmentKey === 'frock_maxi' && (
+                  <>
+                    <span className="bg-white px-2 py-0.5 rounded-md border border-gray-200 font-semibold">
+                      Styles: A-Line, Anarkali, Flared, Tiered
+                    </span>
+                    <span className="bg-white px-2 py-0.5 rounded-md border border-gray-200 font-semibold">
+                      Necklines: Round, V-Neck, Square, Boat
+                    </span>
+                    <span className="bg-white px-2 py-0.5 rounded-md border border-gray-200 font-semibold">
+                      Damans: Straight, Curved, Scalloped
+                    </span>
+                  </>
+                )}
+                {garmentKey === 'waistcoat' && (
+                  <>
+                    <span className="bg-white px-2 py-0.5 rounded-md border border-gray-200 font-semibold">
+                      Collars: Classic V-Neck, Band Collar, Sherwani
+                    </span>
+                    <span className="bg-white px-2 py-0.5 rounded-md border border-gray-200 font-semibold">
+                      Sleeves: Sleeveless, Plain Straight, Button Cuff
+                    </span>
+                  </>
+                )}
+                {garmentKey === 'pant_coat' && (
+                  <>
+                    <span className="bg-white px-2 py-0.5 rounded-md border border-gray-200 font-semibold">
+                      Styles: Single / Double Breasted
+                    </span>
+                    <span className="bg-white px-2 py-0.5 rounded-md border border-gray-200 font-semibold">
+                      Lapels: Notch, Peak, Shawl Lapel
+                    </span>
+                    <span className="bg-white px-2 py-0.5 rounded-md border border-gray-200 font-semibold">
+                      Vents: Center Vent, Double Vent, No Vent
+                    </span>
+                    <span className="bg-white px-2 py-0.5 rounded-md border border-gray-200 font-semibold">
+                      Trousers: Straight, Slim, Tapered, Pleated
+                    </span>
+                  </>
+                )}
+                {(garmentKey === 'full_suit' ||
+                  garmentKey === 'kameez_only') && (
+                  <>
+                    <span className="bg-white px-2 py-0.5 rounded-md border border-gray-200 font-semibold">
+                      Collars: Band Collar, Round Neck, V-Neck
+                    </span>
+                    <span className="bg-white px-2 py-0.5 rounded-md border border-gray-200 font-semibold">
+                      Cuffs: Straight Sleeve, Regular Cuff, Bell
+                    </span>
+                    <span className="bg-white px-2 py-0.5 rounded-md border border-gray-200 font-semibold">
+                      Trousers: Straight Trouser, Cigarette, Classic Shalwar
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+
             {/* Fabric Specifications Section */}
             <div className="space-y-3 border-t border-gray-100 pt-5 text-xs">
               <h3 className="font-extrabold text-gray-900 uppercase tracking-wider text-[11px]">
@@ -308,7 +475,17 @@ export default function ArticleDetailPage() {
               <div className="space-y-2 divide-y divide-gray-100 text-gray-700">
                 {meta.specifications?.shirtFabric && (
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-gray-500">Shirt / Kameez Cut</span>
+                    <span className="text-gray-500">
+                      {garmentKey === 'frock_maxi'
+                        ? 'Frock / Flare Cut'
+                        : garmentKey === 'waistcoat'
+                          ? 'Outer Waistcoat Cut'
+                          : garmentKey === 'pant_coat'
+                            ? 'Coat & Suit Fabric Cut'
+                            : garmentKey === 'kameez_only'
+                              ? 'Shirt / Kurti Cut'
+                              : 'Shirt / Kameez Cut'}
+                    </span>
                     <span className="font-bold">
                       {meta.specifications.shirtFabric}
                     </span>
@@ -316,7 +493,11 @@ export default function ArticleDetailPage() {
                 )}
                 {meta.specifications?.dupattaFabric && (
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-gray-500">Dupatta / Sadri Cut</span>
+                    <span className="text-gray-500">
+                      {garmentKey === 'waistcoat' || garmentKey === 'pant_coat'
+                        ? 'Inner Lining Fabric'
+                        : 'Dupatta / Sadri Cut'}
+                    </span>
                     <span className="font-bold">
                       {meta.specifications.dupattaFabric}
                     </span>
@@ -324,7 +505,11 @@ export default function ArticleDetailPage() {
                 )}
                 {meta.specifications?.trouserFabric && (
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-gray-500">Trouser / Bottom Cut</span>
+                    <span className="text-gray-500">
+                      {garmentKey === 'pant_coat'
+                        ? 'Trouser Details'
+                        : 'Trouser / Bottom Cut'}
+                    </span>
                     <span className="font-bold">
                       {meta.specifications.trouserFabric}
                     </span>
@@ -337,9 +522,9 @@ export default function ArticleDetailPage() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-1.5">
-                  <span className="text-gray-500">Target Category</span>
-                  <span className="font-bold">
-                    {isFemale ? "Women's Wear" : "Men's Wear"}
+                  <span className="text-gray-500">Garment Category</span>
+                  <span className="font-bold text-[#7E153A]">
+                    {categoryLabel}
                   </span>
                 </div>
               </div>

@@ -2,10 +2,15 @@ import { z } from 'zod';
 import { FabricType, GarmentType } from '@prisma/client';
 
 export const createProductSchema = z.object({
-  name: z.string().min(3, 'Article name must be at least 3 characters').max(500),
+  name: z
+    .string()
+    .min(3, 'Article name must be at least 3 characters')
+    .max(500),
   brand: z.string().min(2, 'Brand name must be at least 2 characters').max(200),
   description: z.string().optional().default(''),
-  images: z.array(z.string().url()).min(1, 'At least 1 product picture is required'),
+  images: z
+    .array(z.string().min(1))
+    .min(1, 'At least 1 product picture is required'),
   fabricType: z.nativeEnum(FabricType).default('lawn'),
   garmentType: z.nativeEnum(GarmentType).default('full_suit'),
   colorTags: z.array(z.string()).default([]),
@@ -17,7 +22,11 @@ export const createProductSchema = z.object({
   gender: z.enum(['female', 'male', 'unisex']).default('female'),
   piecesCount: z.string().default('3 Piece'),
   garmentSubtype: z.string().default('full_suit'),
-  stockQuantity: z.number().int().min(0, 'Stock quantity cannot be negative').default(10),
+  stockQuantity: z
+    .number()
+    .int()
+    .min(0, 'Stock quantity cannot be negative')
+    .default(10),
   inStock: z.boolean().default(true),
   sku: z.string().optional(),
   season: z.string().optional(),

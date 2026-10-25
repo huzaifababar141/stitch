@@ -59,21 +59,55 @@ const FABRIC_CHIPS = [
   { key: 'organza', label: 'Organza' },
 ];
 
+const WOMEN_CATEGORY_CHIPS = [
+  { key: 'all', label: 'All Silhouettes' },
+  { key: 'full_suit', label: 'Shalwar Kameez / Pajama' },
+  { key: 'kameez_only', label: 'Only Shirt / Kurti' },
+  { key: 'frock_maxi', label: 'Frock / Maxi Cut' },
+  { key: 'trouser_only', label: 'Trousers & Bottoms' },
+];
+
+const MEN_CATEGORY_CHIPS = [
+  { key: 'all', label: 'All Silhouettes' },
+  { key: 'full_suit', label: 'Shalwar Kameez' },
+  { key: 'waistcoat', label: 'Waist Coat / Sadri' },
+  { key: 'pant_coat', label: 'Pent Coat (2-Piece)' },
+  { key: 'trouser_only', label: "Men's Trousers" },
+];
+
+const ALL_CATEGORY_CHIPS = [
+  { key: 'all', label: 'All Categories' },
+  { key: 'full_suit', label: 'Shalwar Kameez' },
+  { key: 'frock_maxi', label: 'Frock / Maxi' },
+  { key: 'waistcoat', label: 'Waist Coat' },
+  { key: 'pant_coat', label: 'Pent Coat' },
+  { key: 'kameez_only', label: 'Shirt / Kurti' },
+];
+
 export default function CustomerStockCatalogPage() {
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Filters
   const [genderTab, setGenderTab] = useState<'all' | 'female' | 'male'>('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [fabricFilter, setFabricFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+
+  const currentCategoryChips =
+    genderTab === 'female'
+      ? WOMEN_CATEGORY_CHIPS
+      : genderTab === 'male'
+        ? MEN_CATEGORY_CHIPS
+        : ALL_CATEGORY_CHIPS;
 
   const fetchStock = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (genderTab !== 'all') params.append('gender', genderTab);
+      if (categoryFilter !== 'all') params.append('category', categoryFilter);
       if (fabricFilter !== 'all') params.append('fabricType', fabricFilter);
       if (search.trim()) params.append('search', search.trim());
       if (sortBy) params.append('sortBy', sortBy);
@@ -93,7 +127,12 @@ export default function CustomerStockCatalogPage() {
   useEffect(() => {
     fetchStock();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [genderTab, fabricFilter, sortBy]);
+  }, [genderTab, categoryFilter, fabricFilter, sortBy]);
+
+  const handleGenderTabChange = (newGender: 'all' | 'female' | 'male') => {
+    setGenderTab(newGender);
+    setCategoryFilter('all');
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,7 +184,7 @@ export default function CustomerStockCatalogPage() {
           <div className="flex items-center gap-1 bg-gray-100/80 p-1 rounded-2xl">
             <button
               type="button"
-              onClick={() => setGenderTab('all')}
+              onClick={() => handleGenderTabChange('all')}
               className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
                 genderTab === 'all'
                   ? 'bg-white text-[#7E153A] shadow-xs'
@@ -156,7 +195,7 @@ export default function CustomerStockCatalogPage() {
             </button>
             <button
               type="button"
-              onClick={() => setGenderTab('female')}
+              onClick={() => handleGenderTabChange('female')}
               className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
                 genderTab === 'female'
                   ? 'bg-white text-[#7E153A] shadow-xs'
@@ -167,7 +206,7 @@ export default function CustomerStockCatalogPage() {
             </button>
             <button
               type="button"
-              onClick={() => setGenderTab('male')}
+              onClick={() => handleGenderTabChange('male')}
               className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
                 genderTab === 'male'
                   ? 'bg-white text-[#7E153A] shadow-xs'
@@ -195,18 +234,45 @@ export default function CustomerStockCatalogPage() {
           </div>
         </div>
 
+        {/* Garment Category Chips (Shalwar Kameez, Frock/Maxi, Waistcoat, Pent Coat, Shirt, Trouser) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mr-1 shrink-0">
+            Silhouette:
+          </span>
+          {currentCategoryChips.map((cat) => {
+            const isActive = categoryFilter === cat.key;
+            return (
+              <button
+                key={cat.key}
+                type="button"
+                onClick={() => setCategoryFilter(cat.key)}
+                className={`px-3 py-1.5 rounded-full text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                  isActive
+                    ? 'bg-[#7E153A] text-white shadow-xs'
+                    : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Fabric Filter Chips & Search Bar */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-1">
           <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
+            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mr-1 shrink-0">
+              Fabric:
+            </span>
             {FABRIC_CHIPS.map((chip) => (
               <button
                 key={chip.key}
                 type="button"
                 onClick={() => setFabricFilter(chip.key)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                   fabricFilter === chip.key
-                    ? 'bg-[#7E153A] text-white shadow-xs'
-                    : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
+                    ? 'bg-stone-900 text-white shadow-xs'
+                    : 'bg-stone-100 text-gray-700 hover:bg-stone-200'
                 }`}
               >
                 {chip.label}
@@ -220,7 +286,7 @@ export default function CustomerStockCatalogPage() {
           >
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Search fabric, brand..."
+              placeholder="Search fabric, brand, SKU..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 h-9 text-xs rounded-xl bg-white border-gray-200"
@@ -300,8 +366,19 @@ export default function CustomerStockCatalogPage() {
                   <img
                     src={coverImage}
                     alt={item.name}
-                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                    className={`w-full h-full object-cover object-center transition-all duration-500 ${
+                      images[1]
+                        ? 'group-hover:opacity-0'
+                        : 'group-hover:scale-105'
+                    }`}
                   />
+                  {images[1] && (
+                    <img
+                      src={images[1]}
+                      alt={`${item.name} alternate view`}
+                      className="absolute inset-0 w-full h-full object-cover object-center opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105"
+                    />
+                  )}
 
                   {/* Badges */}
                   <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
@@ -313,9 +390,19 @@ export default function CustomerStockCatalogPage() {
                     </span>
                   </div>
 
-                  {/* Pieces count pill */}
-                  <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-                    {meta.piecesCount || '3-Piece Suit'}
+                  {/* Category & Pieces pills */}
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+                    <span className="bg-black/65 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+                      {meta.piecesCount || '3-Piece Suit'}
+                    </span>
+                    <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-xs">
+                      {ALL_CATEGORY_CHIPS.find(
+                        (c) =>
+                          c.key === (meta.garmentSubtype || item.garmentType)
+                      )?.label ||
+                        meta.garmentSubtype?.replace('_', ' ') ||
+                        item.garmentType}
+                    </span>
                   </div>
                 </Link>
 

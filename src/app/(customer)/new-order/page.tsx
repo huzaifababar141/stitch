@@ -454,6 +454,14 @@ function NewOrderContent() {
     const priceParam = searchParams.get('price');
     const genderParam = searchParams.get('gender');
 
+    const tierParam = searchParams.get('stitchingTier');
+    if (
+      tierParam === 'basic' ||
+      tierParam === 'standard' ||
+      tierParam === 'luxury'
+    ) {
+      setStitchingTier(tierParam);
+    }
     const productIdParam = searchParams.get('productId');
 
     if (productIdParam) {
@@ -464,15 +472,14 @@ function NewOrderContent() {
           if (prod && prod.id) {
             setParsedProduct(prod);
             setSelectedImageIndex(0);
-            if (prod.name) setManualTitle(prod.name);
-            if (prod.brand) setManualBrand(prod.brand);
-            if (prod.priceOriginal) setManualPrice(Number(prod.priceOriginal));
-            if (prod.fabricType) setManualFabric(prod.fabricType);
-
             const meta = prod.parseMetadata || {};
             if (meta.gender === 'male' || meta.gender === 'female') {
               handleGenderChange(meta.gender);
             }
+            if (prod.name) setManualTitle(prod.name);
+            if (prod.brand) setManualBrand(prod.brand);
+            if (prod.priceOriginal) setManualPrice(Number(prod.priceOriginal));
+            if (prod.fabricType) setManualFabric(prod.fabricType);
             if (meta.garmentSubtype) {
               setGarmentType(meta.garmentSubtype);
             } else if (prod.garmentType) {

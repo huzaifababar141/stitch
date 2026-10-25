@@ -36,7 +36,9 @@ export function DragDropImageUploader({
 
   // Handle uploading files from computer via /api/upload
   const handleFileUpload = async (files: FileList | File[]) => {
-    const fileArray = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    const fileArray = Array.from(files).filter((f) =>
+      f.type.startsWith('image/')
+    );
 
     if (fileArray.length === 0) {
       toast({
@@ -166,7 +168,8 @@ export function DragDropImageUploader({
             Article Photos & Gallery <span className="text-[#7E153A]">*</span>
           </label>
           <p className="text-[11px] text-gray-500 mt-0.5">
-            Upload from computer. Click & drag images to arrange. The 1st photo is used as the cover.
+            Upload from computer. Click & drag images to arrange. The 1st photo
+            is used as the cover.
           </p>
         </div>
         <span className="text-xs font-bold text-gray-500 font-mono bg-gray-100 px-2.5 py-1 rounded-full">
@@ -218,7 +221,9 @@ export function DragDropImageUploader({
 
         <div>
           <p className="text-sm font-extrabold text-gray-900">
-            {uploading ? 'Uploading High-Resolution Images...' : 'Click or Drop Photos Here to Upload'}
+            {uploading
+              ? 'Uploading High-Resolution Images...'
+              : 'Click or Drop Photos Here to Upload'}
           </p>
           <p className="text-xs text-gray-500 mt-1">
             PNG, JPG, or WEBP up to 10MB each. Supports multiple file selection.
@@ -283,7 +288,11 @@ export function DragDropImageUploader({
                     <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-auto">
                       {isCover ? (
                         <span className="bg-[#7E153A] text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm uppercase tracking-wider">
-                          <Star size={10} fill="currentColor" /> Cover
+                          <Star
+                            size={10}
+                            className="text-amber-400 fill-amber-400"
+                          />{' '}
+                          Cover
                         </span>
                       ) : (
                         <span className="bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full">

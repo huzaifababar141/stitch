@@ -12,11 +12,30 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search')?.trim();
     const gender = searchParams.get('gender');
+    const category =
+      searchParams.get('category') ||
+      searchParams.get('garmentType') ||
+      searchParams.get('garmentSubtype');
     const fabricType = searchParams.get('fabricType');
     const inStock = searchParams.get('inStock');
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '20')));
+    const limit = Math.max(
+      1,
+      Math.min(100, parseInt(searchParams.get('limit') || '20'))
+    );
     const skip = (page - 1) * limit;
+
+    const VALID_PRISMA_GARMENT_TYPES = new Set([
+      'kameez',
+      'trouser',
+      'dupatta',
+      'kurta',
+      'shalwar',
+      'full_suit',
+      'kameez_only',
+      'trouser_only',
+      'other',
+    ]);
 
     const where: any = {
       parseSource: 'in_house',
@@ -34,12 +53,34 @@ export async function GET(request: NextRequest) {
       where.fabricType = fabricType;
     }
 
-    // Gender & Stock filtering via JSON parseMetadata
+    const andConditions: any[] = [];
+
     if (gender && gender !== 'all') {
-      where.parseMetadata = {
-        path: ['gender'],
-        equals: gender,
-      };
+      andConditions.push({
+        parseMetadata: {
+          path: ['gender'],
+          equals: gender,
+        },
+      });
+    }
+
+    if (category && category !== 'all') {
+      const isPrismaEnum = VALID_PRISMA_GARMENT_TYPES.has(category);
+      andConditions.push({
+        OR: [
+          ...(isPrismaEnum ? [{ garmentType: category as any }] : []),
+          {
+            parseMetadata: {
+              path: ['garmentSubtype'],
+              equals: category,
+            },
+          },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     if (inStock === 'true') {
