@@ -276,6 +276,16 @@ function OrderTimeline({
 
 // ─── Main Dashboard Page ──────────────────────────────────────────────────────
 
+const STOCK_CATEGORY_LABELS: Record<string, string> = {
+  full_suit: 'Shalwar Kameez',
+  frock_maxi: 'Frock / Maxi',
+  waistcoat: 'Waist Coat',
+  pant_coat: 'Pent Coat',
+  kameez_only: 'Shirt / Kurti',
+  trouser_only: 'Trouser',
+  other: 'Custom Cut',
+};
+
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
 
@@ -283,6 +293,40 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [measurementProfiles, setMeasurementProfiles] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  // In-House Stock Showcase State
+  const [stockArticles, setStockArticles] = useState<any[]>([]);
+  const [stockGender, setStockGender] = useState<'all' | 'female' | 'male'>(
+    'all'
+  );
+  const [loadingStock, setLoadingStock] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchStock() {
+      setLoadingStock(true);
+      try {
+        const query =
+          stockGender !== 'all' ? '?limit=8&gender=' + stockGender : '?limit=8';
+        const res = await fetch('/api/products' + query);
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            setStockArticles(data.data?.products || data.products || []);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load stock products:', err);
+      } finally {
+        if (isMounted) {
+          setLoadingStock(false);
+        }
+      }
+    }
+    fetchStock();
+    return () => {
+      isMounted = false;
+    };
+  }, [stockGender]);
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -632,6 +676,194 @@ export default function DashboardPage() {
           />
         </Link>
       </div>
+
+      {/* ── 2.5 IN-HOUSE FABRIC STOCK SHOWCASE ── */}
+      <section className="bg-white rounded-2xl sm:rounded-3xl border border-[#F1E6E1] p-4 sm:p-6 shadow-[0_4px_24px_rgba(122,16,56,0.03)] space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-[#F7EFEA]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#FBE3E8] text-[#7A1038] flex items-center justify-center shrink-0">
+              <Boxes className="w-5 h-5 stroke-[2]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight">
+                  Our In-House Fabric Stock
+                </h2>
+                <span className="text-[10px] font-bold text-[#7E153A] bg-[#FBE3E8] px-2 py-0.5 rounded-full uppercase tracking-wider hidden sm:inline-block">
+                  Verified Pure
+                </span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-gray-500">
+                Premium unstitched fabrics in our inventory ready for custom
+                tailoring
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <div className="flex items-center bg-gray-100 p-0.5 rounded-xl text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setStockGender('all')}
+                className={`px-3 py-1 rounded-lg transition-all ${
+                  stockGender === 'all'
+                    ? 'bg-white text-[#7E153A] shadow-xs font-bold'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                onClick={() => setStockGender('female')}
+                className={`px-3 py-1 rounded-lg transition-all ${
+                  stockGender === 'female'
+                    ? 'bg-white text-[#7E153A] shadow-xs font-bold'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Women
+              </button>
+              <button
+                type="button"
+                onClick={() => setStockGender('male')}
+                className={`px-3 py-1 rounded-lg transition-all ${
+                  stockGender === 'male'
+                    ? 'bg-white text-[#7E153A] shadow-xs font-bold'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Men
+              </button>
+            </div>
+
+            <Link
+              href="/stock"
+              className="text-xs font-bold text-[#7E153A] hover:text-[#630f2d] flex items-center gap-1 pl-2 border-l border-gray-200 hover:underline"
+            >
+              <span>View All</span>
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+        </div>
+
+        {/* Stock Articles Grid */}
+        {loadingStock ? (
+          <div className="flex items-center justify-center py-10 gap-2 text-gray-400 text-xs">
+            <Loader2 className="w-5 h-5 animate-spin text-[#7E153A]" />
+            <span>Loading in-house fabrics...</span>
+          </div>
+        ) : stockArticles.length === 0 ? (
+          <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200 space-y-2">
+            <Boxes className="w-7 h-7 mx-auto text-gray-400" />
+            <p className="text-xs font-semibold text-gray-700">
+              No fabric articles currently available in this category.
+            </p>
+            <Link
+              href="/stock"
+              className="inline-block text-xs font-bold text-[#7E153A] hover:underline"
+            >
+              Browse complete fabric catalog
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4.5">
+            {stockArticles.slice(0, 4).map((item: any) => {
+              const images = Array.isArray(item.images) ? item.images : [];
+              const coverImage = images[0] || '/placeholder.jpg';
+              const price = Number(item.priceOriginal || 0);
+              const meta = item.parseMetadata || {};
+              const categoryLabel =
+                (meta.garmentSubtype &&
+                  STOCK_CATEGORY_LABELS[meta.garmentSubtype]) ||
+                STOCK_CATEGORY_LABELS[item.garmentType] ||
+                meta.garmentSubtype?.replace('_', ' ') ||
+                item.garmentType ||
+                'Suit';
+
+              return (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1"
+                >
+                  <Link
+                    href={`/stock/${item.id}`}
+                    className="relative aspect-3/4 bg-gray-100 overflow-hidden block"
+                  >
+                    <img
+                      src={coverImage}
+                      alt={item.name}
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-all duration-500"
+                    />
+                    <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
+                      <span className="bg-[#7E153A] text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                        {meta.gender === 'male' ? "Men's" : "Women's"}
+                      </span>
+                      <span className="bg-white/95 backdrop-blur-xs text-gray-800 text-[9px] font-bold px-2 py-0.5 rounded-full capitalize">
+                        {item.fabricType || 'Fabric'}
+                      </span>
+                    </div>
+
+                    <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
+                      <span className="bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                        {meta.piecesCount || 'Unstitched'}
+                      </span>
+                      <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[9px] font-extrabold px-2 py-0.5 rounded-full truncate max-w-[90px] sm:max-w-[110px]">
+                        {categoryLabel}
+                      </span>
+                    </div>
+                  </Link>
+
+                  <div className="p-3 sm:p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block truncate">
+                        {item.brand || 'In-House'}
+                      </span>
+                      <Link href={`/stock/${item.id}`}>
+                        <h4 className="font-bold text-xs sm:text-sm text-gray-900 group-hover:text-[#7E153A] transition-colors line-clamp-1 mt-0.5">
+                          {item.name}
+                        </h4>
+                      </Link>
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-100 space-y-2">
+                      <div className="flex items-baseline justify-between">
+                        <div>
+                          <span className="text-[9px] uppercase font-bold text-gray-400 block">
+                            Fabric
+                          </span>
+                          <span className="text-xs sm:text-sm font-black font-mono text-gray-900">
+                            PKR {price.toLocaleString()}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                          In Stock
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+                        <Link
+                          href={`/stock/${item.id}`}
+                          className="w-full text-center py-1.5 rounded-lg border border-gray-200 text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          Details
+                        </Link>
+                        <Link
+                          href={`/new-order?productId=${item.id}`}
+                          className="w-full text-center py-1.5 rounded-lg bg-[#7E153A] hover:bg-[#630f2d] text-white text-[11px] font-bold shadow-xs flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <Scissors size={10} />
+                          <span>Tailor</span>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       {/* ── 3. MAIN DASHBOARD SPLIT ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
