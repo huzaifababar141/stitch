@@ -410,14 +410,14 @@ export default function RegisterPage() {
             <p className="mt-3.5 text-center text-xs text-[#6B6B7B] text-balance leading-relaxed">
               By creating an account you agree to our{' '}
               <Link
-                href="/help"
+                href="/terms"
                 className="font-medium text-[#6B6B7B] underline underline-offset-2 transition-colors hover:text-gray-900"
               >
                 Terms
               </Link>{' '}
               and{' '}
               <Link
-                href="/help"
+                href="/privacy"
                 className="font-medium text-[#6B6B7B] underline underline-offset-2 transition-colors hover:text-gray-900 whitespace-nowrap"
               >
                 Privacy Policy

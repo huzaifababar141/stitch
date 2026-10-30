@@ -43,6 +43,8 @@ export async function middleware(request: NextRequest) {
   const isApiRoute = url.startsWith('/api/');
   const isPublicRoute =
     url === '/' ||
+    url.startsWith('/terms') ||
+    url.startsWith('/privacy') ||
     url.startsWith('/stock') ||
     url.startsWith('/help') ||
     url.startsWith('/api/products') ||

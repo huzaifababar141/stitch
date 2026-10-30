@@ -916,10 +916,13 @@ export default function Home() {
             © {new Date().getFullYear()} TailorLink.pk. All rights reserved.
           </p>
           <div className="flex gap-4">
-            <Link href="/help" className="hover:text-white">
+            <Link
+              href="/privacy"
+              className="hover:text-white transition-colors"
+            >
               Privacy Policy
             </Link>
-            <Link href="/help" className="hover:text-white">
+            <Link href="/terms" className="hover:text-white transition-colors">
               Terms of Service
             </Link>
           </div>

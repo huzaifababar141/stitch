@@ -279,7 +279,7 @@ export default function CustomerLayout({
         </main>
 
         {/* Mobile Sticky Bottom Navigation Bar (<768px) */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 py-2 px-3 z-40 flex items-center justify-around shadow-lg">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 py-1.5 px-1.5 z-40 flex items-center justify-around shadow-lg">
           {bottomNavItems.map((item) => {
             const isActive =
               item.href === '/dashboard'
@@ -291,7 +291,7 @@ export default function CustomerLayout({
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="-mt-5 bg-gradient-to-r from-[#7E153A] to-[#911642] text-white p-3 rounded-full shadow-lg shadow-[#7E153A]/40 flex flex-col items-center justify-center active:scale-95 transition-transform"
+                  className="-mt-5 bg-gradient-to-r from-[#7E153A] to-[#911642] text-white p-2.5 rounded-full shadow-lg shadow-[#7E153A]/40 flex flex-col items-center justify-center active:scale-95 transition-transform shrink-0"
                 >
                   <Plus size={22} className="stroke-[3]" />
                 </Link>
@@ -302,7 +302,7 @@ export default function CustomerLayout({
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors ${
+                className={`flex flex-col items-center gap-0.5 py-0.5 px-1 rounded-lg transition-colors min-w-[50px] shrink-0 text-center ${
                   isActive
                     ? 'text-[#7E153A] font-bold'
                     : 'text-gray-500 hover:text-gray-900 font-medium'

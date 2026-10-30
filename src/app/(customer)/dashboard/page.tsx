@@ -678,34 +678,34 @@ export default function DashboardPage() {
       </div>
 
       {/* ── 2.5 IN-HOUSE FABRIC STOCK SHOWCASE ── */}
-      <section className="bg-white rounded-2xl sm:rounded-3xl border border-[#F1E6E1] p-4 sm:p-6 shadow-[0_4px_24px_rgba(122,16,56,0.03)] space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-[#F7EFEA]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#FBE3E8] text-[#7A1038] flex items-center justify-center shrink-0">
-              <Boxes className="w-5 h-5 stroke-[2]" />
+      <section className="bg-white rounded-2xl sm:rounded-3xl border border-[#F1E6E1] p-3.5 sm:p-6 shadow-[0_4px_24px_rgba(122,16,56,0.03)] space-y-3.5 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 sm:pb-3.5 border-b border-[#F7EFEA]">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#FBE3E8] text-[#7A1038] flex items-center justify-center shrink-0">
+              <Boxes className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2]" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight">
+                <h2 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight truncate">
                   Our In-House Fabric Stock
                 </h2>
-                <span className="text-[10px] font-bold text-[#7E153A] bg-[#FBE3E8] px-2 py-0.5 rounded-full uppercase tracking-wider hidden sm:inline-block">
+                <span className="text-[9px] sm:text-[10px] font-bold text-[#7E153A] bg-[#FBE3E8] px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
                   Verified Pure
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-gray-500">
+              <p className="text-[10px] sm:text-xs text-gray-500 truncate">
                 Premium unstitched fabrics in our inventory ready for custom
                 tailoring
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto pt-1 sm:pt-0">
             <div className="flex items-center bg-gray-100 p-0.5 rounded-xl text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setStockGender('all')}
-                className={`px-3 py-1 rounded-lg transition-all ${
+                className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all ${
                   stockGender === 'all'
                     ? 'bg-white text-[#7E153A] shadow-xs font-bold'
                     : 'text-gray-600 hover:text-gray-900'
@@ -716,7 +716,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setStockGender('female')}
-                className={`px-3 py-1 rounded-lg transition-all ${
+                className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all ${
                   stockGender === 'female'
                     ? 'bg-white text-[#7E153A] shadow-xs font-bold'
                     : 'text-gray-600 hover:text-gray-900'
@@ -727,7 +727,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setStockGender('male')}
-                className={`px-3 py-1 rounded-lg transition-all ${
+                className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all ${
                   stockGender === 'male'
                     ? 'bg-white text-[#7E153A] shadow-xs font-bold'
                     : 'text-gray-600 hover:text-gray-900'
@@ -739,7 +739,7 @@ export default function DashboardPage() {
 
             <Link
               href="/stock"
-              className="text-xs font-bold text-[#7E153A] hover:text-[#630f2d] flex items-center gap-1 pl-2 border-l border-gray-200 hover:underline"
+              className="text-xs font-bold text-[#7E153A] hover:text-[#630f2d] flex items-center gap-1 pl-2 border-l border-gray-200 hover:underline shrink-0"
             >
               <span>View All</span>
               <ChevronRight size={14} />
@@ -795,20 +795,20 @@ export default function DashboardPage() {
                       alt={item.name}
                       className="w-full h-full object-cover object-center group-hover:scale-105 transition-all duration-500"
                     />
-                    <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
-                      <span className="bg-[#7E153A] text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                    <div className="absolute top-2 sm:top-2.5 left-2 sm:left-2.5 right-2 sm:right-2.5 flex items-center justify-between pointer-events-none">
+                      <span className="bg-[#7E153A] text-white text-[8.5px] sm:text-[9px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
                         {meta.gender === 'male' ? "Men's" : "Women's"}
                       </span>
-                      <span className="bg-white/95 backdrop-blur-xs text-gray-800 text-[9px] font-bold px-2 py-0.5 rounded-full capitalize">
+                      <span className="bg-white/95 backdrop-blur-xs text-gray-800 text-[8.5px] sm:text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full capitalize">
                         {item.fabricType || 'Fabric'}
                       </span>
                     </div>
 
-                    <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
-                      <span className="bg-black/60 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                    <div className="absolute bottom-2 sm:bottom-2.5 left-2 sm:left-2.5 right-2 sm:right-2.5 flex items-center justify-between pointer-events-none gap-1">
+                      <span className="bg-black/60 backdrop-blur-xs text-white text-[8px] sm:text-[9px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full truncate">
                         {meta.piecesCount || 'Unstitched'}
                       </span>
-                      <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[9px] font-extrabold px-2 py-0.5 rounded-full truncate max-w-[90px] sm:max-w-[110px]">
+                      <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[8px] sm:text-[9px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full truncate max-w-[70px] sm:max-w-[110px]">
                         {categoryLabel}
                       </span>
                     </div>
@@ -836,7 +836,7 @@ export default function DashboardPage() {
                             PKR {price.toLocaleString()}
                           </span>
                         </div>
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                        <span className="text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full">
                           In Stock
                         </span>
                       </div>
@@ -844,13 +844,13 @@ export default function DashboardPage() {
                       <div className="grid grid-cols-2 gap-1.5 pt-0.5">
                         <Link
                           href={`/stock/${item.id}`}
-                          className="w-full text-center py-1.5 rounded-lg border border-gray-200 text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="w-full text-center py-1.5 rounded-lg border border-gray-200 text-[10.5px] sm:text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors"
                         >
                           Details
                         </Link>
                         <Link
                           href={`/new-order?productId=${item.id}`}
-                          className="w-full text-center py-1.5 rounded-lg bg-[#7E153A] hover:bg-[#630f2d] text-white text-[11px] font-bold shadow-xs flex items-center justify-center gap-1 transition-colors"
+                          className="w-full text-center py-1.5 rounded-lg bg-[#7E153A] hover:bg-[#630f2d] text-white text-[10.5px] sm:text-[11px] font-bold shadow-xs flex items-center justify-center gap-1 transition-colors"
                         >
                           <Scissors size={10} />
                           <span>Tailor</span>

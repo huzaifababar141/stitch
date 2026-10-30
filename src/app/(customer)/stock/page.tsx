@@ -140,15 +140,15 @@ export default function CustomerStockCatalogPage() {
   };
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="space-y-6 sm:space-y-8 pb-16 min-w-0 w-full max-w-full overflow-hidden">
       {/* Hero / Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-[#7E153A] via-[#921943] to-[#5a0f2a] text-white p-8 sm:p-10 shadow-lg">
-        <div className="relative z-10 max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-white text-[11px] font-bold uppercase tracking-wider">
-            <Sparkles size={13} className="text-amber-300" /> Curated In-House
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-linear-to-r from-[#7E153A] via-[#921943] to-[#5a0f2a] text-white p-5 sm:p-8 lg:p-10 shadow-lg">
+        <div className="relative z-10 max-w-2xl space-y-2.5 sm:space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-white/15 backdrop-blur-md text-white text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
+            <Sparkles size={12} className="text-amber-300" /> Curated In-House
             Collection
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
+          <h1 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
             Our Unstitched Fabric Stock
           </h1>
           <p className="text-xs sm:text-sm text-red-100 font-normal leading-relaxed">
@@ -157,17 +157,17 @@ export default function CustomerStockCatalogPage() {
             measurements in one single order.
           </p>
 
-          <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-semibold text-red-200">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={14} className="text-emerald-300" /> Guaranteed
+          <div className="pt-1.5 sm:pt-2 flex flex-wrap items-center gap-2 sm:gap-4 text-[11px] sm:text-xs font-semibold text-red-200">
+            <span className="flex items-center gap-1.5 bg-white/10 sm:bg-transparent px-2.5 py-1 sm:p-0 rounded-full">
+              <CheckCircle2 size={13} className="text-emerald-300 shrink-0" />{' '}
               100% Pure Fabric
             </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={14} className="text-emerald-300" /> Certified
-              24-Point QC Protocol
+            <span className="flex items-center gap-1.5 bg-white/10 sm:bg-transparent px-2.5 py-1 sm:p-0 rounded-full">
+              <CheckCircle2 size={13} className="text-emerald-300 shrink-0" />{' '}
+              24-Point QC
             </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={14} className="text-emerald-300" /> Tracked
+            <span className="flex items-center gap-1.5 bg-white/10 sm:bg-transparent px-2.5 py-1 sm:p-0 rounded-full">
+              <CheckCircle2 size={13} className="text-emerald-300 shrink-0" />{' '}
               Express Delivery
             </span>
           </div>
@@ -178,54 +178,54 @@ export default function CustomerStockCatalogPage() {
       </div>
 
       {/* Gender Switcher & Filter Controls */}
-      <div className="space-y-4">
-        {/* Gender Tabs */}
-        <div className="flex items-center justify-between flex-wrap gap-4 border-b border-gray-100 pb-3">
-          <div className="flex items-center gap-1 bg-gray-100/80 p-1 rounded-2xl">
+      <div className="space-y-3.5 sm:space-y-4">
+        {/* Gender Tabs & Sorter */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+          <div className="flex items-center bg-gray-100/90 p-1 rounded-2xl w-full sm:w-auto overflow-x-auto scrollbar-none">
             <button
               type="button"
               onClick={() => handleGenderTabChange('all')}
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap text-center ${
                 genderTab === 'all'
                   ? 'bg-white text-[#7E153A] shadow-xs'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              All Articles ({products.length})
+              All Articles {products.length > 0 ? `(${products.length})` : ''}
             </button>
             <button
               type="button"
               onClick={() => handleGenderTabChange('female')}
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap text-center ${
                 genderTab === 'female'
                   ? 'bg-white text-[#7E153A] shadow-xs'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Women's Fabrics
+              Women&apos;s Fabrics
             </button>
             <button
               type="button"
               onClick={() => handleGenderTabChange('male')}
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap text-center ${
                 genderTab === 'male'
                   ? 'bg-white text-[#7E153A] shadow-xs'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Men's Fabrics
+              Men&apos;s Fabrics
             </button>
           </div>
 
           {/* Sorter */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">
+          <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider shrink-0">
               Sort by:
             </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="h-9 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-800 font-semibold cursor-pointer"
+              className="h-9 px-3 text-xs bg-white border border-gray-200 rounded-xl text-gray-800 font-semibold cursor-pointer w-full sm:w-auto"
             >
               <option value="newest">Newest First</option>
               <option value="price_asc">Price: Low to High</option>
@@ -234,8 +234,8 @@ export default function CustomerStockCatalogPage() {
           </div>
         </div>
 
-        {/* Garment Category Chips (Shalwar Kameez, Frock/Maxi, Waistcoat, Pent Coat, Shirt, Trouser) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        {/* Garment Silhouette Chips */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
           <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mr-1 shrink-0">
             Silhouette:
           </span>
@@ -259,8 +259,8 @@ export default function CustomerStockCatalogPage() {
         </div>
 
         {/* Fabric Filter Chips & Search Bar */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-1">
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pt-1">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
             <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mr-1 shrink-0">
               Fabric:
             </span>
@@ -289,7 +289,7 @@ export default function CustomerStockCatalogPage() {
               placeholder="Search fabric, brand, SKU..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 text-xs rounded-xl bg-white border-gray-200"
+              className="pl-9 h-9 text-xs rounded-xl bg-white border-gray-200 w-full"
             />
           </form>
         </div>
@@ -297,38 +297,38 @@ export default function CustomerStockCatalogPage() {
 
       {/* Catalog Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 min-w-0 w-full animate-in fade-in duration-200">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 min-w-0 w-full animate-in fade-in duration-200">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <div
               key={i}
-              className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-xs flex flex-col justify-between animate-pulse"
+              className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 overflow-hidden shadow-xs flex flex-col justify-between animate-pulse"
             >
               <div className="aspect-3/4 bg-gray-100" />
-              <div className="p-5 space-y-3">
-                <div className="h-3 w-20 bg-gray-200 rounded" />
-                <div className="space-y-1.5">
-                  <div className="h-4 w-full bg-gray-300 rounded" />
-                  <div className="h-4 w-3/4 bg-gray-200 rounded" />
+              <div className="p-3 sm:p-5 space-y-2 sm:space-y-3">
+                <div className="h-3 w-16 bg-gray-200 rounded" />
+                <div className="space-y-1">
+                  <div className="h-3.5 w-full bg-gray-300 rounded" />
+                  <div className="h-3.5 w-3/4 bg-gray-200 rounded" />
                 </div>
-                <div className="flex items-center justify-between pt-2">
-                  <div className="h-5 w-24 bg-gray-200 rounded" />
-                  <div className="h-4 w-16 bg-gray-100 rounded-full" />
+                <div className="flex items-center justify-between pt-1">
+                  <div className="h-4 w-16 bg-gray-200 rounded" />
+                  <div className="h-3.5 w-12 bg-gray-100 rounded-full" />
                 </div>
               </div>
             </div>
           ))}
         </div>
       ) : products.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-dashed border-gray-200 p-16 text-center space-y-3">
-          <div className="w-14 h-14 rounded-full bg-red-50 text-[#7E153A] flex items-center justify-center mx-auto">
-            <Boxes size={26} />
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-dashed border-gray-200 p-8 sm:p-16 text-center space-y-3">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-red-50 text-[#7E153A] flex items-center justify-center mx-auto">
+            <Boxes size={24} />
           </div>
           <h3 className="text-base font-extrabold text-gray-900">
             No Fabrics Matching Your Filter
           </h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
-            Try switching gender collections or selecting "All Fabrics" to view
-            available unstitched suits.
+            Try switching gender collections or selecting &quot;All
+            Fabrics&quot; to view available unstitched suits.
           </p>
           <Button
             onClick={() => {
@@ -343,20 +343,25 @@ export default function CustomerStockCatalogPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
           {products.map((item) => {
             const images = Array.isArray(item.images)
               ? (item.images as string[])
               : [];
             const coverImage = images[0] || '/placeholder.jpg';
-            const hoverImage = images[1] || coverImage;
             const price = Number(item.priceOriginal || 0);
             const meta = item.parseMetadata || {};
+            const categoryLabel =
+              ALL_CATEGORY_CHIPS.find(
+                (c) => c.key === (meta.garmentSubtype || item.garmentType)
+              )?.label ||
+              meta.garmentSubtype?.replace('_', ' ') ||
+              item.garmentType;
 
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1"
+                className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1"
               >
                 {/* Image Section */}
                 <Link
@@ -381,66 +386,61 @@ export default function CustomerStockCatalogPage() {
                   )}
 
                   {/* Badges */}
-                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                    <span className="bg-[#7E153A] text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                  <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-center justify-between pointer-events-none">
+                    <span className="bg-[#7E153A] text-white text-[8.5px] sm:text-[10px] font-extrabold px-2 sm:px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                       {meta.gender === 'male' ? "Men's" : "Women's"}
                     </span>
-                    <span className="bg-white/90 backdrop-blur-xs text-gray-800 text-[10px] font-bold px-2 py-0.5 rounded-full capitalize">
+                    <span className="bg-white/95 backdrop-blur-xs text-gray-800 text-[8.5px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full capitalize">
                       {item.fabricType}
                     </span>
                   </div>
 
                   {/* Category & Pieces pills */}
-                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none">
-                    <span className="bg-black/65 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-                      {meta.piecesCount || '3-Piece Suit'}
+                  <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 flex items-center justify-between pointer-events-none gap-1">
+                    <span className="bg-black/65 backdrop-blur-xs text-white text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full truncate">
+                      {meta.piecesCount || '3-Piece'}
                     </span>
-                    <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-xs">
-                      {ALL_CATEGORY_CHIPS.find(
-                        (c) =>
-                          c.key === (meta.garmentSubtype || item.garmentType)
-                      )?.label ||
-                        meta.garmentSubtype?.replace('_', ' ') ||
-                        item.garmentType}
+                    <span className="bg-white/95 backdrop-blur-xs text-stone-900 text-[8px] sm:text-[10px] font-extrabold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-xs truncate max-w-[75px] sm:max-w-[130px]">
+                      {categoryLabel}
                     </span>
                   </div>
                 </Link>
 
                 {/* Article Info */}
-                <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                <div className="p-3 sm:p-5 space-y-2 sm:space-y-3 flex-1 flex flex-col justify-between">
                   <div>
-                    <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block">
+                    <span className="text-[10px] sm:text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block truncate">
                       {item.brand}
                     </span>
                     <Link href={`/stock/${item.id}`}>
-                      <h3 className="font-extrabold text-sm text-gray-900 group-hover:text-[#7E153A] transition-colors line-clamp-2 mt-1 leading-snug">
+                      <h3 className="font-extrabold text-xs sm:text-sm text-gray-900 group-hover:text-[#7E153A] transition-colors line-clamp-1 sm:line-clamp-2 mt-0.5 sm:mt-1 leading-snug">
                         {item.name}
                       </h3>
                     </Link>
                   </div>
 
                   {/* Price & Tailor Now CTA */}
-                  <div className="pt-3 border-t border-gray-100 space-y-3">
+                  <div className="pt-2 sm:pt-3 border-t border-gray-100 space-y-2 sm:space-y-3">
                     <div className="flex items-baseline justify-between">
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-gray-400 block">
+                        <span className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 block">
                           Fabric Price
                         </span>
-                        <span className="text-base font-black font-mono text-gray-900">
+                        <span className="text-xs sm:text-base font-black font-mono text-gray-900">
                           PKR {price.toLocaleString()}
                         </span>
                       </div>
-                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      <span className="text-[9px] sm:text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-full">
                         In Stock
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-0.5">
                       <Link href={`/stock/${item.id}`} className="w-full">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full h-9 rounded-xl border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50"
+                          className="w-full h-8 sm:h-9 rounded-xl border-gray-200 text-[11px] sm:text-xs font-bold text-gray-700 hover:bg-gray-50 px-1"
                         >
                           Details
                         </Button>
@@ -452,9 +452,10 @@ export default function CustomerStockCatalogPage() {
                       >
                         <Button
                           size="sm"
-                          className="w-full h-9 rounded-xl bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold shadow-xs shadow-[#7E153A]/20 flex items-center justify-center gap-1 cursor-pointer"
+                          className="w-full h-8 sm:h-9 rounded-xl bg-[#7E153A] hover:bg-[#630f2d] text-white text-[11px] sm:text-xs font-bold shadow-xs shadow-[#7E153A]/20 flex items-center justify-center gap-1 cursor-pointer px-1"
                         >
-                          <Scissors size={12} /> Tailor Now
+                          <Scissors size={11} className="shrink-0" />
+                          <span>Tailor</span>
                         </Button>
                       </Link>
                     </div>
