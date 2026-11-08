@@ -2,20 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import {
-  Boxes,
-  Scissors,
-  Search,
-  Sparkles,
-  Filter,
-  ArrowRight,
-  Eye,
-  Loader2,
-  CheckCircle2,
-  Package,
-  Layers,
-  Tag,
-} from 'lucide-react';
+import { Boxes, Scissors, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -48,40 +35,27 @@ interface ProductItem {
   };
 }
 
-const FABRIC_CHIPS = [
-  { key: 'all', label: 'All Fabrics' },
-  { key: 'lawn', label: 'Lawn' },
-  { key: 'cotton', label: 'Cotton' },
-  { key: 'chiffon', label: 'Chiffon' },
-  { key: 'silk', label: 'Silk' },
-  { key: 'linen', label: 'Linen' },
-  { key: 'khaddar', label: 'Khaddar' },
-  { key: 'organza', label: 'Organza' },
-];
-
 const WOMEN_CATEGORY_CHIPS = [
-  { key: 'all', label: 'All Silhouettes' },
-  { key: 'full_suit', label: 'Shalwar Kameez / Pajama' },
-  { key: 'kameez_only', label: 'Only Shirt / Kurti' },
-  { key: 'frock_maxi', label: 'Frock / Maxi Cut' },
-  { key: 'trouser_only', label: 'Trousers & Bottoms' },
+  { key: 'all', label: 'All' },
+  { key: 'full_suit', label: 'Shalwar Kameez' },
+  { key: 'kameez_only', label: 'Kurti / Shirt' },
+  { key: 'frock_maxi', label: 'Frock / Maxi' },
 ];
 
 const MEN_CATEGORY_CHIPS = [
-  { key: 'all', label: 'All Silhouettes' },
+  { key: 'all', label: 'All' },
   { key: 'full_suit', label: 'Shalwar Kameez' },
-  { key: 'waistcoat', label: 'Waist Coat / Sadri' },
-  { key: 'pant_coat', label: 'Pent Coat (2-Piece)' },
-  { key: 'trouser_only', label: "Men's Trousers" },
+  { key: 'waistcoat', label: 'Waistcoat' },
+  { key: 'pant_coat', label: 'Pant Coat' },
 ];
 
 const ALL_CATEGORY_CHIPS = [
-  { key: 'all', label: 'All Categories' },
+  { key: 'all', label: 'All' },
   { key: 'full_suit', label: 'Shalwar Kameez' },
+  { key: 'kameez_only', label: 'Kurti / Shirt' },
+  { key: 'waistcoat', label: 'Waistcoat' },
   { key: 'frock_maxi', label: 'Frock / Maxi' },
-  { key: 'waistcoat', label: 'Waist Coat' },
-  { key: 'pant_coat', label: 'Pent Coat' },
-  { key: 'kameez_only', label: 'Shirt / Kurti' },
+  { key: 'pant_coat', label: 'Pant Coat' },
 ];
 
 export default function CustomerStockCatalogPage() {
@@ -91,7 +65,6 @@ export default function CustomerStockCatalogPage() {
   // Filters
   const [genderTab, setGenderTab] = useState<'all' | 'female' | 'male'>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [fabricFilter, setFabricFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest');
 
@@ -108,7 +81,6 @@ export default function CustomerStockCatalogPage() {
       const params = new URLSearchParams();
       if (genderTab !== 'all') params.append('gender', genderTab);
       if (categoryFilter !== 'all') params.append('category', categoryFilter);
-      if (fabricFilter !== 'all') params.append('fabricType', fabricFilter);
       if (search.trim()) params.append('search', search.trim());
       if (sortBy) params.append('sortBy', sortBy);
 
@@ -127,7 +99,7 @@ export default function CustomerStockCatalogPage() {
   useEffect(() => {
     fetchStock();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [genderTab, categoryFilter, fabricFilter, sortBy]);
+  }, [genderTab, categoryFilter, sortBy]);
 
   const handleGenderTabChange = (newGender: 'all' | 'female' | 'male') => {
     setGenderTab(newGender);
@@ -142,39 +114,183 @@ export default function CustomerStockCatalogPage() {
   return (
     <div className="space-y-6 sm:space-y-8 pb-16 min-w-0 w-full max-w-full overflow-hidden">
       {/* Hero / Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-linear-to-r from-[#7E153A] via-[#921943] to-[#5a0f2a] text-white p-5 sm:p-8 lg:p-10 shadow-lg">
-        <div className="relative z-10 max-w-2xl space-y-2.5 sm:space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-white/15 backdrop-blur-md text-white text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
-            <Sparkles size={12} className="text-amber-300" /> Curated In-House
-            Collection
-          </div>
-          <h1 className="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
-            Our Unstitched Fabric Stock
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-linear-to-r from-[#7E153A] via-[#8E1741] to-[#5a0f2a] text-white p-5 sm:p-7 lg:p-8 shadow-md border border-white/10">
+        <div className="relative z-10 max-w-xl space-y-1.5">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white leading-tight">
+            Our Unstitched Stock
           </h1>
-          <p className="text-xs sm:text-sm text-red-100 font-normal leading-relaxed">
-            Handpicked pure fabrics from top Pakistani looms and designers.
-            Order the unstitched fabric and have it tailored to your custom
-            measurements in one single order.
+          <p className="text-xs sm:text-sm text-red-100/90 font-normal leading-relaxed">
+            Premium unstitched fabrics handpicked for custom bespoke tailoring.
           </p>
-
-          <div className="pt-1.5 sm:pt-2 flex flex-wrap items-center gap-2 sm:gap-4 text-[11px] sm:text-xs font-semibold text-red-200">
-            <span className="flex items-center gap-1.5 bg-white/10 sm:bg-transparent px-2.5 py-1 sm:p-0 rounded-full">
-              <CheckCircle2 size={13} className="text-emerald-300 shrink-0" />{' '}
-              100% Pure Fabric
-            </span>
-            <span className="flex items-center gap-1.5 bg-white/10 sm:bg-transparent px-2.5 py-1 sm:p-0 rounded-full">
-              <CheckCircle2 size={13} className="text-emerald-300 shrink-0" />{' '}
-              24-Point QC
-            </span>
-            <span className="flex items-center gap-1.5 bg-white/10 sm:bg-transparent px-2.5 py-1 sm:p-0 rounded-full">
-              <CheckCircle2 size={13} className="text-emerald-300 shrink-0" />{' '}
-              Express Delivery
-            </span>
-          </div>
         </div>
 
-        {/* Decorative background circle */}
-        <div className="absolute -right-10 -bottom-10 w-72 h-72 rounded-full bg-white/5 pointer-events-none blur-2xl"></div>
+        {/* Decorative Calligraphy & Atelier Craft Art */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute right-0 top-0 bottom-0 w-64 sm:w-80 md:w-[420px] overflow-hidden flex items-center justify-end"
+        >
+          <svg
+            viewBox="0 0 420 160"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full h-full opacity-60 sm:opacity-85"
+          >
+            <defs>
+              <linearGradient
+                id="gold-foil"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop offset="0%" stopColor="#FDE68A" stopOpacity="0.9" />
+                <stop offset="50%" stopColor="#D4AF37" stopOpacity="0.7" />
+                <stop offset="100%" stopColor="#AA7A28" stopOpacity="0.4" />
+              </linearGradient>
+              <linearGradient id="silk-swirl" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.05" />
+                <stop offset="40%" stopColor="#FDE68A" stopOpacity="0.45" />
+                <stop offset="80%" stopColor="#F5E6CA" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.02" />
+              </linearGradient>
+              <radialGradient id="gold-glow" cx="70%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#FDE68A" stopOpacity="0.25" />
+                <stop offset="100%" stopColor="#7E153A" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+
+            {/* Soft luminous ambient aura */}
+            <circle cx="320" cy="80" r="100" fill="url(#gold-glow)" />
+
+            {/* Calligraphic Flourish Swashes (Qalam ribbon curves) */}
+            <path
+              d="M30 120 C90 145 160 110 215 70 C250 45 295 35 380 55"
+              stroke="url(#silk-swirl)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <path
+              d="M70 135 C130 155 185 125 235 85 C275 52 320 45 395 68"
+              stroke="url(#gold-foil)"
+              strokeWidth="1.2"
+              strokeDasharray="4 4"
+              strokeLinecap="round"
+              opacity="0.85"
+            />
+
+            {/* Traditional Pakistani Paisley / Boteh Silhouette */}
+            <g transform="translate(260, 15) scale(0.9)" opacity="0.8">
+              {/* Outer paisley contour */}
+              <path
+                d="M75 135 C40 135 15 110 15 78 C15 42 48 22 68 8 C65 26 74 38 86 45 C102 54 110 72 106 96 C102 120 90 135 75 135 Z"
+                stroke="url(#gold-foil)"
+                strokeWidth="1.5"
+                fill="rgba(255, 255, 255, 0.03)"
+              />
+              {/* Inner filigree dashed paisley */}
+              <path
+                d="M71 120 C46 120 28 102 28 78 C28 52 50 36 64 24 C63 36 70 45 79 50 C90 57 96 70 93 88 C90 105 82 120 71 120 Z"
+                stroke="url(#gold-foil)"
+                strokeWidth="1"
+                strokeDasharray="2.5 3"
+              />
+              {/* Core floral rosette */}
+              <circle
+                cx="62"
+                cy="82"
+                r="9"
+                stroke="url(#gold-foil)"
+                strokeWidth="1"
+              />
+              <circle
+                cx="62"
+                cy="82"
+                r="3.5"
+                fill="url(#gold-foil)"
+                opacity="0.7"
+              />
+              <path
+                d="M62 69 V73 M62 91 V95 M49 82 H53 M71 82 H75"
+                stroke="url(#gold-foil)"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+              />
+              {/* Crown tip flourish */}
+              <path
+                d="M68 8 C71 5 76 6 78 10 C80 15 76 19 72 19 C68 19 65 16 67 12"
+                stroke="url(#gold-foil)"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+              />
+            </g>
+
+            {/* Slender golden tailoring needle */}
+            <g transform="translate(160, 68) rotate(-32)">
+              <path
+                d="M0 0 L52 0"
+                stroke="#FDE68A"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+              <ellipse
+                cx="6"
+                cy="0"
+                rx="3.2"
+                ry="0.9"
+                fill="#7E153A"
+                stroke="#FDE68A"
+                strokeWidth="0.6"
+              />
+            </g>
+
+            {/* Urdu Calligraphy / Artisan Seal "دستکاری" (Handcrafted / Bespoke Craft) */}
+            <g transform="translate(180, 138)" opacity="0.45">
+              <text
+                x="0"
+                y="0"
+                fill="#FDE68A"
+                fontSize="18"
+                fontFamily="system-ui, -apple-system, serif"
+                fontWeight="bold"
+                className="select-none tracking-widest"
+              >
+                دستکاری
+              </text>
+              <text
+                x="68"
+                y="-2"
+                fill="#F5E6CA"
+                fontSize="9"
+                fontFamily="system-ui, sans-serif"
+                fontWeight="600"
+                letterSpacing="2.5"
+                className="select-none uppercase"
+              >
+                • ATELIER
+              </text>
+            </g>
+
+            {/* Delicate gold craft sparkle stars */}
+            <path
+              d="M135 38 L137.5 44 L143.5 46.5 L137.5 49 L135 55 L132.5 49 L126.5 46.5 L132.5 44 Z"
+              fill="#FDE68A"
+              opacity="0.8"
+            />
+            <path
+              d="M215 118 L216.8 122 L220.8 123.8 L216.8 125.6 L215 129.6 L213.2 125.6 L209.2 123.8 L213.2 122 Z"
+              fill="#F5E6CA"
+              opacity="0.65"
+            />
+            <path
+              d="M380 98 L381.5 101.5 L385 103 L381.5 104.5 L380 108 L378.5 104.5 L375 103 L378.5 101.5 Z"
+              fill="#D4AF37"
+              opacity="0.7"
+            />
+          </svg>
+        </div>
+
+        {/* Subtle background ambient blur */}
+        <div className="absolute -right-8 -bottom-8 w-60 h-60 rounded-full bg-amber-400/10 pointer-events-none blur-3xl"></div>
       </div>
 
       {/* Gender Switcher & Filter Controls */}
@@ -234,55 +350,34 @@ export default function CustomerStockCatalogPage() {
           </div>
         </div>
 
-        {/* Garment Silhouette Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
-          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mr-1 shrink-0">
-            Silhouette:
-          </span>
-          {currentCategoryChips.map((cat) => {
-            const isActive = categoryFilter === cat.key;
-            return (
-              <button
-                key={cat.key}
-                type="button"
-                onClick={() => setCategoryFilter(cat.key)}
-                className={`px-3 py-1.5 rounded-full text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                  isActive
-                    ? 'bg-[#7E153A] text-white shadow-xs'
-                    : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Fabric Filter Chips & Search Bar */}
+        {/* Category Chips & Search Bar */}
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pt-1">
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
             <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mr-1 shrink-0">
-              Fabric:
+              Category:
             </span>
-            {FABRIC_CHIPS.map((chip) => (
-              <button
-                key={chip.key}
-                type="button"
-                onClick={() => setFabricFilter(chip.key)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                  fabricFilter === chip.key
-                    ? 'bg-stone-900 text-white shadow-xs'
-                    : 'bg-stone-100 text-gray-700 hover:bg-stone-200'
-                }`}
-              >
-                {chip.label}
-              </button>
-            ))}
+            {currentCategoryChips.map((cat) => {
+              const isActive = categoryFilter === cat.key;
+              return (
+                <button
+                  key={cat.key}
+                  type="button"
+                  onClick={() => setCategoryFilter(cat.key)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${
+                    isActive
+                      ? 'bg-[#7E153A] text-white shadow-xs'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
           </div>
 
           <form
             onSubmit={handleSearchSubmit}
-            className="relative w-full md:w-72"
+            className="relative w-full md:w-72 shrink-0"
           >
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
@@ -327,13 +422,13 @@ export default function CustomerStockCatalogPage() {
             No Fabrics Matching Your Filter
           </h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
-            Try switching gender collections or selecting &quot;All
-            Fabrics&quot; to view available unstitched suits.
+            Try switching collections or selecting &quot;All&quot; to view
+            available unstitched suits.
           </p>
           <Button
             onClick={() => {
               setGenderTab('all');
-              setFabricFilter('all');
+              setCategoryFilter('all');
               setSearch('');
             }}
             variant="outline"

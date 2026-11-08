@@ -278,10 +278,10 @@ function OrderTimeline({
 
 const STOCK_CATEGORY_LABELS: Record<string, string> = {
   full_suit: 'Shalwar Kameez',
+  kameez_only: 'Kurti / Shirt',
+  waistcoat: 'Waistcoat',
   frock_maxi: 'Frock / Maxi',
-  waistcoat: 'Waist Coat',
-  pant_coat: 'Pent Coat',
-  kameez_only: 'Shirt / Kurti',
+  pant_coat: 'Pant Coat',
   trouser_only: 'Trouser',
   other: 'Custom Cut',
 };

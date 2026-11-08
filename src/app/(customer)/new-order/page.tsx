@@ -4317,7 +4317,7 @@ function NewOrderContent() {
 
       {/* ── STEP 3: Measurements Profile ── */}
       {currentStep === 3 && (
-        <div className="bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xs space-y-8">
+        <div className="bg-white rounded-3xl border border-gray-100 p-4 sm:p-8 shadow-xs space-y-6 sm:space-y-8">
           <div className="space-y-1">
             <h2 className="text-lg font-extrabold text-gray-900">
               3. Measurement Profile & Fit Dimensions
@@ -4795,16 +4795,16 @@ function NewOrderContent() {
 
           {/* Custom Studio Inputs Grid (when custom selected) */}
           {selectedProfileId === 'custom' && (
-            <div className="border border-gray-100 rounded-2xl p-6 bg-gray-50/50 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex bg-gray-100 p-1 rounded-xl">
+            <div className="border border-gray-100 rounded-2xl p-3.5 sm:p-6 bg-gray-50/50 space-y-4 sm:space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+                <div className="flex bg-gray-200/70 p-1 rounded-xl w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => setActiveTab('shirt')}
-                    className={`px-4 py-1.5 text-xs font-bold rounded-lg cursor-pointer ${
+                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer text-center ${
                       activeTab === 'shirt'
                         ? 'bg-white text-[#7E153A] shadow-xs'
-                        : 'text-gray-500'
+                        : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
                     {gender === 'male'
@@ -4821,10 +4821,10 @@ function NewOrderContent() {
                     <button
                       type="button"
                       onClick={() => setActiveTab('trouser')}
-                      className={`px-4 py-1.5 text-xs font-bold rounded-lg cursor-pointer ${
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer text-center ${
                         activeTab === 'trouser'
                           ? 'bg-white text-[#7E153A] shadow-xs'
-                          : 'text-gray-500'
+                          : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
                       {bottomType === 'shalwar'
@@ -4834,7 +4834,7 @@ function NewOrderContent() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
                   {/* Unit Selector (Inches vs Centimeters) */}
                   <div className="flex bg-gray-200/80 p-0.5 rounded-xl border border-gray-200">
                     <button
@@ -4875,7 +4875,7 @@ function NewOrderContent() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                 <div className="md:col-span-2 flex flex-col justify-between h-full min-h-full">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 sm:gap-x-8 gap-y-5 sm:gap-y-6 w-full">
+                  <div className="grid grid-cols-2 gap-x-3 sm:gap-x-8 gap-y-3.5 sm:gap-y-6 w-full">
                     {activeTab === 'shirt' && (
                       <>
                         {(gender === 'male'
@@ -4979,10 +4979,15 @@ function NewOrderContent() {
                                 : []),
                             ]
                         ).map((field) => (
-                          <div key={field.id} className="space-y-1.5">
-                            <label className="text-xs font-bold text-gray-700 block">
-                              {field.name} ({unit === 'inches' ? 'in' : 'cm'}){' '}
-                              <span className="text-[#7E153A]">*</span>
+                          <div
+                            key={field.id}
+                            className="space-y-1 sm:space-y-1.5"
+                          >
+                            <label className="text-[11px] sm:text-xs font-bold text-gray-700 block leading-snug line-clamp-2 h-[30px] sm:h-auto flex items-end pb-0.5">
+                              <span>
+                                {field.name} ({unit === 'inches' ? 'in' : 'cm'}){' '}
+                                <span className="text-[#7E153A]">*</span>
+                              </span>
                             </label>
                             <Input
                               type="number"
@@ -4992,7 +4997,7 @@ function NewOrderContent() {
                               onChange={(e) =>
                                 updateMeasurement(field.id, e.target.value)
                               }
-                              className="h-11 text-sm bg-white font-mono font-bold px-3.5 rounded-xl border border-gray-200 focus:border-[#7E153A] focus:ring-2 focus:ring-[#7E153A]/10 shadow-2xs transition-all w-full"
+                              className="h-10 sm:h-11 text-xs sm:text-sm bg-white font-mono font-bold px-3 sm:px-3.5 rounded-xl border border-gray-200 focus:border-[#7E153A] focus:ring-2 focus:ring-[#7E153A]/10 shadow-2xs transition-all w-full"
                               required
                             />
                           </div>
@@ -5001,7 +5006,7 @@ function NewOrderContent() {
                     )}
 
                     {hasTrouser && activeTab === 'trouser' && (
-                      <div className="col-span-1 sm:col-span-2 space-y-3 mb-2">
+                      <div className="col-span-2 space-y-3 mb-2">
                         {/* Quick Trouser Code Selector Bar */}
                         <div className="bg-white p-3 rounded-2xl border border-gray-200/70 space-y-2">
                           <div className="flex items-center justify-between">
@@ -5116,10 +5121,15 @@ function NewOrderContent() {
                               },
                             ]
                         ).map((field) => (
-                          <div key={field.id} className="space-y-1.5">
-                            <label className="text-xs font-bold text-gray-700 block">
-                              {field.name} ({unit === 'inches' ? 'in' : 'cm'}){' '}
-                              <span className="text-[#7E153A]">*</span>
+                          <div
+                            key={field.id}
+                            className="space-y-1 sm:space-y-1.5"
+                          >
+                            <label className="text-[11px] sm:text-xs font-bold text-gray-700 block leading-snug line-clamp-2 h-[30px] sm:h-auto flex items-end pb-0.5">
+                              <span>
+                                {field.name} ({unit === 'inches' ? 'in' : 'cm'}){' '}
+                                <span className="text-[#7E153A]">*</span>
+                              </span>
                             </label>
                             <Input
                               type="number"
@@ -5129,7 +5139,7 @@ function NewOrderContent() {
                               onChange={(e) =>
                                 updateMeasurement(field.id, e.target.value)
                               }
-                              className="h-11 text-sm bg-white font-mono font-bold px-3.5 rounded-xl border border-gray-200 focus:border-[#7E153A] focus:ring-2 focus:ring-[#7E153A]/10 shadow-2xs transition-all w-full"
+                              className="h-10 sm:h-11 text-xs sm:text-sm bg-white font-mono font-bold px-3 sm:px-3.5 rounded-xl border border-gray-200 focus:border-[#7E153A] focus:ring-2 focus:ring-[#7E153A]/10 shadow-2xs transition-all w-full"
                               required
                             />
                           </div>
@@ -5139,7 +5149,7 @@ function NewOrderContent() {
                   </div>
 
                   {/* Navigation Controls (Aligned with bottom line of Body Diagram) */}
-                  <div className="flex items-center justify-between mt-auto pt-6 pb-2 gap-2">
+                  <div className="flex items-center justify-between mt-auto pt-5 sm:pt-6 pb-2 gap-2">
                     <Button
                       variant="outline"
                       onClick={() => setCurrentStep(2)}

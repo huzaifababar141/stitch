@@ -856,7 +856,7 @@ export default function MeasurementsStudioPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 py-1 sm:py-2 font-sans min-w-0 w-full">
       {/* ── Top Header Banner ── */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-5 lg:p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 min-w-0 w-full">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 p-4 sm:p-5 lg:p-6 shadow-xs flex flex-wrap items-center justify-between gap-3.5 sm:gap-4 min-w-0 w-full">
         <div className="flex items-center gap-2.5 shrink-0">
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-red-50 text-[#7E153A] flex items-center justify-center font-bold shrink-0">
             <Ruler size={18} className="sm:w-5 sm:h-5" />
@@ -866,12 +866,12 @@ export default function MeasurementsStudioPage() {
           </h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           {/* Unit Toggle */}
-          <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200/60 justify-center">
+          <div className="h-9 sm:h-10 flex items-center bg-gray-100 p-1 rounded-xl border border-gray-200/60 justify-center shrink-0">
             <button
               onClick={() => handleToggleUnit('inches')}
-              className={`px-3 sm:px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              className={`h-full px-3 sm:px-3.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center ${
                 unit === 'inches'
                   ? 'bg-white text-[#7E153A] shadow-xs'
                   : 'text-gray-500 hover:text-gray-900'
@@ -881,22 +881,22 @@ export default function MeasurementsStudioPage() {
             </button>
             <button
               onClick={() => handleToggleUnit('cm')}
-              className={`px-3 sm:px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              className={`h-full px-3 sm:px-3.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center ${
                 unit === 'cm'
                   ? 'bg-white text-[#7E153A] shadow-xs'
                   : 'text-gray-500 hover:text-gray-900'
               }`}
             >
-              Centimeters (cm)
+              cm
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {/* Guide Buttons */}
             <Button
               onClick={() => setShowHowToMeasure(true)}
               variant="outline"
-              className="h-9 sm:h-10 text-xs font-semibold border-gray-200 text-gray-700 hover:bg-gray-50 cursor-pointer rounded-xl px-2.5 sm:px-3.5"
+              className="h-9 sm:h-10 text-xs font-semibold border-gray-200 text-gray-700 hover:bg-gray-50 cursor-pointer rounded-xl px-2.5 sm:px-3.5 whitespace-nowrap"
             >
               <BookOpen size={14} className="mr-1.5 text-[#7E153A] shrink-0" />{' '}
               How to Measure
@@ -905,7 +905,7 @@ export default function MeasurementsStudioPage() {
             <Button
               onClick={() => setShowSizeChart(true)}
               variant="outline"
-              className="h-9 sm:h-10 text-xs font-semibold border-gray-200 text-gray-700 hover:bg-gray-50 cursor-pointer rounded-xl px-2.5 sm:px-3.5"
+              className="h-9 sm:h-10 text-xs font-semibold border-gray-200 text-gray-700 hover:bg-gray-50 cursor-pointer rounded-xl px-2.5 sm:px-3.5 whitespace-nowrap"
             >
               <Sliders size={14} className="mr-1.5 text-[#7E153A] shrink-0" />{' '}
               Size Chart
@@ -915,7 +915,7 @@ export default function MeasurementsStudioPage() {
           {/* New Profile CTA */}
           <Button
             onClick={() => handleOpenCreate('women_suit')}
-            className="h-9 sm:h-10 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white px-4 sm:px-5 rounded-xl shadow-md shadow-[#7E153A]/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            className="h-9 sm:h-10 text-xs font-bold bg-[#7E153A] hover:bg-[#630f2d] text-white px-3.5 sm:px-4.5 rounded-xl shadow-md shadow-[#7E153A]/20 transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0"
           >
             <Plus size={16} /> New Profile
           </Button>
