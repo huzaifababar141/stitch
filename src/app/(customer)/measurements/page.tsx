@@ -284,6 +284,44 @@ const MEASUREMENT_HELP: Record<string, string> = {
   bicep: 'Around widest part of upper arm bicep.',
 };
 
+// ─── Studio Garment Options (Synchronized with New Order Flow) ───────────────
+
+const WOMEN_GARMENTS_STUDIO = [
+  {
+    key: 'full_suit',
+    label: 'Shalwar Kameez / Pajama',
+    image: '/images/tailor/garment_w_shalwarkameez_v2.png',
+  },
+  {
+    key: 'kameez_only',
+    label: 'Only Shirt',
+    image: '/images/tailor/garment_w_onlyshirt_v2.png',
+  },
+  {
+    key: 'frock_maxi',
+    label: 'Frock / Maxi',
+    image: '/images/tailor/garment_w_frockmaxi_v2.png',
+  },
+];
+
+const MEN_GARMENTS_STUDIO = [
+  {
+    key: 'full_suit',
+    label: 'Shalwar Kameez',
+    image: '/images/tailor/garment_m_shalwarkameez_v2.png',
+  },
+  {
+    key: 'waistcoat',
+    label: 'Waist Coat',
+    image: '/images/tailor/garment_m_waistcoat_v2.png',
+  },
+  {
+    key: 'pant_coat',
+    label: 'Pent Coat',
+    image: '/images/tailor/garment_m_pentcoat_v2.png',
+  },
+];
+
 // ─── Main Measurement Studio Page ────────────────────────────────────────────
 
 export default function MeasurementsStudioPage() {
@@ -302,6 +340,8 @@ export default function MeasurementsStudioPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State inside Studio Modal
+  const [formGender, setFormGender] = useState<'female' | 'male'>('female');
+  const [formGarmentKey, setFormGarmentKey] = useState<string>('full_suit');
   const [selectedGarmentType, setSelectedGarmentType] =
     useState<MeasurementGarmentType>('women_suit');
   const [formLabel, setFormLabel] = useState('My Standard Fit');
@@ -382,101 +422,88 @@ export default function MeasurementsStudioPage() {
     setUnit(newUnit);
   };
 
-  // Change Garment Type in Studio Modal
-  const handleSelectGarmentType = (category: MeasurementGarmentType) => {
-    setSelectedGarmentType(category);
+  // Select Garment (Gender + Garment Key matching new order flow)
+  const handleSelectGarment = (gender: 'female' | 'male', key: string) => {
+    setFormGender(gender);
+    setFormGarmentKey(key);
 
-    // Set appropriate initial tab and field
-    if (category === 'pant_trouser' || category === 'shalwar') {
-      setFormCategory('lower');
-      setActiveField('trouserLength');
-    } else if (category === 'coat') {
+    if (gender === 'female') {
+      setSelectedGarmentType('women_suit');
       setFormCategory('upper');
       setActiveField('chest');
-    } else if (category === 'men_suit') {
-      setFormCategory('upper');
-      setActiveField('chest');
-    } else {
-      setFormCategory('upper');
-      setActiveField('chest');
-    }
 
-    // Load sensible default values
-    let baseValues: Record<string, number> = {};
-    if (category === 'men_suit') {
-      baseValues = MEN_PRESETS.m.values;
-      setSelectedTrouserCode('P-34');
-      if (
-        !formLabel ||
-        formLabel.includes('Fit') ||
-        formLabel.includes('Profile')
-      ) {
-        setFormLabel("Men's Classic Kurta Shalwar");
+      let labelText = "Women's Shalwar Kameez";
+      const baseValues: Record<string, number> = { ...WOMEN_PRESETS.m.values };
+
+      if (key === 'kameez_only') {
+        labelText = "Women's Kurti / Shirt";
+      } else if (key === 'frock_maxi') {
+        labelText = "Women's Frock / Maxi";
+        baseValues.kameezLength = 48;
       }
-    } else if (category === 'women_suit') {
-      baseValues = WOMEN_PRESETS.m.values;
-      setSelectedTrouserCode('T-30');
-      if (
-        !formLabel ||
-        formLabel.includes('Fit') ||
-        formLabel.includes('Profile')
-      ) {
-        setFormLabel("Women's Standard Suit");
-      }
-    } else if (category === 'pant_trouser') {
-      baseValues = {
-        trouserLength: 40,
-        trouserWaist: 34,
-        seat: 24,
-        thigh: 24,
-        knee: 18,
-        ankle: 16,
-      };
-      setSelectedTrouserCode('P-34');
-      if (
-        !formLabel ||
-        formLabel.includes('Fit') ||
-        formLabel.includes('Profile')
-      ) {
-        setFormLabel('Formal Pant / Cigarette Trouser');
-      }
-    } else if (category === 'coat') {
-      baseValues = COAT_SIZE_PRESETS['40'].values;
-      setSelectedTrouserCode(null);
-      if (
-        !formLabel ||
-        formLabel.includes('Fit') ||
-        formLabel.includes('Profile')
-      ) {
-        setFormLabel('Prince Coat / Blazer Fit');
-      }
-    } else if (category === 'shalwar') {
-      baseValues = SHALWAR_SIZE_PRESETS.m.values;
-      setSelectedTrouserCode(null);
-      if (
-        !formLabel ||
-        formLabel.includes('Fit') ||
-        formLabel.includes('Profile')
-      ) {
-        setFormLabel('Traditional Shalwar Fit');
-      }
+
+      setFormLabel(labelText);
+
+      const initial: Record<string, string> = {};
+      Object.entries(baseValues).forEach(([k, v]) => {
+        initial[k] = unit === 'cm' ? (v * 2.54).toFixed(1) : String(v);
+      });
+      setFormData(initial);
     } else {
-      baseValues = WOMEN_PRESETS.m.values;
-      setSelectedTrouserCode(null);
-      if (
-        !formLabel ||
-        formLabel.includes('Fit') ||
-        formLabel.includes('Profile')
-      ) {
-        setFormLabel('Custom Tailoring Fit');
+      if (key === 'waistcoat') {
+        setSelectedGarmentType('coat');
+        setFormCategory('upper');
+        setActiveField('chest');
+        setFormLabel("Men's Waistcoat");
+
+        const baseCoat = COAT_SIZE_PRESETS['40'].values;
+        const initial: Record<string, string> = {};
+        Object.entries(baseCoat).forEach(([k, v]) => {
+          initial[k] = unit === 'cm' ? (v * 2.54).toFixed(1) : String(v);
+        });
+        initial.kameezLength = unit === 'cm' ? '71.1' : '28';
+        setFormData(initial);
+      } else if (key === 'pant_coat') {
+        setSelectedGarmentType('coat');
+        setFormCategory('upper');
+        setActiveField('chest');
+        setFormLabel("Men's Formal Pent Coat");
+
+        const baseCoat = COAT_SIZE_PRESETS['40'].values;
+        const initial: Record<string, string> = {};
+        Object.entries(baseCoat).forEach(([k, v]) => {
+          initial[k] = unit === 'cm' ? (v * 2.54).toFixed(1) : String(v);
+        });
+        initial.kameezLength = unit === 'cm' ? '76.2' : '30';
+        initial.trouserLength = unit === 'cm' ? '101.6' : '40';
+        initial.trouserWaist = unit === 'cm' ? '86.4' : '34';
+        initial.ankle = unit === 'cm' ? '39.4' : '15.5';
+        initial.thigh = unit === 'cm' ? '61' : '24';
+        initial.seat = unit === 'cm' ? '61' : '24';
+        initial.knee = unit === 'cm' ? '45.7' : '18';
+        setFormData(initial);
+      } else {
+        setSelectedGarmentType('men_suit');
+        setFormCategory('upper');
+        setActiveField('chest');
+        setFormLabel("Men's Shalwar Kameez");
+
+        const baseMen = MEN_PRESETS.m.values;
+        const initial: Record<string, string> = {};
+        Object.entries(baseMen).forEach(([k, v]) => {
+          initial[k] = unit === 'cm' ? (v * 2.54).toFixed(1) : String(v);
+        });
+        setFormData(initial);
       }
     }
+  };
 
-    const initial: Record<string, string> = {};
-    Object.entries(baseValues).forEach(([k, v]) => {
-      initial[k] = unit === 'cm' ? (v * 2.54).toFixed(1) : String(v);
-    });
-    setFormData(initial);
+  const handleGenderSelect = (gender: 'female' | 'male') => {
+    handleSelectGarment(gender, 'full_suit');
+  };
+
+  const handleGarmentKeySelect = (key: string) => {
+    handleSelectGarment(formGender, key);
   };
 
   // Open Studio modal in Create mode
@@ -486,7 +513,12 @@ export default function MeasurementsStudioPage() {
     setEditingProfile(null);
     setFormIsDefault(profiles.length === 0);
     setFormNotes('');
-    handleSelectGarmentType(prefCategory);
+    const targetGender =
+      prefCategory === 'men_suit' || prefCategory === 'coat'
+        ? 'male'
+        : 'female';
+    const targetKey = prefCategory === 'coat' ? 'waistcoat' : 'full_suit';
+    handleSelectGarment(targetGender, targetKey);
     setIsModalOpen(true);
   };
 
@@ -499,28 +531,58 @@ export default function MeasurementsStudioPage() {
     setFormLabel(profile.label || 'My Measurements');
     setFormIsDefault(profile.isDefault || false);
 
+    const labelLower = (profile.label || '').toLowerCase();
+    const notesLower = (profile.notes || '').toLowerCase();
+
+    let gender: 'female' | 'male' = 'female';
+    let gKey = 'full_suit';
+
+    if (category === 'men_suit') {
+      gender = 'male';
+      gKey = 'full_suit';
+    } else if (category === 'coat') {
+      gender = 'male';
+      if (labelLower.includes('pent') || notesLower.includes('pant_coat')) {
+        gKey = 'pant_coat';
+      } else {
+        gKey = 'waistcoat';
+      }
+    } else if (category === 'pant_trouser' || category === 'shalwar') {
+      gender = labelLower.includes('women') ? 'female' : 'male';
+      gKey = category === 'pant_trouser' ? 'pant_coat' : 'full_suit';
+    } else {
+      gender = 'female';
+      if (
+        labelLower.includes('shirt') ||
+        labelLower.includes('kurti') ||
+        notesLower.includes('kameez_only')
+      ) {
+        gKey = 'kameez_only';
+      } else if (
+        labelLower.includes('frock') ||
+        labelLower.includes('maxi') ||
+        notesLower.includes('frock_maxi')
+      ) {
+        gKey = 'frock_maxi';
+      } else {
+        gKey = 'full_suit';
+      }
+    }
+
+    setFormGender(gender);
+    setFormGarmentKey(gKey);
+
     // Clean notes of category tags
-    let cleanNotes = (profile.notes || '')
+    const cleanNotes = (profile.notes || '')
       .replace(/\[Category:[a-z_]+\]/g, '')
+      .replace(/\[Gender:[a-z]+\]/g, '')
+      .replace(/\[Garment:[a-z_]+\]/g, '')
       .replace(/\[(Men|Women|Pant|Coat|Shalwar|Other)\]/g, '')
       .trim();
     setFormNotes(cleanNotes);
 
-    if (category === 'pant_trouser' || category === 'shalwar') {
-      setFormCategory('lower');
-      setActiveField('trouserLength');
-    } else {
-      setFormCategory('upper');
-      setActiveField('chest');
-    }
-
-    setSelectedTrouserCode(
-      category === 'men_suit'
-        ? 'P-34'
-        : category === 'women_suit'
-          ? 'T-30'
-          : null
-    );
+    setFormCategory('upper');
+    setActiveField('chest');
 
     const initial: Record<string, string> = {};
     [
@@ -561,29 +623,42 @@ export default function MeasurementsStudioPage() {
     let values: Record<string, number> = {};
     let presetLabel = presetKey;
 
-    if (selectedGarmentType === 'men_suit') {
-      const preset = MEN_PRESETS[presetKey];
-      if (preset) {
-        values = preset.values;
-        presetLabel = preset.label;
-      }
-    } else if (selectedGarmentType === 'women_suit') {
+    if (formGender === 'female') {
       const preset = WOMEN_PRESETS[presetKey];
       if (preset) {
-        values = preset.values;
+        values = { ...preset.values };
+        if (formGarmentKey === 'frock_maxi') {
+          values.kameezLength = 48;
+        }
         presetLabel = preset.label;
       }
-    } else if (selectedGarmentType === 'coat') {
-      const preset = COAT_SIZE_PRESETS[presetKey];
-      if (preset) {
-        values = preset.values;
-        presetLabel = preset.label;
-      }
-    } else if (selectedGarmentType === 'shalwar') {
-      const preset = SHALWAR_SIZE_PRESETS[presetKey];
-      if (preset) {
-        values = preset.values;
-        presetLabel = preset.label;
+    } else {
+      if (formGarmentKey === 'full_suit') {
+        const preset = MEN_PRESETS[presetKey];
+        if (preset) {
+          values = { ...preset.values };
+          presetLabel = preset.label;
+        }
+      } else if (
+        formGarmentKey === 'waistcoat' ||
+        formGarmentKey === 'pant_coat'
+      ) {
+        const preset = COAT_SIZE_PRESETS[presetKey];
+        if (preset) {
+          values = { ...preset.values };
+          if (formGarmentKey === 'pant_coat') {
+            values.trouserLength = 40;
+            values.trouserWaist = 34;
+            values.ankle = 15.5;
+            values.thigh = 24;
+            values.seat = 24;
+            values.knee = 18;
+            values.kameezLength = 30;
+          } else {
+            values.kameezLength = 28;
+          }
+          presetLabel = preset.label;
+        }
       }
     }
 
@@ -597,7 +672,7 @@ export default function MeasurementsStudioPage() {
       });
 
       toast({
-        title: `${presetLabel} Preset Applied`,
+        title: `${presetLabel} Applied`,
         description: `Loaded standard dimensions in ${unit === 'inches' ? 'Inches' : 'Centimeters'}.`,
       });
     }
@@ -853,6 +928,172 @@ export default function MeasurementsStudioPage() {
     GARMENT_CATEGORIES.find((c) => c.id === selectedGarmentType) ||
     GARMENT_CATEGORIES[0];
 
+  const hasLower =
+    formGarmentKey !== 'kameez_only' && formGarmentKey !== 'waistcoat';
+
+  const upperTabLabel =
+    formGender === 'female'
+      ? formGarmentKey === 'frock_maxi'
+        ? 'Frock Dimensions'
+        : formGarmentKey === 'kameez_only'
+          ? 'Shirt Dimensions'
+          : 'Kameez / Kurti'
+      : formGarmentKey === 'waistcoat'
+        ? 'Waist Coat'
+        : formGarmentKey === 'pant_coat'
+          ? 'Coat Dimensions'
+          : 'Kurta / Kameez';
+
+  const lowerTabLabel =
+    formGender === 'female'
+      ? 'Trouser / Shalwar'
+      : formGarmentKey === 'pant_coat'
+        ? 'Pant Dimensions'
+        : 'Shalwar Dimensions';
+
+  const upperFields =
+    formGender === 'female'
+      ? [
+          {
+            key: 'kameezLength',
+            label:
+              formGarmentKey === 'frock_maxi'
+                ? 'Frock / Maxi Length'
+                : formGarmentKey === 'kameez_only'
+                  ? 'Shirt Length'
+                  : 'Kameez Length',
+            defaultVal: formGarmentKey === 'frock_maxi' ? '48' : '42',
+          },
+          { key: 'chest', label: 'Chest / Bust', defaultVal: '38' },
+          { key: 'waist', label: 'Waist', defaultVal: '32' },
+          { key: 'hips', label: 'Hips / Daman', defaultVal: '40' },
+          {
+            key: 'shoulderWidth',
+            label: 'Shoulder (Teera)',
+            defaultVal: '14.5',
+          },
+          { key: 'sleeveLength', label: 'Sleeve Length', defaultVal: '22' },
+          { key: 'armhole', label: 'Armhole', defaultVal: '8.5' },
+          { key: 'galaDepth', label: 'Neck Depth (Gala)', defaultVal: '6.5' },
+        ]
+      : formGarmentKey === 'waistcoat'
+        ? [
+            {
+              key: 'kameezLength',
+              label: 'Waist Coat Length',
+              defaultVal: '28',
+            },
+            { key: 'chest', label: 'Chest Width', defaultVal: '40' },
+            { key: 'waist', label: 'Waist / Stomach', defaultVal: '36' },
+            {
+              key: 'shoulderWidth',
+              label: 'Shoulder (Teera)',
+              defaultVal: '17.5',
+            },
+            {
+              key: 'neckCircumference',
+              label: 'Collar / Neck Fit',
+              defaultVal: '15',
+            },
+            { key: 'armhole', label: 'Armhole Depth', defaultVal: '9.5' },
+          ]
+        : formGarmentKey === 'pant_coat'
+          ? [
+              { key: 'kameezLength', label: 'Coat Length', defaultVal: '30' },
+              { key: 'chest', label: 'Chest Width', defaultVal: '40' },
+              { key: 'waist', label: 'Coat Waist', defaultVal: '36' },
+              {
+                key: 'shoulderWidth',
+                label: 'Shoulder (Teera)',
+                defaultVal: '18.5',
+              },
+              { key: 'sleeveLength', label: 'Sleeve Length', defaultVal: '25' },
+              { key: 'armhole', label: 'Armhole Depth', defaultVal: '10' },
+              { key: 'wrist', label: 'Cuff Opening', defaultVal: '11.5' },
+            ]
+          : [
+              {
+                key: 'kameezLength',
+                label: 'Kurta / Kameez Length',
+                defaultVal: '42',
+              },
+              { key: 'chest', label: 'Chest Width', defaultVal: '40' },
+              { key: 'waist', label: 'Waist', defaultVal: '36' },
+              {
+                key: 'shoulderWidth',
+                label: 'Shoulder (Teera)',
+                defaultVal: '18.5',
+              },
+              { key: 'sleeveLength', label: 'Sleeve Length', defaultVal: '24' },
+              {
+                key: 'neckCircumference',
+                label: 'Collar / Ban Size',
+                defaultVal: '15',
+              },
+              { key: 'armhole', label: 'Armhole (Mudha)', defaultVal: '9' },
+              { key: 'wrist', label: 'Wrist / Cuff', defaultVal: '9.5' },
+            ];
+
+  const lowerFields =
+    formGender === 'female'
+      ? [
+          { key: 'trouserLength', label: 'Trouser Length', defaultVal: '38' },
+          { key: 'trouserWaist', label: 'Waistband', defaultVal: '30' },
+          { key: 'hips', label: 'Hip / Seat', defaultVal: '22' },
+          { key: 'thigh', label: 'Thigh', defaultVal: '23' },
+          { key: 'knee', label: 'Knee', defaultVal: '16' },
+          { key: 'ankle', label: 'Bottom Opening / Paicha', defaultVal: '14' },
+        ]
+      : formGarmentKey === 'pant_coat'
+        ? [
+            { key: 'trouserLength', label: 'Pant Length', defaultVal: '40' },
+            { key: 'trouserWaist', label: 'Waistband', defaultVal: '34' },
+            { key: 'seat', label: 'Hip / Seat Width', defaultVal: '24' },
+            { key: 'thigh', label: 'Thigh Circumference', defaultVal: '24' },
+            { key: 'knee', label: 'Knee Circumference', defaultVal: '18' },
+            { key: 'ankle', label: 'Bottom Opening / Hem', defaultVal: '15.5' },
+          ]
+        : [
+            { key: 'trouserLength', label: 'Shalwar Length', defaultVal: '40' },
+            {
+              key: 'trouserWaist',
+              label: 'Shalwar Waist / Belt',
+              defaultVal: '34',
+            },
+            { key: 'seat', label: 'Shalwar Ghera (Seat)', defaultVal: '24' },
+            { key: 'thigh', label: 'Inseam / Asan Depth', defaultVal: '34' },
+            {
+              key: 'ankle',
+              label: 'Paicha (Bottom Opening)',
+              defaultVal: '16',
+            },
+          ];
+
+  const currentPresets =
+    formGender === 'female'
+      ? [
+          { key: 'xs', label: 'XS' },
+          { key: 's', label: 'S' },
+          { key: 'm', label: 'M' },
+          { key: 'l', label: 'L' },
+          { key: 'xl', label: 'XL' },
+        ]
+      : formGarmentKey === 'full_suit'
+        ? [
+            { key: 's', label: 'S' },
+            { key: 'm', label: 'M' },
+            { key: 'l', label: 'L' },
+            { key: 'xl', label: 'XL' },
+            { key: 'xxl', label: 'XXL' },
+          ]
+        : [
+            { key: '38', label: '38"' },
+            { key: '40', label: '40"' },
+            { key: '42', label: '42"' },
+            { key: '44', label: '44"' },
+            { key: '46', label: '46"' },
+          ];
+
   return (
     <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 py-1 sm:py-2 font-sans min-w-0 w-full">
       {/* ── Top Header Banner ── */}
@@ -1043,28 +1284,18 @@ export default function MeasurementsStudioPage() {
               or suit selection.
             </p>
           </div>
-          <div className="flex gap-2.5 justify-center flex-wrap">
-            <Button
-              onClick={() => handleOpenCreate('women_suit')}
-              className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-5 h-10 rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer"
-            >
-              <Plus size={15} className="mr-1" /> Add Women Fit
-            </Button>
-            <Button
-              onClick={() => handleOpenCreate('men_suit')}
-              variant="outline"
-              className="border-gray-300 text-gray-800 text-xs font-bold px-5 h-10 rounded-xl cursor-pointer hover:bg-gray-50"
-            >
-              <Plus size={15} className="mr-1" /> Add Men Fit
-            </Button>
-            <Button
-              onClick={() => handleOpenCreate('pant_trouser')}
-              variant="outline"
-              className="border-gray-300 text-gray-800 text-xs font-bold px-5 h-10 rounded-xl cursor-pointer hover:bg-gray-50"
-            >
-              <Plus size={15} className="mr-1" /> Add Pant / Trouser
-            </Button>
-          </div>
+          <Button
+            onClick={() =>
+              handleOpenCreate(
+                filterCategory !== 'all'
+                  ? (filterCategory as MeasurementGarmentType)
+                  : 'women_suit'
+              )
+            }
+            className="bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold px-6 h-11 rounded-xl shadow-md shadow-[#7E153A]/20 cursor-pointer flex items-center gap-1.5"
+          >
+            <Plus size={16} /> Add profile
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 min-w-0 w-full">
@@ -1473,35 +1704,52 @@ export default function MeasurementsStudioPage() {
         </div>
       )}
 
-      {/* ── Studio Modal: Category-Specific Dynamic Form ── */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-200 font-sans">
-          <div className="w-full max-w-4xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[92vh] p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3 sm:pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-red-50 text-[#7E153A] flex items-center justify-center">
-                  <Ruler size={16} />
+      {/* ── Studio Drawer: Category-Specific Dynamic Form (Slide-Over from Right to Middle of Screen) ── */}
+      <div
+        className={`fixed inset-0 z-50 transition-opacity duration-300 ease-in-out font-sans ${
+          isModalOpen
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
+        }`}
+        aria-hidden={!isModalOpen}
+      >
+        {/* Backdrop overlay */}
+        <div
+          className={`fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity duration-300 ease-in-out ${
+            isModalOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={() => setIsModalOpen(false)}
+        />
+
+        {/* Sliding Panel from Right to Middle of Screen */}
+        <div className="fixed inset-y-0 right-0 flex max-w-full pl-4 sm:pl-10 pointer-events-none">
+          <div
+            className={`w-screen max-w-xl md:max-w-2xl lg:max-w-3xl bg-white shadow-2xl flex flex-col justify-between overflow-hidden border-l border-gray-100 pointer-events-auto transform transition-transform duration-300 ease-in-out ${
+              isModalOpen ? 'translate-x-0' : 'translate-x-full'
+            }`}
+          >
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between border-b border-gray-100 p-4 sm:p-6 shrink-0 bg-white">
+              <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                <div className="w-9 h-9 rounded-xl bg-red-50 text-[#7E153A] flex items-center justify-center shrink-0">
+                  <Ruler size={17} />
                 </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-bold text-gray-900">
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-extrabold text-gray-900 truncate">
                     {editingProfile
                       ? `Edit "${editingProfile.label}"`
-                      : 'Create New Tailoring Fit Profile'}
+                      : 'Add Measurement Profile'}
                   </h3>
-                  <p className="text-[11px] text-gray-500">
-                    Category: {categoryMeta.label}
-                  </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 {/* Modal Unit Switcher */}
                 <div className="flex bg-gray-100 p-0.5 rounded-xl border border-gray-200">
                   <button
                     type="button"
                     onClick={() => handleToggleUnit('inches')}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    className={`px-2.5 sm:px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                       unit === 'inches'
                         ? 'bg-white text-[#7E153A] shadow-xs'
                         : 'text-gray-500 hover:text-gray-900'
@@ -1512,7 +1760,7 @@ export default function MeasurementsStudioPage() {
                   <button
                     type="button"
                     onClick={() => handleToggleUnit('cm')}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    className={`px-2.5 sm:px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                       unit === 'cm'
                         ? 'bg-white text-[#7E153A] shadow-xs'
                         : 'text-gray-500 hover:text-gray-900'
@@ -1525,240 +1773,215 @@ export default function MeasurementsStudioPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors cursor-pointer"
+                  className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors cursor-pointer shrink-0"
                 >
-                  <X size={16} />
+                  <X size={17} />
                 </button>
               </div>
             </div>
 
-            {/* Modal Form Scrollable Body */}
+            {/* Drawer Form Scrollable Body */}
             <form
               id="profileForm"
               onSubmit={handleSaveProfile}
-              className="flex-1 overflow-y-auto px-1 py-1 space-y-4 sm:space-y-6 scrollbar-none"
+              className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5"
             >
-              {/* 1. Category / Garment Type Selector */}
-              <div className="space-y-2.5 bg-gray-50 p-3.5 sm:p-4 rounded-2xl border border-gray-200/70">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-gray-800">
-                    1. Select Measurement Category / Garment Type:
-                  </span>
-                  <span className="text-[10px] text-gray-400">
-                    Form dynamically shows only relevant fields
-                  </span>
-                </div>
+              {/* 1. Gender Selection (Choice between Men & Women) */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-900 block">
+                  Select Tailoring Category
+                </label>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-                  {GARMENT_CATEGORIES.map((cat) => {
-                    const isSelected = selectedGarmentType === cat.id;
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Women's Card */}
+                  <button
+                    type="button"
+                    onClick={() => handleGenderSelect('female')}
+                    className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-2.5 text-left ${
+                      formGender === 'female'
+                        ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20 shadow-xs'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-10 h-12 rounded-xl bg-[#EDE4DB] border border-[#E2D6CB] shrink-0 overflow-hidden relative shadow-xs">
+                        <img
+                          src="/images/tailor/gender_women_v2.png"
+                          alt="Women"
+                          className="w-full h-full object-cover object-top"
+                        />
+                      </div>
+                      <span className="text-xs font-extrabold text-gray-900 leading-tight">
+                        Women&apos;s Tailoring
+                      </span>
+                    </div>
+                    <div
+                      className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 border ${
+                        formGender === 'female'
+                          ? 'border-[#7E153A] bg-[#7E153A] text-white'
+                          : 'border-gray-300 bg-white'
+                      }`}
+                    >
+                      {formGender === 'female' && (
+                        <Check size={10} strokeWidth={3} />
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Men's Card */}
+                  <button
+                    type="button"
+                    onClick={() => handleGenderSelect('male')}
+                    className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-2.5 text-left ${
+                      formGender === 'male'
+                        ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20 shadow-xs'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-10 h-12 rounded-xl bg-[#EDE4DB] border border-[#E2D6CB] shrink-0 overflow-hidden relative shadow-xs">
+                        <img
+                          src="/images/tailor/gender_men_v2.png"
+                          alt="Men"
+                          className="w-full h-full object-cover object-top"
+                        />
+                      </div>
+                      <span className="text-xs font-extrabold text-gray-900 leading-tight">
+                        Men&apos;s Tailoring
+                      </span>
+                    </div>
+                    <div
+                      className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 border ${
+                        formGender === 'male'
+                          ? 'border-[#7E153A] bg-[#7E153A] text-white'
+                          : 'border-gray-300 bg-white'
+                      }`}
+                    >
+                      {formGender === 'male' && (
+                        <Check size={10} strokeWidth={3} />
+                      )}
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Related Garment Types */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-900 block">
+                  Choose Garment Type (
+                  {formGender === 'female' ? 'Women' : 'Men'})
+                </label>
+
+                <div className="grid grid-cols-3 gap-2.5">
+                  {(formGender === 'female'
+                    ? WOMEN_GARMENTS_STUDIO
+                    : MEN_GARMENTS_STUDIO
+                  ).map((g) => {
+                    const isSelected = formGarmentKey === g.key;
                     return (
                       <button
-                        key={cat.id}
+                        key={g.key}
                         type="button"
-                        onClick={() => handleSelectGarmentType(cat.id)}
-                        className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 ${
+                        onClick={() => handleGarmentKeySelect(g.key)}
+                        className={`p-2.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-between text-center relative ${
                           isSelected
-                            ? 'border-[#7E153A] bg-red-50/70 text-[#7E153A] ring-2 ring-[#7E153A]/20 font-extrabold shadow-xs'
-                            : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700 font-medium'
+                            ? 'border-[#7E153A] bg-red-50/40 ring-1 ring-[#7E153A]/20 shadow-xs'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
                         }`}
                       >
-                        <span className="text-xs font-extrabold block">
-                          {cat.shortLabel}
+                        <div className="w-14 h-16 rounded-xl bg-[#F0E7DE] flex items-center justify-center p-0.5 mb-1.5 overflow-hidden border border-[#E5DACF]">
+                          <img
+                            src={g.image}
+                            alt={g.label}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <span className="text-[11px] sm:text-xs font-extrabold text-gray-900 leading-tight">
+                          {g.label}
                         </span>
-                        <span className="text-[9px] text-gray-400 block line-clamp-1">
-                          {cat.gender === 'male'
-                            ? "Men's Fit"
-                            : cat.gender === 'female'
-                              ? "Women's Fit"
-                              : 'Unisex Fit'}
-                        </span>
+                        <div
+                          className={`w-3.5 h-3.5 rounded-full flex items-center justify-center absolute top-2 right-2 border ${
+                            isSelected
+                              ? 'border-[#7E153A] bg-[#7E153A] text-white'
+                              : 'border-gray-300 bg-white'
+                          }`}
+                        >
+                          {isSelected && <Check size={8} strokeWidth={3} />}
+                        </div>
                       </button>
                     );
                   })}
                 </div>
+              </div>
 
-                {/* Profile Label & Default Option */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 items-end pt-2 border-t border-gray-200/60 mt-3">
-                  <div className="sm:col-span-2 space-y-1">
-                    <label className="text-xs font-bold text-gray-700">
-                      Profile Label / Name{' '}
-                      <span className="text-[#7E153A]">*</span>
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="e.g. My Formal Lawn, Daily Cotton Fit"
-                      value={formLabel}
-                      onChange={(e) => setFormLabel(e.target.value)}
-                      className="h-10 text-xs bg-white rounded-xl border-gray-200"
-                      required
-                    />
-                  </div>
+              {/* 3. Profile Name & Default Option */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end pt-1">
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="text-xs font-bold text-gray-700 block">
+                    Profile Name <span className="text-[#7E153A]">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Daily Lawn, Formal Suit"
+                    value={formLabel}
+                    onChange={(e) => setFormLabel(e.target.value)}
+                    className="h-10 text-xs bg-white rounded-xl border-gray-200"
+                    required
+                  />
+                </div>
 
-                  <div className="flex items-center gap-2 pb-1.5 sm:pb-2">
-                    <input
-                      type="checkbox"
-                      id="isDefaultCheckbox"
-                      checked={formIsDefault}
-                      onChange={(e) => setFormIsDefault(e.target.checked)}
-                      className="w-4 h-4 rounded text-[#7E153A] focus:ring-[#7E153A] border-gray-300 cursor-pointer"
-                    />
-                    <label
-                      htmlFor="isDefaultCheckbox"
-                      className="text-xs font-bold text-gray-700 cursor-pointer"
-                    >
-                      Set as Default Profile
-                    </label>
-                  </div>
+                <div className="flex items-center gap-2 pb-2.5">
+                  <input
+                    type="checkbox"
+                    id="isDefaultCheckbox"
+                    checked={formIsDefault}
+                    onChange={(e) => setFormIsDefault(e.target.checked)}
+                    className="w-4 h-4 rounded text-[#7E153A] focus:ring-[#7E153A] border-gray-300 cursor-pointer"
+                  />
+                  <label
+                    htmlFor="isDefaultCheckbox"
+                    className="text-xs font-bold text-gray-700 cursor-pointer"
+                  >
+                    Set as default profile
+                  </label>
                 </div>
               </div>
 
-              {/* 2. Standard Size Preset Loader Bar */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-700">
-                    2. Quick Standard Size Preset (
-                    {selectedGarmentType === 'men_suit'
-                      ? "Men's Kurta Shalwar Sizes"
-                      : selectedGarmentType === 'women_suit'
-                        ? "Women's Suit Sizes"
-                        : selectedGarmentType === 'coat'
-                          ? 'Coat & Blazer Chest Sizes'
-                          : selectedGarmentType === 'shalwar'
-                            ? 'Shalwar Length Presets'
-                            : 'Standard Pant / Trouser Codes'}
-                    ):
-                  </span>
-                  <span className="text-[10px] sm:text-[11px] text-gray-400">
-                    Tap to auto-populate fields
-                  </span>
-                </div>
-
-                {selectedGarmentType === 'men_suit' && (
-                  <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-                    {Object.entries(MEN_PRESETS).map(([key, preset]) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => handleApplyPreset(key)}
-                        className="p-1.5 sm:p-2 bg-gray-50 hover:bg-red-50 hover:border-[#7E153A]/40 border border-gray-200 rounded-xl text-center transition-all cursor-pointer"
-                      >
-                        <span className="text-xs font-extrabold text-[#7E153A] uppercase block">
-                          {key.toUpperCase()}
-                        </span>
-                        <span className="text-[10px] text-gray-500 block truncate">
-                          {preset.tag}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {selectedGarmentType === 'women_suit' && (
-                  <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-                    {Object.entries(WOMEN_PRESETS).map(([key, preset]) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => handleApplyPreset(key)}
-                        className="p-1.5 sm:p-2 bg-gray-50 hover:bg-red-50 hover:border-[#7E153A]/40 border border-gray-200 rounded-xl text-center transition-all cursor-pointer"
-                      >
-                        <span className="text-xs font-extrabold text-[#7E153A] uppercase block">
-                          {key.toUpperCase()}
-                        </span>
-                        <span className="text-[10px] text-gray-500 block truncate">
-                          {preset.tag}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {selectedGarmentType === 'coat' && (
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2">
-                    {Object.entries(COAT_SIZE_PRESETS).map(([key, preset]) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => handleApplyPreset(key)}
-                        className="p-1.5 sm:p-2 bg-gray-50 hover:bg-red-50 hover:border-[#7E153A]/40 border border-gray-200 rounded-xl text-center transition-all cursor-pointer"
-                      >
-                        <span className="text-xs font-extrabold text-[#7E153A] uppercase block">
-                          {preset.label}
-                        </span>
-                        <span className="text-[10px] text-gray-500 block truncate">
-                          {preset.tag}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {selectedGarmentType === 'shalwar' && (
-                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-                    {Object.entries(SHALWAR_SIZE_PRESETS).map(
-                      ([key, preset]) => (
-                        <button
-                          key={key}
-                          type="button"
-                          onClick={() => handleApplyPreset(key)}
-                          className="p-1.5 sm:p-2 bg-gray-50 hover:bg-red-50 hover:border-[#7E153A]/40 border border-gray-200 rounded-xl text-center transition-all cursor-pointer"
-                        >
-                          <span className="text-xs font-extrabold text-[#7E153A] uppercase block">
-                            {preset.label}
-                          </span>
-                          <span className="text-[10px] text-gray-500 block truncate">
-                            {preset.tag}
-                          </span>
-                        </button>
-                      )
-                    )}
-                  </div>
-                )}
-
-                {selectedGarmentType === 'pant_trouser' && (
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2">
-                    {MEN_TROUSER_CODES.map((item) => (
-                      <button
-                        key={item.code}
-                        type="button"
-                        onClick={() => handleSelectTrouserCode(item)}
-                        className={`p-1.5 sm:p-2 border rounded-xl text-center transition-all cursor-pointer ${
-                          selectedTrouserCode === item.code
-                            ? 'bg-red-50 border-[#7E153A] text-[#7E153A] font-bold'
-                            : 'bg-gray-50 hover:bg-white border-gray-200 text-gray-700'
-                        }`}
-                      >
-                        <span className="text-xs font-bold font-mono block">
-                          {item.code}
-                        </span>
-                        <span className="text-[10px] text-gray-500 block truncate">
-                          Waist {item.measurements.waist_bottom}&quot;
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* 3. Category Form Tabs */}
-              <div className="w-full overflow-x-auto scrollbar-none pb-1">
-                <div className="inline-flex bg-gray-100 p-1 rounded-xl gap-1 shrink-0">
-                  {categoryMeta.hasUpper && (
+              {/* 4. Quick Standard Size Preset */}
+              <div className="space-y-1.5">
+                <span className="text-xs font-bold text-gray-700 block">
+                  Quick Size Preset
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {currentPresets.map((preset) => (
                     <button
+                      key={preset.key}
                       type="button"
-                      onClick={() => setFormCategory('upper')}
-                      className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                        formCategory === 'upper'
-                          ? 'bg-white text-[#7E153A] shadow-xs'
-                          : 'text-gray-500 hover:text-gray-900'
-                      }`}
+                      onClick={() => handleApplyPreset(preset.key)}
+                      className="px-3.5 py-1.5 bg-gray-50 hover:bg-red-50 hover:border-[#7E153A]/40 border border-gray-200 rounded-xl text-xs font-extrabold text-[#7E153A] transition-all cursor-pointer"
                     >
-                      <Scissors size={14} /> {categoryMeta.upperTabLabel}
+                      {preset.label}
                     </button>
-                  )}
+                  ))}
+                </div>
+              </div>
 
-                  {categoryMeta.hasLower && (
+              {/* 5. Measurement Dimensions Tabs */}
+              <div className="w-full overflow-x-auto scrollbar-none pb-1 pt-1">
+                <div className="inline-flex bg-gray-100 p-1 rounded-xl gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setFormCategory('upper')}
+                    className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                      formCategory === 'upper'
+                        ? 'bg-white text-[#7E153A] shadow-xs'
+                        : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                  >
+                    <Scissors size={14} /> {upperTabLabel}
+                  </button>
+
+                  {hasLower && (
                     <button
                       type="button"
                       onClick={() => setFormCategory('lower')}
@@ -1768,7 +1991,7 @@ export default function MeasurementsStudioPage() {
                           : 'text-gray-500 hover:text-gray-900'
                       }`}
                     >
-                      <Ruler size={14} /> {categoryMeta.lowerTabLabel}
+                      <Ruler size={14} /> {lowerTabLabel}
                     </button>
                   )}
 
@@ -1786,160 +2009,16 @@ export default function MeasurementsStudioPage() {
                 </div>
               </div>
 
-              {/* 4. Grid: Inputs + Body Diagram */}
+              {/* 6. Inputs + Silhouette Visual */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                {/* Inputs Column */}
                 <div className="lg:col-span-2 space-y-3 sm:space-y-4">
-                  {/* Category-Specific Upper Fields */}
+                  {/* Upper Fields */}
                   {formCategory === 'upper' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 text-xs">
-                      {(selectedGarmentType === 'men_suit'
-                        ? [
-                            {
-                              key: 'neckCircumference',
-                              label: 'Collar / Ban Size',
-                              defaultVal: '15',
-                            },
-                            {
-                              key: 'shoulderWidth',
-                              label: 'Shoulder Width (Teera)',
-                              defaultVal: '18.5',
-                            },
-                            {
-                              key: 'chest',
-                              label: 'Chest Width',
-                              defaultVal: '40',
-                            },
-                            {
-                              key: 'waist',
-                              label: 'Waist',
-                              defaultVal: '36',
-                            },
-                            {
-                              key: 'kameezLength',
-                              label: 'Kurta / Kameez Length',
-                              defaultVal: '42',
-                            },
-                            {
-                              key: 'sleeveLength',
-                              label: 'Sleeve Length',
-                              defaultVal: '24',
-                            },
-                            {
-                              key: 'armhole',
-                              label: 'Bicep / Armhole (Mudha)',
-                              defaultVal: '9',
-                            },
-                            {
-                              key: 'wrist',
-                              label: 'Wrist / Cuff Opening',
-                              defaultVal: '9.5',
-                            },
-                          ]
-                        : selectedGarmentType === 'coat'
-                          ? [
-                              {
-                                key: 'kameezLength',
-                                label: 'Coat / Blazer Length',
-                                defaultVal: '30',
-                              },
-                              {
-                                key: 'chest',
-                                label: 'Chest Width (Over Vest)',
-                                defaultVal: '42',
-                              },
-                              {
-                                key: 'waist',
-                                label: 'Stomach / Waist',
-                                defaultVal: '38',
-                              },
-                              {
-                                key: 'seat',
-                                label: 'Seat / Hem Sweep',
-                                defaultVal: '42',
-                              },
-                              {
-                                key: 'shoulderWidth',
-                                label: 'Teera (Shoulder Width Across Back)',
-                                defaultVal: '18.5',
-                              },
-                              {
-                                key: 'sleeveLength',
-                                label: 'Sleeve Length (Shoulder to Wrist)',
-                                defaultVal: '25',
-                              },
-                              {
-                                key: 'neckCircumference',
-                                label: 'Collar / Neck Fit',
-                                defaultVal: '15.5',
-                              },
-                              {
-                                key: 'armhole',
-                                label: 'Armhole Depth',
-                                defaultVal: '10',
-                              },
-                              {
-                                key: 'wrist',
-                                label: 'Sleeve Opening / Cuff',
-                                defaultVal: '11.5',
-                              },
-                              {
-                                key: 'backLength',
-                                label: 'Center Back Length',
-                                defaultVal: '18',
-                              },
-                            ]
-                          : [
-                              {
-                                key: 'kameezLength',
-                                label: 'Kameez Length',
-                                defaultVal: '43',
-                              },
-                              {
-                                key: 'chest',
-                                label: 'Chest / Bust',
-                                defaultVal: '38',
-                              },
-                              {
-                                key: 'waist',
-                                label: 'Waist',
-                                defaultVal: '32',
-                              },
-                              {
-                                key: 'hips',
-                                label: 'Hips / Chaak',
-                                defaultVal: '40',
-                              },
-                              {
-                                key: 'shoulderWidth',
-                                label: 'Shoulder Width (Teera)',
-                                defaultVal: '14.5',
-                              },
-                              {
-                                key: 'sleeveLength',
-                                label: 'Sleeve Length',
-                                defaultVal: '22',
-                              },
-                              {
-                                key: 'armhole',
-                                label: 'Armhole',
-                                defaultVal: '8.5',
-                              },
-                              {
-                                key: 'galaDepth',
-                                label: 'Neck Depth (Gala)',
-                                defaultVal: '6.5',
-                              },
-                              {
-                                key: 'neckCircumference',
-                                label: 'Neck Circumference (Ban)',
-                                defaultVal: '15',
-                              },
-                            ]
-                      ).map((field) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 text-xs">
+                      {upperFields.map((field) => (
                         <div
                           key={field.key}
-                          className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all ${
+                          className={`p-3 rounded-xl border transition-all ${
                             activeField === field.key
                               ? 'bg-red-50/50 border-[#7E153A] border-2 shadow-xs shadow-[#7E153A]/10'
                               : 'bg-white border-gray-200 hover:border-gray-300'
@@ -1962,142 +2041,18 @@ export default function MeasurementsStudioPage() {
                             }
                             className="h-9 text-xs bg-white font-mono font-bold text-gray-900 border-gray-200"
                           />
-                          <p className="text-[10px] text-gray-400 mt-1 leading-tight">
-                            {MEASUREMENT_HELP[field.key] || ''}
-                          </p>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  {/* Category-Specific Lower Fields */}
-                  {formCategory === 'lower' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 text-xs">
-                      {(selectedGarmentType === 'pant_trouser'
-                        ? [
-                            {
-                              key: 'trouserLength',
-                              label: 'Pant / Trouser Length',
-                              defaultVal: '40',
-                            },
-                            {
-                              key: 'trouserWaist',
-                              label: 'Waistband Circumference',
-                              defaultVal: '34',
-                            },
-                            {
-                              key: 'seat',
-                              label: 'Seat / Hip Width',
-                              defaultVal: '24',
-                            },
-                            {
-                              key: 'thigh',
-                              label: 'Thigh Circumference',
-                              defaultVal: '24',
-                            },
-                            {
-                              key: 'knee',
-                              label: 'Knee Circumference',
-                              defaultVal: '18',
-                            },
-                            {
-                              key: 'ankle',
-                              label: 'Bottom Opening / Paicha',
-                              defaultVal: '16',
-                            },
-                            {
-                              key: 'calf',
-                              label: 'Calf (Optional)',
-                              defaultVal: '15',
-                            },
-                          ]
-                        : selectedGarmentType === 'shalwar'
-                          ? [
-                              {
-                                key: 'trouserLength',
-                                label: 'Shalwar Length (Waist to Ankle)',
-                                defaultVal: '40',
-                              },
-                              {
-                                key: 'seat',
-                                label: 'Shalwar Ghera (Seat Width)',
-                                defaultVal: '24',
-                              },
-                              {
-                                key: 'thigh',
-                                label: 'Inseam / Asan Depth',
-                                defaultVal: '34',
-                              },
-                              {
-                                key: 'ankle',
-                                label: 'Paicha (Bottom Opening)',
-                                defaultVal: '16',
-                              },
-                              {
-                                key: 'trouserWaist',
-                                label: 'Belt / Elastic / Naala Waist',
-                                defaultVal: '34',
-                              },
-                            ]
-                          : selectedGarmentType === 'men_suit'
-                            ? [
-                                {
-                                  key: 'trouserLength',
-                                  label: 'Shalwar / Trouser Length',
-                                  defaultVal: '40',
-                                },
-                                {
-                                  key: 'trouserWaist',
-                                  label: 'Inseam / Asan Depth',
-                                  defaultVal: '34',
-                                },
-                                {
-                                  key: 'ankle',
-                                  label: 'Paicha (Bottom Opening)',
-                                  defaultVal: '16',
-                                },
-                                {
-                                  key: 'seat',
-                                  label: 'Ghera / Seat Width',
-                                  defaultVal: '24',
-                                },
-                                {
-                                  key: 'thigh',
-                                  label: 'Thigh (Optional)',
-                                  defaultVal: '16',
-                                },
-                              ]
-                            : [
-                                {
-                                  key: 'trouserLength',
-                                  label: 'Trouser Length',
-                                  defaultVal: '39',
-                                },
-                                {
-                                  key: 'trouserWaist',
-                                  label: 'Trouser Waist',
-                                  defaultVal: '30',
-                                },
-                                {
-                                  key: 'ankle',
-                                  label: 'Ankle Opening (Paicha)',
-                                  defaultVal: '14',
-                                },
-                                {
-                                  key: 'thigh',
-                                  label: 'Thigh',
-                                  defaultVal: '24',
-                                },
-                                {
-                                  key: 'knee',
-                                  label: 'Knee',
-                                  defaultVal: '18',
-                                },
-                              ]
-                      ).map((field) => (
+                  {/* Lower Fields */}
+                  {formCategory === 'lower' && hasLower && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 text-xs">
+                      {lowerFields.map((field) => (
                         <div
                           key={field.key}
-                          className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all ${
+                          className={`p-3 rounded-xl border transition-all ${
                             activeField === field.key
                               ? 'bg-red-50/50 border-[#7E153A] border-2 shadow-xs shadow-[#7E153A]/10'
                               : 'bg-white border-gray-200 hover:border-gray-300'
@@ -2120,9 +2075,6 @@ export default function MeasurementsStudioPage() {
                             }
                             className="h-9 text-xs bg-white font-mono font-bold text-gray-900 border-gray-200"
                           />
-                          <p className="text-[10px] text-gray-400 mt-1 leading-tight">
-                            {MEASUREMENT_HELP[field.key] || ''}
-                          </p>
                         </div>
                       ))}
                     </div>
@@ -2130,19 +2082,17 @@ export default function MeasurementsStudioPage() {
 
                   {/* Notes Tab */}
                   {formCategory === 'notes' && (
-                    <div className="space-y-3 sm:space-y-4">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-gray-700">
-                          Tailoring / Fit Notes for Master Tailor
-                        </label>
-                        <textarea
-                          rows={4}
-                          placeholder="e.g. Keep collar soft, 2 inches extra fabric inside side seams, hard cuff interlining, or straight cigarette hem."
-                          value={formNotes}
-                          onChange={(e) => setFormNotes(e.target.value)}
-                          className="w-full text-xs p-3 rounded-2xl border border-gray-200 focus:border-[#7E153A] text-gray-900"
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-gray-700 block">
+                        Tailoring / Fit Notes for Master Tailor
+                      </label>
+                      <textarea
+                        rows={4}
+                        placeholder="e.g. Keep collar soft, 2 inches extra fabric inside side seams, or straight hem."
+                        value={formNotes}
+                        onChange={(e) => setFormNotes(e.target.value)}
+                        className="w-full text-xs p-3 rounded-2xl border border-gray-200 focus:border-[#7E153A] text-gray-900"
+                      />
                     </div>
                   )}
                 </div>
@@ -2151,6 +2101,8 @@ export default function MeasurementsStudioPage() {
                 <div className="flex flex-col items-center justify-center p-3 bg-gray-50 rounded-2xl border border-gray-100">
                   <BodyDiagram
                     activeField={activeField}
+                    gender={formGender}
+                    garmentType={formGarmentKey}
                     category={selectedGarmentType}
                     onSelectField={(field) => setActiveField(field)}
                     onOpenGuideModal={() => setShowHowToMeasure(true)}
@@ -2159,8 +2111,8 @@ export default function MeasurementsStudioPage() {
               </div>
             </form>
 
-            {/* Modal Footer Controls */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 border-t border-gray-100 pt-3 sm:pt-4 shrink-0">
+            {/* Drawer Footer Controls */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 border-t border-gray-100 p-4 sm:p-6 shrink-0 bg-white">
               <Button
                 type="button"
                 variant="outline"
@@ -2188,7 +2140,7 @@ export default function MeasurementsStudioPage() {
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* ── Modals: Guide & Size Chart ── */}
       <HowToMeasureModal

@@ -7,6 +7,7 @@ import { MeasurementGarmentType } from '@/hooks/useMeasurementStudio';
 interface BodyDiagramProps {
   activeField?: string;
   gender?: 'female' | 'male';
+  garmentType?: string;
   category?: MeasurementGarmentType;
   onSelectField?: (field: string) => void;
   onOpenGuideModal?: () => void;
@@ -175,6 +176,7 @@ const MEASUREMENT_DETAILS: Record<string, MeasurementGuideInfo> = {
 export function BodyDiagram({
   activeField = 'chest',
   gender = 'female',
+  garmentType,
   category,
   onSelectField,
   onOpenGuideModal,
@@ -248,7 +250,15 @@ export function BodyDiagram({
         <div className="absolute top-2.5 inset-x-3 flex items-center justify-between z-10">
           <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full text-gray-700 border border-gray-200 shadow-2xs flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            {isMale ? "Men's Silhouette" : "Women's Silhouette"}
+            {garmentType === 'pant_coat'
+              ? 'Pent Coat Silhouette'
+              : garmentType === 'waistcoat'
+                ? 'Waistcoat Silhouette'
+                : garmentType === 'frock_maxi'
+                  ? 'Frock Silhouette'
+                  : isMale
+                    ? "Men's Silhouette"
+                    : "Women's Silhouette"}
           </span>
 
           <span className="text-[10px] font-extrabold uppercase tracking-wider bg-red-50/95 text-[#7E153A] backdrop-blur-md px-2.5 py-1 rounded-full border border-red-100 shadow-2xs">

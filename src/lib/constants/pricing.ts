@@ -39,7 +39,7 @@ export const FEMALE_GARMENTS: GarmentPricingOption[] = [
     key: 'full_suit',
     label: 'Shalwar Kameez / Pajama',
     sublabel: 'Traditional and comfortable for everyday wear.',
-    image: '/images/tailor/garment_w_shalwarkameez.png',
+    image: '/images/tailor/garment_w_shalwarkameez_v2.png',
     prismaGarmentType: 'full_suit',
     tiers: {
       basic: 2000,
@@ -51,7 +51,7 @@ export const FEMALE_GARMENTS: GarmentPricingOption[] = [
     key: 'kameez_only',
     label: 'Only Shirt',
     sublabel: 'Simple, elegant and versatile for any occasion.',
-    image: '/images/tailor/garment_w_onlyshirt.png',
+    image: '/images/tailor/garment_w_onlyshirt_v2.png',
     prismaGarmentType: 'kameez_only',
     tiers: {
       basic: 1000,
@@ -63,7 +63,7 @@ export const FEMALE_GARMENTS: GarmentPricingOption[] = [
     key: 'frock_maxi',
     label: 'Frock / Maxi',
     sublabel: 'Stylish and graceful for special moments.',
-    image: '/images/tailor/garment_w_frockmaxi.png',
+    image: '/images/tailor/garment_w_frockmaxi_v2.png',
     prismaGarmentType: 'other',
     tiers: {
       basic: 3000,
@@ -83,7 +83,7 @@ export const MENS_GARMENTS: GarmentPricingOption[] = [
     key: 'full_suit',
     label: 'Shalwar Kameez',
     sublabel: 'Traditional and comfortable for everyday wear.',
-    image: '/images/tailor/garment_m_shalwarkameez.png',
+    image: '/images/tailor/garment_m_shalwarkameez_v2.png',
     prismaGarmentType: 'full_suit',
     tiers: {
       basic: 2000,
@@ -95,7 +95,7 @@ export const MENS_GARMENTS: GarmentPricingOption[] = [
     key: 'waistcoat',
     label: 'Waist Coat',
     sublabel: 'Classic formal sadri / waistcoat with premium lining.',
-    image: '/images/tailor/garment_m_waistcoat.png',
+    image: '/images/tailor/garment_m_waistcoat_v2.png',
     prismaGarmentType: 'other',
     tiers: {
       basic: 3000,
@@ -107,7 +107,7 @@ export const MENS_GARMENTS: GarmentPricingOption[] = [
     key: 'pant_coat',
     label: 'Pent Coat',
     sublabel: 'Two-piece formal tailored suit with lapel jacket.',
-    image: '/images/tailor/garment_m_pentcoat.png',
+    image: '/images/tailor/garment_m_pentcoat_v2.png',
     prismaGarmentType: 'other',
     tiers: {
       basic: 10000,

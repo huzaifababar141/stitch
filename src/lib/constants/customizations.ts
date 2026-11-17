@@ -119,19 +119,19 @@ export const WAISTCOAT_SLEEVES: DesignOption[] = [
 export const PANT_COAT_STYLES: DesignOption[] = [
   {
     name: 'Single-Breasted 2 Button',
-    image: '/images/tailor/garment_m_pentcoat.png',
+    image: '/images/tailor/garment_m_pentcoat_v2.png',
   },
   {
     name: 'Single-Breasted 3 Button',
-    image: '/images/tailor/garment_m_pentcoat.png',
+    image: '/images/tailor/garment_m_pentcoat_v2.png',
   },
   {
     name: 'Double-Breasted 4 Button',
-    image: '/images/tailor/garment_m_pentcoat.png',
+    image: '/images/tailor/garment_m_pentcoat_v2.png',
   },
   {
     name: 'Double-Breasted 6 Button',
-    image: '/images/tailor/garment_m_pentcoat.png',
+    image: '/images/tailor/garment_m_pentcoat_v2.png',
   },
 ];
 

@@ -180,6 +180,149 @@ export function getProfileGarmentType(profile: any): MeasurementGarmentType {
   return 'women_suit';
 }
 
+/**
+ * Matches a saved measurement profile to the order's active gender and garment type.
+ * Ensures e.g. when placing a Women's Frock/Maxi order, only Frock/Maxi saved profiles are shown.
+ */
+export function isProfileMatchingOrder(
+  profile: any,
+  orderGender?: 'female' | 'male',
+  orderGarmentType?: string
+): boolean {
+  if (!profile) return false;
+
+  const notes = profile.notes || '';
+  const label = (profile.label || '').toLowerCase();
+  const text = `${label} ${notes}`.toLowerCase();
+  const profileCat = getProfileGarmentType(profile);
+
+  // 1. Gender Disqualification
+  if (orderGender === 'female') {
+    if (
+      notes.includes('[Gender:male]') ||
+      notes.includes('[Category:men_suit]')
+    ) {
+      return false;
+    }
+    if (
+      label.includes("men's") ||
+      label.includes('gent') ||
+      (profileCat === 'men_suit' && !text.includes('women'))
+    ) {
+      return false;
+    }
+  } else if (orderGender === 'male') {
+    if (
+      notes.includes('[Gender:female]') ||
+      notes.includes('[Category:women_suit]')
+    ) {
+      return false;
+    }
+    if (
+      label.includes("women's") ||
+      label.includes('lady') ||
+      (profileCat === 'women_suit' && !text.includes('men'))
+    ) {
+      return false;
+    }
+  }
+
+  // 2. Specific Garment Matching
+  if (orderGender === 'female') {
+    if (orderGarmentType === 'frock_maxi') {
+      if (notes.includes('[Garment:frock_maxi]')) return true;
+      return (
+        text.includes('frock') ||
+        text.includes('maxi') ||
+        text.includes('anarkali') ||
+        text.includes('gown')
+      );
+    }
+
+    if (orderGarmentType === 'kameez_only') {
+      if (notes.includes('[Garment:kameez_only]')) return true;
+      return (
+        text.includes('shirt') ||
+        text.includes('kurti') ||
+        text.includes('only shirt') ||
+        text.includes('top')
+      );
+    }
+
+    // Default female: 'full_suit' (Shalwar Kameez / Pajama)
+    if (
+      notes.includes('[Garment:frock_maxi]') ||
+      notes.includes('[Garment:kameez_only]')
+    ) {
+      return false;
+    }
+    if (
+      text.includes('frock') ||
+      text.includes('maxi') ||
+      text.includes('kurti') ||
+      text.includes('only shirt')
+    ) {
+      return false;
+    }
+    return (
+      profileCat === 'women_suit' ||
+      text.includes('suit') ||
+      text.includes('kameez') ||
+      text.includes('lawn') ||
+      text.includes('women')
+    );
+  }
+
+  if (orderGender === 'male') {
+    if (orderGarmentType === 'pant_coat') {
+      if (notes.includes('[Garment:pant_coat]')) return true;
+      return (
+        text.includes('pent') ||
+        text.includes('pant coat') ||
+        text.includes('blazer') ||
+        text.includes('tuxedo') ||
+        profileCat === 'pant_trouser'
+      );
+    }
+
+    if (orderGarmentType === 'waistcoat') {
+      if (notes.includes('[Garment:waistcoat]')) return true;
+      if (text.includes('pent') || text.includes('pant coat')) return false;
+      return (
+        text.includes('waistcoat') ||
+        text.includes('sadri') ||
+        text.includes('vest') ||
+        profileCat === 'coat'
+      );
+    }
+
+    // Default male: 'full_suit' (Shalwar Kameez)
+    if (
+      notes.includes('[Garment:pant_coat]') ||
+      notes.includes('[Garment:waistcoat]')
+    ) {
+      return false;
+    }
+    if (
+      text.includes('pent') ||
+      text.includes('pant coat') ||
+      text.includes('waistcoat') ||
+      text.includes('sadri') ||
+      text.includes('blazer')
+    ) {
+      return false;
+    }
+    return (
+      profileCat === 'men_suit' ||
+      profileCat === 'shalwar' ||
+      text.includes('kurta') ||
+      text.includes('men')
+    );
+  }
+
+  return true;
+}
+
 export const DEFAULT_WOMEN_MEASUREMENTS: Record<string, string> = {
   shoulder: '14.5',
   bust: '38',

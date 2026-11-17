@@ -36,9 +36,11 @@ import { BodyDiagram } from '@/components/measurement-studio/BodyDiagram';
 import { HowToMeasureModal } from '@/components/measurement-studio/HowToMeasureModal';
 import { SizeChartModal } from '@/components/measurement-studio/SizeChartModal';
 import { ValidationFeedback } from '@/components/measurement-studio/ValidationFeedback';
+import { FetchingDetailsModal } from '@/components/common/FetchingDetailsModal';
 import {
   useMeasurementStudio,
   getProfileGarmentType,
+  isProfileMatchingOrder,
   MEN_TROUSER_CODES,
   WOMEN_TROUSER_CODES,
 } from '@/hooks/useMeasurementStudio';
@@ -92,6 +94,8 @@ function NewOrderContent() {
   const [gender, setGender] = useState<'female' | 'male'>('female');
   const [productUrl, setProductUrl] = useState('');
   const [parsing, setParsing] = useState(false);
+  const [isFetchingModalOpen, setIsFetchingModalOpen] = useState(false);
+  const [fetchSuccess, setFetchSuccess] = useState(false);
   const [parsedProduct, setParsedProduct] = useState<any | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [manualTitle, setManualTitle] = useState('');
@@ -289,6 +293,9 @@ function NewOrderContent() {
           setCuffStyle(WAISTCOAT_SLEEVES[0].name);
         }
       } else if (garmentType === 'pant_coat') {
+        if (bottomType !== 'trouser') {
+          setBottomType('trouser');
+        }
         if (!PANT_COAT_STYLES.some((s) => s.name === pantCoatStyle)) {
           setPantCoatStyle(PANT_COAT_STYLES[0].name);
         }
@@ -387,8 +394,11 @@ function NewOrderContent() {
               : [];
           if (!isMounted) return;
           setSavedProfiles(items);
+          const matching = items.filter((p: any) =>
+            isProfileMatchingOrder(p, gender, garmentType)
+          );
           const defaultProfile =
-            items.find((p: any) => p.isDefault) || items[0];
+            matching.find((p: any) => p.isDefault) || matching[0];
           if (defaultProfile) {
             setSelectedProfileId(defaultProfile.id);
           } else {
@@ -439,6 +449,27 @@ function NewOrderContent() {
       isMounted = false;
     };
   }, [user]);
+
+  // Synchronize profile selection whenever gender or garmentType changes
+  useEffect(() => {
+    if (savedProfiles.length === 0) return;
+    const matching = savedProfiles.filter((p) =>
+      isProfileMatchingOrder(p, gender, garmentType)
+    );
+    if (selectedProfileId && selectedProfileId !== 'custom') {
+      const isCurrentStillMatching = matching.some(
+        (p) => p.id === selectedProfileId
+      );
+      if (!isCurrentStillMatching) {
+        const def = matching.find((p) => p.isDefault) || matching[0];
+        if (def) {
+          setSelectedProfileId(def.id);
+        } else {
+          setSelectedProfileId('custom');
+        }
+      }
+    }
+  }, [gender, garmentType, savedProfiles, selectedProfileId]);
 
   // Scroll window to top whenever wizard step changes
   useEffect(() => {
@@ -600,8 +631,18 @@ function NewOrderContent() {
 
   const validateStep3 = (): boolean => {
     if (selectedProfileId && selectedProfileId !== 'custom') {
-      const exists = savedProfiles.some((p) => p.id === selectedProfileId);
+      const exists = savedProfiles.some(
+        (p) =>
+          p.id === selectedProfileId &&
+          isProfileMatchingOrder(p, gender, garmentType)
+      );
       if (exists) return true;
+      toast({
+        title: 'Profile Selection Required',
+        description: `Please select a valid saved profile for ${garmentDisplayName} or enter dimensions in Custom Studio.`,
+        variant: 'destructive',
+      });
+      return false;
     }
 
     // If custom measurements, verify all key body measurements are filled
@@ -628,9 +669,11 @@ function NewOrderContent() {
                   {
                     key: 'trouser_length',
                     label:
-                      bottomType === 'shalwar'
-                        ? 'Shalwar Length'
-                        : 'Trouser Length',
+                      garmentType === 'pant_coat'
+                        ? 'Pant Length'
+                        : bottomType === 'shalwar'
+                          ? 'Shalwar Length'
+                          : 'Trouser Length',
                   },
                 ]
               : []),
@@ -743,6 +786,25 @@ function NewOrderContent() {
     setCurrentStep(targetStep);
   };
 
+  // Helper to preload image URLs into the browser cache so all views render instantaneously
+  const preloadImages = (urls: string[]): Promise<void> => {
+    if (!urls || urls.length === 0) return Promise.resolve();
+    const toPreload = urls.slice(0, 8);
+    const promises = toPreload.map(
+      (url) =>
+        new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+          img.src = url;
+        })
+    );
+    return Promise.race([
+      Promise.all(promises).then(() => {}),
+      new Promise<void>((resolve) => setTimeout(resolve, 2000)),
+    ]);
+  };
+
   // Handle URL Link Parsing
   const handleParseUrl = async () => {
     if (!productUrl.trim()) {
@@ -754,7 +816,18 @@ function NewOrderContent() {
       return;
     }
 
+    // 1. Immediately clear previous fields and preview images
+    setParsedProduct(null);
+    setSelectedImageIndex(0);
+    setManualTitle('');
+    setManualBrand('');
+    setManualPrice('');
+    setManualFabric('');
+
     setParsing(true);
+    setIsFetchingModalOpen(true);
+    setFetchSuccess(false);
+
     try {
       const res = await fetch('/api/products/parse', {
         method: 'POST',
@@ -766,16 +839,17 @@ function NewOrderContent() {
         const json = await res.json();
         const prod = json.data || json;
 
+        // Preload images into cache so thumbnails & main view pop in all at once
+        if (Array.isArray(prod.images) && prod.images.length > 0) {
+          await preloadImages(prod.images);
+        }
+
         // 1. Gender Synchronization:
-        // When prod.gender ('male' | 'female') is present, immediately call handleGenderChange(prod.gender).
-        // This switches active tab, sets Men's or Women's default styles (Ban collar vs neck slit,
-        // sleeves, daman, P-32 vs T-30 trousers, and appropriate stitching tiers).
         if (prod.gender === 'male' || prod.gender === 'female') {
           handleGenderChange(prod.gender);
         }
 
         // 2. Garment Type Synchronization:
-        // If prod.garmentType is provided and valid, call setGarmentType(prod.garmentType).
         if (prod.garmentType) {
           const validMenGarmentTypes = [
             'full_suit',
@@ -801,6 +875,9 @@ function NewOrderContent() {
             const mappedType =
               prod.garmentType === 'kurta' ? 'kurta_only' : prod.garmentType;
             setGarmentType(mappedType);
+            if (mappedType === 'pant_coat') {
+              setBottomType('trouser');
+            }
           }
         }
 
@@ -818,7 +895,11 @@ function NewOrderContent() {
           setManualFabric(prod.fabricMaterial);
         }
 
-        // 4. Toast Notification
+        // 4. Smooth modal transition & Toast Notification
+        setFetchSuccess(true);
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        setIsFetchingModalOpen(false);
+
         const genderUpper = prod.gender ? prod.gender.toUpperCase() : 'APPAREL';
         const brandName = prod.brand || 'Designer Brand';
         toast({
@@ -828,6 +909,7 @@ function NewOrderContent() {
           } tailoring styles, and updated pricing.`,
         });
       } else {
+        setIsFetchingModalOpen(false);
         const errorJson = await res.json().catch(() => null);
         const errMsg =
           errorJson?.message ||
@@ -839,14 +921,34 @@ function NewOrderContent() {
         });
       }
     } catch (err) {
+      setIsFetchingModalOpen(false);
       toast({
         title: 'Direct Link Saved',
         description: 'Link attached to order.',
       });
     } finally {
       setParsing(false);
+      setIsFetchingModalOpen(false);
     }
   };
+
+  // Relevant saved measurement profiles for current order garment
+  const relevantProfiles = savedProfiles.filter((p) =>
+    isProfileMatchingOrder(p, gender, garmentType)
+  );
+
+  const garmentDisplayName =
+    gender === 'female'
+      ? garmentType === 'frock_maxi'
+        ? 'Frock / Maxi'
+        : garmentType === 'kameez_only'
+          ? 'Only Shirt'
+          : "Women's Shalwar Kameez"
+      : garmentType === 'pant_coat'
+        ? 'Pent Coat'
+        : garmentType === 'waistcoat'
+          ? 'Waist Coat'
+          : "Men's Shalwar Kameez";
 
   // Pricing Calculation
   const currentTiers = getStitchingTiers(gender, garmentType);
@@ -1033,7 +1135,11 @@ function NewOrderContent() {
       };
 
       // 3. Measurement Profile
-      if (selectedProfileId && selectedProfileId !== 'custom') {
+      if (
+        selectedProfileId &&
+        selectedProfileId !== 'custom' &&
+        selectedProfileId !== 'none'
+      ) {
         payload.measurementProfileId = selectedProfileId;
       } else {
         payload.customMeasurements = {
@@ -1182,11 +1288,11 @@ function NewOrderContent() {
                   }`}
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-16 h-20 rounded-xl bg-pink-50/70 border border-pink-100 flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
+                    <div className="w-16 h-20 rounded-xl bg-[#EDE4DB] border border-[#E2D6CB] shrink-0 overflow-hidden relative shadow-xs">
                       <img
-                        src="/images/tailor/gender_women.png"
+                        src="/images/tailor/gender_women_v2.png"
                         alt="Women's Tailoring"
-                        className="h-full w-auto object-contain"
+                        className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
                       />
                     </div>
                     <div className="min-w-0">
@@ -1220,11 +1326,11 @@ function NewOrderContent() {
                   }`}
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-16 h-20 rounded-xl bg-blue-50/70 border border-blue-100 flex items-center justify-center p-1.5 shrink-0 overflow-hidden">
+                    <div className="w-16 h-20 rounded-xl bg-[#EDE4DB] border border-[#E2D6CB] shrink-0 overflow-hidden relative shadow-xs">
                       <img
-                        src="/images/tailor/gender_men.png"
+                        src="/images/tailor/gender_men_v2.png"
                         alt="Men's Tailoring"
-                        className="h-full w-auto object-contain"
+                        className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
                       />
                     </div>
                     <div className="min-w-0">
@@ -1293,6 +1399,7 @@ function NewOrderContent() {
                               setCuffStyle('Plain Cuff');
                             }
                           } else if (g.key === 'pant_coat') {
+                            setBottomType('trouser');
                             if (
                               !manualTitle ||
                               manualTitle === "Men's Traditional Shalwar Kameez"
@@ -1301,46 +1408,39 @@ function NewOrderContent() {
                             }
                           }
                         }}
-                        className={`relative rounded-2xl border-2 p-3.5 text-left transition-all cursor-pointer flex flex-col justify-between group ${
+                        className={`relative rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between overflow-hidden group ${
                           isSelected
-                            ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                            ? 'border-[#7E153A] bg-white ring-2 ring-[#7E153A]/15 shadow-sm'
+                            : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
                         }`}
                       >
-                        {/* Radio Checkmark on top-right */}
-                        <div className="flex items-start justify-between w-full mb-2">
-                          <div className="w-full h-28 flex items-center justify-center rounded-xl bg-gray-50/60 p-1 overflow-hidden">
-                            {g.image ? (
-                              <img
-                                src={g.image}
-                                alt={g.label}
-                                className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-                              />
-                            ) : (
-                              <Scissors
-                                size={28}
-                                className={
-                                  isSelected
-                                    ? 'text-[#7E153A]'
-                                    : 'text-gray-400'
-                                }
-                              />
-                            )}
-                          </div>
+                        {/* Full-bleed Photo Header - Single unified card */}
+                        <div className="relative w-full aspect-[4/5] sm:aspect-[3/4] overflow-hidden bg-[#EDE4DB]">
+                          {g.image ? (
+                            <img
+                              src={g.image}
+                              alt={g.label}
+                              className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <Scissors size={28} />
+                            </div>
+                          )}
                           <div
-                            className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border ml-2 ${
+                            className={`absolute top-2.5 right-2.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 border shadow-md transition-all ${
                               isSelected
-                                ? 'border-[#7E153A] bg-[#7E153A] text-white shadow-xs'
-                                : 'border-gray-300 bg-white'
+                                ? 'border-[#7E153A] bg-[#7E153A] text-white'
+                                : 'border-white/80 bg-white/90 backdrop-blur-xs text-transparent'
                             }`}
                           >
                             {isSelected && (
-                              <Check size={11} strokeWidth={3.5} />
+                              <Check size={12} strokeWidth={3.5} />
                             )}
                           </div>
                         </div>
 
-                        <div>
+                        <div className="p-3.5 space-y-1">
                           <p
                             className={`text-xs font-extrabold leading-tight ${
                               isSelected ? 'text-[#7E153A]' : 'text-gray-900'
@@ -1348,7 +1448,7 @@ function NewOrderContent() {
                           >
                             {g.label}
                           </p>
-                          <p className="text-[11px] text-gray-500 mt-1 leading-snug line-clamp-2">
+                          <p className="text-[11px] text-gray-500 mt-0.5 leading-snug line-clamp-2">
                             {g.sublabel || 'Custom master tailoring'}
                           </p>
                         </div>
@@ -1499,7 +1599,7 @@ function NewOrderContent() {
           </div>
 
           {/* Right Product Preview Card - Adjusted to match Continue Button alignment */}
-          <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-xs flex flex-col justify-between h-full">
+          <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-xs flex flex-col justify-between h-full min-w-0">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] uppercase font-extrabold tracking-wider text-gray-400">
@@ -1518,10 +1618,29 @@ function NewOrderContent() {
 
               {/* Garment Image Card - Balanced height matching left form fields */}
               <div className="w-full h-[230px] sm:h-[250px] lg:h-[265px] rounded-2xl bg-gray-50 overflow-hidden relative border border-gray-100 flex items-center justify-center group shadow-xs shrink-0">
-                {parsedProduct?.images?.[selectedImageIndex] ||
-                parsedProduct?.images?.[0] ? (
+                {parsing ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 space-y-2.5 p-4 text-center animate-pulse">
+                    <div className="w-12 h-12 rounded-2xl bg-red-100/70 text-[#7E153A] flex items-center justify-center shadow-xs">
+                      <Loader2
+                        size={24}
+                        className="animate-spin text-[#7E153A]"
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-gray-700">
+                      Fetching Fabric Details...
+                    </span>
+                    <span className="text-[11px] text-gray-400 leading-relaxed max-w-[200px]">
+                      Extracting high-resolution photos and specifications.
+                    </span>
+                  </div>
+                ) : parsedProduct?.images?.[selectedImageIndex] ||
+                  parsedProduct?.images?.[0] ? (
                   <>
                     <img
+                      key={
+                        parsedProduct?.images?.[selectedImageIndex] ||
+                        parsedProduct?.images?.[0]
+                      }
                       src={
                         parsedProduct?.images?.[selectedImageIndex] ||
                         parsedProduct.images[0]
@@ -1561,7 +1680,8 @@ function NewOrderContent() {
               </div>
 
               {/* Gallery Thumbnails */}
-              {Array.isArray(parsedProduct?.images) &&
+              {!parsing &&
+                Array.isArray(parsedProduct?.images) &&
                 parsedProduct.images.length > 1 && (
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-[10px] font-medium text-gray-400 px-0.5">
@@ -1570,17 +1690,17 @@ function NewOrderContent() {
                       </span>
                       <span>Click to switch photo</span>
                     </div>
-                    <div className="flex gap-2 overflow-x-auto pb-0.5 pt-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="flex items-center gap-2 overflow-x-auto py-1 px-1 -mx-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                       {parsedProduct.images
                         .slice(0, 8)
                         .map((imgUrl: string, idx: number) => (
                           <button
-                            key={idx}
+                            key={`${imgUrl}-${idx}`}
                             type="button"
                             onClick={() => setSelectedImageIndex(idx)}
-                            className={`w-11 h-13 rounded-lg overflow-hidden border-2 shrink-0 transition-all cursor-pointer relative ${
+                            className={`w-11 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition-all cursor-pointer relative ${
                               selectedImageIndex === idx
-                                ? 'border-[#7E153A] ring-2 ring-[#7E153A]/25 shadow-sm scale-105'
+                                ? 'border-[#7E153A] ring-2 ring-[#7E153A]/20 shadow-xs'
                                 : 'border-gray-200 hover:border-gray-300 opacity-65 hover:opacity-100'
                             }`}
                           >
@@ -1600,7 +1720,13 @@ function NewOrderContent() {
                 <span className="text-[10px] uppercase font-extrabold tracking-wider text-gray-400 block">
                   Fabric Details
                 </span>
-                {manualTitle || manualBrand || parsedProduct ? (
+                {parsing ? (
+                  <div className="space-y-2 animate-pulse pt-1">
+                    <div className="h-2.5 bg-gray-200 rounded-md w-20" />
+                    <div className="h-3.5 bg-gray-200 rounded-md w-44" />
+                    <div className="h-2.5 bg-gray-100 rounded-md w-28" />
+                  </div>
+                ) : manualTitle || manualBrand || parsedProduct ? (
                   <div className="space-y-1">
                     <div>
                       <span className="text-[10px] uppercase font-extrabold text-[#7E153A] tracking-wider block truncate">
@@ -1660,30 +1786,6 @@ function NewOrderContent() {
                     </p>
                   </div>
                 )}
-              </div>
-            </div>
-
-            {/* Bottom Notice - Stitching price goes to Step 2 */}
-            <div className="bg-blue-50/60 border border-blue-100 rounded-2xl p-3 mt-auto space-y-1.5">
-              <div className="flex items-center gap-1.5">
-                <MapPin size={12} className="text-blue-600 shrink-0" />
-                <span className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider">
-                  Stitching Price in Step 2
-                </span>
-              </div>
-              <p className="text-[10px] text-blue-600/80 leading-relaxed">
-                In the next step, you'll choose your preferred stitching method
-                (Basic, Standard or Luxury) and see the corresponding price.
-              </p>
-              <div className="flex gap-1.5 pt-0.5">
-                {(['Basic', 'Standard', 'Luxury'] as const).map((tier) => (
-                  <span
-                    key={tier}
-                    className="flex-1 text-center text-[9px] font-bold py-0.5 rounded-md bg-white border border-blue-100 text-blue-600"
-                  >
-                    {tier}
-                  </span>
-                ))}
               </div>
             </div>
           </div>
@@ -4334,12 +4436,12 @@ function NewOrderContent() {
               type="button"
               onClick={() => {
                 const def =
-                  savedProfiles.find((p) => p.isDefault) || savedProfiles[0];
-                if (def) setSelectedProfileId(def.id);
-                else setSelectedProfileId('custom');
+                  relevantProfiles.find((p) => p.isDefault) ||
+                  relevantProfiles[0];
+                setSelectedProfileId(def ? def.id : 'none');
               }}
               className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                selectedProfileId && selectedProfileId !== 'custom'
+                selectedProfileId !== 'custom'
                   ? 'border-[#7E153A] bg-red-50/40 ring-2 ring-[#7E153A]/10'
                   : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
@@ -4355,7 +4457,9 @@ function NewOrderContent() {
                   Saved Fit Profile
                 </h4>
                 <p className="text-[11px] text-gray-500 mt-1">
-                  Use your pre-saved digital measurements.
+                  {relevantProfiles.length > 0
+                    ? `${relevantProfiles.length} saved profile${relevantProfiles.length > 1 ? 's' : ''} available`
+                    : 'Use your pre-saved digital measurements.'}
                 </p>
               </div>
             </button>
@@ -4387,186 +4491,443 @@ function NewOrderContent() {
           </div>
 
           {/* Saved Profiles Selector */}
-          {selectedProfileId !== 'custom' && savedProfiles.length > 0 && (
+          {selectedProfileId !== 'custom' && (
             <div className="space-y-3">
-              <label className="text-xs font-bold text-gray-700 block">
-                Choose Saved Measurement Profile{' '}
-                <span className="text-[#7E153A]">*</span>
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {savedProfiles.map((p) => {
-                  const isSelected = selectedProfileId === p.id;
-                  const cat = getProfileGarmentType(p);
-
-                  const getCatBadge = () => {
-                    switch (cat) {
-                      case 'men_suit':
-                        return {
-                          text: "Men's Fit",
-                          cls: 'bg-slate-50 text-slate-700 border-slate-200',
-                        };
-                      case 'women_suit':
-                        return {
-                          text: "Women's Fit",
-                          cls: 'bg-pink-50 text-pink-800 border-pink-100',
-                        };
-                      case 'pant_trouser':
-                        return {
-                          text: 'Pant / Trouser',
-                          cls: 'bg-blue-50 text-blue-800 border-blue-100',
-                        };
-                      case 'coat':
-                        return {
-                          text: 'Coat / Blazer',
-                          cls: 'bg-amber-50 text-amber-800 border-amber-100',
-                        };
-                      case 'shalwar':
-                        return {
-                          text: 'Shalwar Only',
-                          cls: 'bg-emerald-50 text-emerald-800 border-emerald-100',
-                        };
-                      default:
-                        return {
-                          text: 'Custom Fit',
-                          cls: 'bg-purple-50 text-purple-800 border-purple-100',
-                        };
-                    }
-                  };
-
-                  const badge = getCatBadge();
-
-                  return (
-                    <div
-                      key={p.id}
-                      onClick={() => setSelectedProfileId(p.id)}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-2.5 ${
-                        isSelected
-                          ? 'border-[#7E153A] bg-red-50/40 ring-2 ring-[#7E153A]/10'
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-1.5">
-                        <h4 className="font-extrabold text-sm text-gray-900 truncate">
-                          {p.label}
-                        </h4>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <span
-                            className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full border uppercase tracking-wider ${badge.cls}`}
-                          >
-                            {badge.text}
-                          </span>
-                          {p.isDefault && (
-                            <span className="bg-red-50 text-[#7E153A] text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-red-100 uppercase">
-                              Default
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {cat === 'pant_trouser' ? (
-                        <p className="text-[11px] text-gray-500 truncate">
-                          Length: {p.trouserLength}&quot; · Waist:{' '}
-                          {p.trouserWaist}&quot; · Paicha: {p.ankle}&quot;
-                        </p>
-                      ) : cat === 'coat' ? (
-                        <p className="text-[11px] text-gray-500 truncate">
-                          Coat: {p.kameezLength}&quot; · Chest: {p.chest}
-                          &quot; · Teera: {p.shoulderWidth}&quot;
-                        </p>
-                      ) : cat === 'shalwar' ? (
-                        <p className="text-[11px] text-gray-500 truncate">
-                          Shalwar: {p.trouserLength}&quot; · Ghera: {p.seat}
-                          &quot; · Paicha: {p.ankle}&quot;
-                        </p>
-                      ) : cat === 'men_suit' ? (
-                        <p className="text-[11px] text-gray-500 truncate">
-                          Kurta: {p.kameezLength || '42'}&quot; · Chest:{' '}
-                          {p.chest || '40'}&quot; · Shalwar:{' '}
-                          {p.trouserLength || '40'}&quot;
-                        </p>
-                      ) : (
-                        <p className="text-[11px] text-gray-500 truncate">
-                          Kameez: {p.kameezLength || '42'}&quot; · Bust:{' '}
-                          {p.chest || '38'}&quot; · Trouser:{' '}
-                          {p.trouserLength || '39'}&quot;
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-gray-700 block">
+                  Choose Saved Measurement Profile for {garmentDisplayName}{' '}
+                  <span className="text-[#7E153A]">*</span>
+                </label>
+                <Link
+                  href="/measurements"
+                  target="_blank"
+                  className="text-[11px] font-bold text-[#7E153A] hover:underline flex items-center gap-1"
+                >
+                  Manage Profiles in Studio
+                </Link>
               </div>
 
-              {/* Selected Profile Detailed Specs Banner */}
-              {selectedProfileId && selectedProfileId !== 'custom' && (
-                <div className="bg-red-50/40 border border-red-100 rounded-2xl p-4 sm:p-5 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs font-bold text-[#7E153A]">
-                      <Ruler size={16} />
-                      <span>
-                        Attached Fit Profile:{' '}
-                        <span className="underline font-extrabold">
-                          {savedProfiles.find((p) => p.id === selectedProfileId)
-                            ?.label || 'Selected Profile'}
-                        </span>
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-white px-2.5 py-1 rounded-full text-[#7E153A] border border-red-100">
-                      Auto-Attached to Order
-                    </span>
-                  </div>
+              {relevantProfiles.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {relevantProfiles.map((p) => {
+                    const isSelected = selectedProfileId === p.id;
+                    const cat = getProfileGarmentType(p);
+                    const pNotes = p.notes || '';
+                    const pLabel = (p.label || '').toLowerCase();
 
-                  {(() => {
-                    const prof = savedProfiles.find(
-                      (p) => p.id === selectedProfileId
-                    );
-                    if (!prof) return null;
-                    const cat = getProfileGarmentType(prof);
+                    const getCatBadge = () => {
+                      if (
+                        pNotes.includes('[Garment:frock_maxi]') ||
+                        pLabel.includes('frock') ||
+                        pLabel.includes('maxi')
+                      ) {
+                        return {
+                          text: 'Frock / Maxi',
+                          cls: 'bg-rose-50 text-rose-800 border-rose-100',
+                        };
+                      }
+                      if (
+                        pNotes.includes('[Garment:kameez_only]') ||
+                        pLabel.includes('shirt') ||
+                        pLabel.includes('kurti')
+                      ) {
+                        return {
+                          text: 'Only Shirt',
+                          cls: 'bg-amber-50 text-amber-800 border-amber-100',
+                        };
+                      }
+                      if (
+                        pNotes.includes('[Garment:pant_coat]') ||
+                        pLabel.includes('pant coat')
+                      ) {
+                        return {
+                          text: 'Pent Coat',
+                          cls: 'bg-indigo-50 text-indigo-800 border-indigo-100',
+                        };
+                      }
+                      if (
+                        pNotes.includes('[Garment:waistcoat]') ||
+                        pLabel.includes('waistcoat') ||
+                        pLabel.includes('sadri')
+                      ) {
+                        return {
+                          text: 'Waist Coat',
+                          cls: 'bg-amber-50 text-amber-800 border-amber-100',
+                        };
+                      }
+                      switch (cat) {
+                        case 'men_suit':
+                          return {
+                            text: "Men's Fit",
+                            cls: 'bg-slate-50 text-slate-700 border-slate-200',
+                          };
+                        case 'women_suit':
+                          return {
+                            text: "Women's Fit",
+                            cls: 'bg-pink-50 text-pink-800 border-pink-100',
+                          };
+                        case 'pant_trouser':
+                          return {
+                            text: 'Pant / Trouser',
+                            cls: 'bg-blue-50 text-blue-800 border-blue-100',
+                          };
+                        case 'coat':
+                          return {
+                            text: 'Coat / Blazer',
+                            cls: 'bg-amber-50 text-amber-800 border-amber-100',
+                          };
+                        case 'shalwar':
+                          return {
+                            text: 'Shalwar Only',
+                            cls: 'bg-emerald-50 text-emerald-800 border-emerald-100',
+                          };
+                        default:
+                          return {
+                            text: 'Custom Fit',
+                            cls: 'bg-purple-50 text-purple-800 border-purple-100',
+                          };
+                      }
+                    };
 
-                    if (cat === 'pant_trouser') {
-                      return (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Pant Length
+                    const badge = getCatBadge();
+
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => setSelectedProfileId(p.id)}
+                        className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-2.5 ${
+                          isSelected
+                            ? 'border-[#7E153A] bg-red-50/40 ring-2 ring-[#7E153A]/10'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1.5">
+                          <h4 className="font-extrabold text-sm text-gray-900 truncate">
+                            {p.label}
+                          </h4>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span
+                              className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full border uppercase tracking-wider ${badge.cls}`}
+                            >
+                              {badge.text}
                             </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.trouserLength}&quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Waistband
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.trouserWaist}&quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Inseam / Asan
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.thigh || prof.seat || '34'}&quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Paicha Opening
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.ankle}&quot;
-                            </span>
+                            {p.isDefault && (
+                              <span className="bg-red-50 text-[#7E153A] text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-red-100 uppercase">
+                                Default
+                              </span>
+                            )}
                           </div>
                         </div>
-                      );
-                    }
 
-                    if (cat === 'coat') {
+                        {cat === 'pant_trouser' ? (
+                          <p className="text-[11px] text-gray-500 truncate">
+                            Length: {p.trouserLength}&quot; · Waist:{' '}
+                            {p.trouserWaist}&quot; · Paicha: {p.ankle}&quot;
+                          </p>
+                        ) : cat === 'coat' ? (
+                          <p className="text-[11px] text-gray-500 truncate">
+                            Coat: {p.kameezLength}&quot; · Chest: {p.chest}
+                            &quot; · Teera: {p.shoulderWidth}&quot;
+                          </p>
+                        ) : cat === 'shalwar' ? (
+                          <p className="text-[11px] text-gray-500 truncate">
+                            Shalwar: {p.trouserLength}&quot; · Ghera: {p.seat}
+                            &quot; · Paicha: {p.ankle}&quot;
+                          </p>
+                        ) : cat === 'men_suit' ? (
+                          <p className="text-[11px] text-gray-500 truncate">
+                            Kurta: {p.kameezLength || '42'}&quot; · Chest:{' '}
+                            {p.chest || '40'}&quot; · Shalwar:{' '}
+                            {p.trouserLength || '40'}&quot;
+                          </p>
+                        ) : (
+                          <p className="text-[11px] text-gray-500 truncate">
+                            {pLabel.includes('frock') ||
+                            pLabel.includes('maxi') ||
+                            pNotes.includes('[Garment:frock_maxi]')
+                              ? 'Frock'
+                              : 'Kameez'}
+                            : {p.kameezLength || '42'}&quot; · Bust:{' '}
+                            {p.chest || '38'}&quot; ·{' '}
+                            {pNotes.includes('[Garment:kameez_only]')
+                              ? `Sleeve: ${p.sleeveLength || '21'}"`
+                              : `Trouser: ${p.trouserLength || '39'}"`}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-6 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-center space-y-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-50 text-[#7E153A] flex items-center justify-center mx-auto">
+                    <Ruler size={18} />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-bold text-gray-900">
+                      No Saved Profiles Found for {garmentDisplayName}
+                    </h4>
+                    <p className="text-[11px] text-gray-500 max-w-md mx-auto">
+                      You haven&apos;t saved a measurement profile for{' '}
+                      {garmentDisplayName} yet. You can enter dimensions
+                      directly in Custom Studio below or create one in
+                      Measurement Studio.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProfileId('custom')}
+                      className="px-4 py-2 bg-[#7E153A] text-white text-xs font-bold rounded-xl shadow-xs hover:bg-[#630f2d] cursor-pointer"
+                    >
+                      Use Custom Studio
+                    </button>
+                    <Link
+                      href="/measurements"
+                      target="_blank"
+                      className="px-4 py-2 border border-gray-300 text-gray-700 text-xs font-bold rounded-xl hover:bg-gray-100 cursor-pointer"
+                    >
+                      Open Measurement Studio
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {/* Selected Profile Detailed Specs Banner */}
+              {selectedProfileId &&
+                selectedProfileId !== 'custom' &&
+                relevantProfiles.some((p) => p.id === selectedProfileId) && (
+                  <div className="bg-red-50/40 border border-red-100 rounded-2xl p-4 sm:p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-bold text-[#7E153A]">
+                        <Ruler size={16} />
+                        <span>
+                          Attached Fit Profile:{' '}
+                          <span className="underline font-extrabold">
+                            {relevantProfiles.find(
+                              (p) => p.id === selectedProfileId
+                            )?.label || 'Selected Profile'}
+                          </span>
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-white px-2.5 py-1 rounded-full text-[#7E153A] border border-red-100">
+                        Auto-Attached to Order
+                      </span>
+                    </div>
+
+                    {(() => {
+                      const prof = relevantProfiles.find(
+                        (p) => p.id === selectedProfileId
+                      );
+                      if (!prof) return null;
+                      const cat = getProfileGarmentType(prof);
+
+                      if (cat === 'pant_trouser') {
+                        return (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Pant Length
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.trouserLength}&quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Waistband
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.trouserWaist}&quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Inseam / Asan
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.thigh || prof.seat || '34'}&quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Paicha Opening
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.ankle}&quot;
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (cat === 'coat') {
+                        return (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Coat Length
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.kameezLength}&quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Chest Width
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.chest}&quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Shoulder (Teera)
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.shoulderWidth}&quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Sleeve Length
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.sleeveLength}&quot;
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (cat === 'shalwar') {
+                        return (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Shalwar Length
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.trouserLength}&quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Shalwar Ghera
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.seat}&quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Inseam / Asan
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.thigh || prof.trouserWaist}&quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Paicha Opening
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.ankle}&quot;
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (cat === 'men_suit' || gender === 'male') {
+                        return (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Kurta Length
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.kameezLength || prof.shirt_length || '42'}
+                                &quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Chest Width
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.chest || prof.bust || '40'}&quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Shoulder (Teera)
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.shoulderWidth || prof.shoulder || '18.5'}
+                                &quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Collar / Ban
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.neckCircumference || prof.neck || '15'}
+                                &quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Sleeve Length
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.sleeveLength ||
+                                  prof.sleeve_length ||
+                                  '24'}
+                                &quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Shalwar Length
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.trouserLength ||
+                                  prof.trouser_length ||
+                                  '40'}
+                                &quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Inseam / Asan
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.trouserWaist || prof.waist_bottom || '34'}
+                                &quot;
+                              </span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Paicha (Opening)
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.ankle || prof.bottom_opening || '16'}
+                                &quot;
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }
+
                       return (
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
                           <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
                             <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Coat Length
+                              {garmentType === 'frock_maxi'
+                                ? 'Frock Length'
+                                : 'Kameez Length'}
                             </span>
                             <span className="font-extrabold text-gray-900 font-mono">
                               {prof.kameezLength}&quot;
@@ -4574,7 +4935,7 @@ function NewOrderContent() {
                           </div>
                           <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
                             <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Chest Width
+                              Chest / Bust
                             </span>
                             <span className="font-extrabold text-gray-900 font-mono">
                               {prof.chest}&quot;
@@ -4582,7 +4943,25 @@ function NewOrderContent() {
                           </div>
                           <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
                             <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Shoulder (Teera)
+                              Waist
+                            </span>
+                            <span className="font-extrabold text-gray-900 font-mono">
+                              {prof.waist}&quot;
+                            </span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                              {garmentType === 'frock_maxi'
+                                ? 'Frock Flare'
+                                : 'Hips / Seat'}
+                            </span>
+                            <span className="font-extrabold text-gray-900 font-mono">
+                              {prof.hips || prof.flare || '38'}&quot;
+                            </span>
+                          </div>
+                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                              Shoulder Width
                             </span>
                             <span className="font-extrabold text-gray-900 font-mono">
                               {prof.shoulderWidth}&quot;
@@ -4596,200 +4975,31 @@ function NewOrderContent() {
                               {prof.sleeveLength}&quot;
                             </span>
                           </div>
+                          {garmentType !== 'kameez_only' && (
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Trouser Length
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.trouserLength}&quot;
+                              </span>
+                            </div>
+                          )}
+                          {garmentType !== 'kameez_only' && (
+                            <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                                Ankle Opening
+                              </span>
+                              <span className="font-extrabold text-gray-900 font-mono">
+                                {prof.ankle}&quot;
+                              </span>
+                            </div>
+                          )}
                         </div>
                       );
-                    }
-
-                    if (cat === 'shalwar') {
-                      return (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Shalwar Length
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.trouserLength}&quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Shalwar Ghera
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.seat}&quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Inseam / Asan
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.thigh || prof.trouserWaist}&quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Paicha Opening
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.ankle}&quot;
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    if (cat === 'men_suit' || gender === 'male') {
-                      return (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Kurta Length
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.kameezLength || prof.shirt_length || '42'}
-                              &quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Chest Width
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.chest || prof.bust || '40'}&quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Shoulder (Teera)
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.shoulderWidth || prof.shoulder || '18.5'}
-                              &quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Collar / Ban
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.neckCircumference || prof.neck || '15'}
-                              &quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Sleeve Length
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.sleeveLength || prof.sleeve_length || '24'}
-                              &quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Shalwar Length
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.trouserLength ||
-                                prof.trouser_length ||
-                                '40'}
-                              &quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Inseam / Asan
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.trouserWaist || prof.waist_bottom || '34'}
-                              &quot;
-                            </span>
-                          </div>
-                          <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                              Paicha (Opening)
-                            </span>
-                            <span className="font-extrabold text-gray-900 font-mono">
-                              {prof.ankle || prof.bottom_opening || '16'}
-                              &quot;
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Kameez Length
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.kameezLength}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Chest / Bust
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.chest}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Waist
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.waist}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Hips / Seat
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.hips}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Shoulder Width
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.shoulderWidth}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Sleeve Length
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.sleeveLength}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Trouser Length
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.trouserLength}&quot;
-                          </span>
-                        </div>
-                        <div className="bg-white p-2.5 rounded-xl border border-red-100/60">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase block">
-                            Ankle Opening
-                          </span>
-                          <span className="font-extrabold text-gray-900 font-mono">
-                            {prof.ankle}&quot;
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
+                    })()}
+                  </div>
+                )}
             </div>
           )}
 
@@ -4810,7 +5020,9 @@ function NewOrderContent() {
                     {gender === 'male'
                       ? garmentType === 'waistcoat'
                         ? 'Waist Coat Dimensions'
-                        : 'Kurta / Kameez Dimensions'
+                        : garmentType === 'pant_coat'
+                          ? 'Coat / Jacket Dimensions'
+                          : 'Kurta / Kameez Dimensions'
                       : garmentType === 'frock_maxi'
                         ? 'Frock Dimensions'
                         : garmentType === 'kameez_only'
@@ -4827,9 +5039,11 @@ function NewOrderContent() {
                           : 'text-gray-600 hover:text-gray-900'
                       }`}
                     >
-                      {bottomType === 'shalwar'
-                        ? 'Shalwar Dimensions'
-                        : 'Trouser Dimensions'}
+                      {garmentType === 'pant_coat'
+                        ? 'Pant Dimensions'
+                        : bottomType === 'shalwar'
+                          ? 'Shalwar Dimensions'
+                          : 'Trouser Dimensions'}
                     </button>
                   )}
                 </div>
@@ -4879,58 +5093,105 @@ function NewOrderContent() {
                     {activeTab === 'shirt' && (
                       <>
                         {(gender === 'male'
-                          ? [
-                              {
-                                id: 'shirt_length',
-                                name:
-                                  garmentType === 'waistcoat'
-                                    ? 'Waist Coat Length'
-                                    : 'Kurta / Kameez Length',
-                                defaultVal:
-                                  garmentType === 'waistcoat' ? '28' : '42',
-                              },
-                              {
-                                id: 'bust',
-                                name: 'Chest Width',
-                                defaultVal: '40',
-                              },
-                              { id: 'waist', name: 'Waist', defaultVal: '36' },
-                              {
-                                id: 'neck',
-                                name: 'Collar / Neck Size',
-                                defaultVal: '15',
-                              },
-                              {
-                                id: 'shoulder',
-                                name: 'Shoulder (Teera)',
-                                defaultVal: '18',
-                              },
-                              ...(hasSleeves
-                                ? [
-                                    {
-                                      id: 'sleeve_length',
-                                      name: 'Sleeve Length',
-                                      defaultVal: '24',
-                                    },
-                                    {
-                                      id: 'armhole',
-                                      name: 'Bicep / Armhole',
-                                      defaultVal: '9',
-                                    },
-                                    {
-                                      id: 'cuff',
-                                      name: 'Wrist / Cuff Opening',
-                                      defaultVal: '9.5',
-                                    },
-                                  ]
-                                : [
-                                    {
-                                      id: 'armhole',
-                                      name: 'Armhole Opening',
-                                      defaultVal: '9.5',
-                                    },
-                                  ]),
-                            ]
+                          ? garmentType === 'pant_coat'
+                            ? [
+                                {
+                                  id: 'shirt_length',
+                                  name: 'Coat / Jacket Length',
+                                  defaultVal: '30',
+                                },
+                                {
+                                  id: 'bust',
+                                  name: 'Chest Width (Over Shirt)',
+                                  defaultVal: '40',
+                                },
+                                {
+                                  id: 'waist',
+                                  name: 'Coat Waist',
+                                  defaultVal: '36',
+                                },
+                                {
+                                  id: 'shoulder',
+                                  name: 'Shoulder (Teera)',
+                                  defaultVal: '18.5',
+                                },
+                                {
+                                  id: 'sleeve_length',
+                                  name: 'Coat Sleeve Length',
+                                  defaultVal: '25',
+                                },
+                                {
+                                  id: 'armhole',
+                                  name: 'Armhole / Bicep',
+                                  defaultVal: '9.5',
+                                },
+                                {
+                                  id: 'neck',
+                                  name: 'Collar / Neck Size',
+                                  defaultVal: '16',
+                                },
+                                {
+                                  id: 'cuff',
+                                  name: 'Sleeve Cuff Opening',
+                                  defaultVal: '5.5',
+                                },
+                              ]
+                            : [
+                                {
+                                  id: 'shirt_length',
+                                  name:
+                                    garmentType === 'waistcoat'
+                                      ? 'Waist Coat Length'
+                                      : 'Kurta / Kameez Length',
+                                  defaultVal:
+                                    garmentType === 'waistcoat' ? '28' : '42',
+                                },
+                                {
+                                  id: 'bust',
+                                  name: 'Chest Width',
+                                  defaultVal: '40',
+                                },
+                                {
+                                  id: 'waist',
+                                  name: 'Waist',
+                                  defaultVal: '36',
+                                },
+                                {
+                                  id: 'neck',
+                                  name: 'Collar / Neck Size',
+                                  defaultVal: '15',
+                                },
+                                {
+                                  id: 'shoulder',
+                                  name: 'Shoulder (Teera)',
+                                  defaultVal: '18',
+                                },
+                                ...(hasSleeves
+                                  ? [
+                                      {
+                                        id: 'sleeve_length',
+                                        name: 'Sleeve Length',
+                                        defaultVal: '24',
+                                      },
+                                      {
+                                        id: 'armhole',
+                                        name: 'Bicep / Armhole',
+                                        defaultVal: '9',
+                                      },
+                                      {
+                                        id: 'cuff',
+                                        name: 'Wrist / Cuff Opening',
+                                        defaultVal: '9.5',
+                                      },
+                                    ]
+                                  : [
+                                      {
+                                        id: 'armhole',
+                                        name: 'Armhole Opening',
+                                        defaultVal: '9.5',
+                                      },
+                                    ]),
+                              ]
                           : [
                               {
                                 id: 'shirt_length',
@@ -5012,13 +5273,15 @@ function NewOrderContent() {
                           <div className="flex items-center justify-between">
                             <span className="text-[11px] font-extrabold text-gray-700 flex items-center gap-1.5">
                               <Sliders size={13} className="text-[#7E153A]" />
-                              {gender === 'male'
-                                ? bottomType === 'shalwar'
-                                  ? "Standard Men's Shalwar Size Codes:"
-                                  : "Standard Men's Trouser Size Codes:"
-                                : bottomType === 'shalwar'
-                                  ? "Standard Women's Shalwar Size Codes:"
-                                  : "Standard Women's Trouser Size Codes:"}
+                              {garmentType === 'pant_coat'
+                                ? "Standard Men's Formal Pant Sizes (Waist):"
+                                : gender === 'male'
+                                  ? bottomType === 'shalwar'
+                                    ? "Standard Men's Shalwar Size Codes:"
+                                    : "Standard Men's Trouser Size Codes:"
+                                  : bottomType === 'shalwar'
+                                    ? "Standard Women's Shalwar Size Codes:"
+                                    : "Standard Women's Trouser Size Codes:"}
                             </span>
                             <span className="text-[10px] text-gray-400">
                               Tap to load & inspect dimensions
@@ -5059,9 +5322,11 @@ function NewOrderContent() {
                                   Code: {selectedTrouserCode}
                                 </span>
                                 <span className="text-[11px] text-gray-600 font-medium">
-                                  {gender === 'male'
-                                    ? `Length: ${measurements.trouser_length || '40'}${unit === 'inches' ? '"' : 'cm'} · Waist: ${measurements.waist_bottom || '34'}${unit === 'inches' ? '"' : 'cm'} · Paicha: ${measurements.bottom_opening || '16'}${unit === 'inches' ? '"' : 'cm'}`
-                                    : `Length: ${measurements.trouser_length || '39'}${unit === 'inches' ? '"' : 'cm'} · Waist: ${measurements.waist_bottom || '30'}${unit === 'inches' ? '"' : 'cm'} · Paicha: ${measurements.bottom_opening || '14'}${unit === 'inches' ? '"' : 'cm'}`}
+                                  {garmentType === 'pant_coat'
+                                    ? `Length: ${measurements.trouser_length || '40'}${unit === 'inches' ? '"' : 'cm'} · Waist: ${measurements.waist_bottom || '34'}${unit === 'inches' ? '"' : 'cm'} · Bottom: ${measurements.bottom_opening || '15.5'}${unit === 'inches' ? '"' : 'cm'}`
+                                    : gender === 'male'
+                                      ? `Length: ${measurements.trouser_length || '40'}${unit === 'inches' ? '"' : 'cm'} · Waist: ${measurements.waist_bottom || '34'}${unit === 'inches' ? '"' : 'cm'} · Paicha: ${measurements.bottom_opening || '16'}${unit === 'inches' ? '"' : 'cm'}`
+                                      : `Length: ${measurements.trouser_length || '39'}${unit === 'inches' ? '"' : 'cm'} · Waist: ${measurements.waist_bottom || '30'}${unit === 'inches' ? '"' : 'cm'} · Paicha: ${measurements.bottom_opening || '14'}${unit === 'inches' ? '"' : 'cm'}`}
                                 </span>
                               </div>
                               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
@@ -5076,50 +5341,134 @@ function NewOrderContent() {
                     {hasTrouser && activeTab === 'trouser' && (
                       <>
                         {(gender === 'male'
-                          ? [
-                              {
-                                id: 'trouser_length',
-                                name: 'Shalwar Length',
-                                defaultVal: '40',
-                              },
-                              {
-                                id: 'waist_bottom',
-                                name: 'Inseam / Asan Depth',
-                                defaultVal: '34',
-                              },
-                              {
-                                id: 'bottom_opening',
-                                name: 'Paicha (Bottom Opening)',
-                                defaultVal: '16',
-                              },
-                              {
-                                id: 'hip_bottom',
-                                name: 'Ghera / Seat Width',
-                                defaultVal: '24',
-                              },
-                            ]
-                          : [
-                              {
-                                id: 'trouser_length',
-                                name: 'Trouser Length',
-                                defaultVal: '39',
-                              },
-                              {
-                                id: 'waist_bottom',
-                                name: 'Trouser Waist',
-                                defaultVal: '30',
-                              },
-                              {
-                                id: 'bottom_opening',
-                                name: 'Ankle Opening (Paicha)',
-                                defaultVal: '14',
-                              },
-                              {
-                                id: 'hip_bottom',
-                                name: 'Hips / Seat',
-                                defaultVal: '42',
-                              },
-                            ]
+                          ? garmentType === 'pant_coat'
+                            ? [
+                                {
+                                  id: 'trouser_length',
+                                  name: 'Pant Length',
+                                  defaultVal: '40',
+                                },
+                                {
+                                  id: 'waist_bottom',
+                                  name: 'Pant Waist',
+                                  defaultVal: '34',
+                                },
+                                {
+                                  id: 'bottom_opening',
+                                  name: 'Bottom Opening (Hem)',
+                                  defaultVal: '15.5',
+                                },
+                                {
+                                  id: 'hip_bottom',
+                                  name: 'Hips / Seat',
+                                  defaultVal: '40',
+                                },
+                                {
+                                  id: 'thigh',
+                                  name: 'Thigh Width',
+                                  defaultVal: '24',
+                                },
+                                {
+                                  id: 'knee',
+                                  name: 'Knee Width',
+                                  defaultVal: '18',
+                                },
+                              ]
+                            : bottomType === 'shalwar'
+                              ? [
+                                  {
+                                    id: 'trouser_length',
+                                    name: 'Shalwar Length',
+                                    defaultVal: '40',
+                                  },
+                                  {
+                                    id: 'waist_bottom',
+                                    name: 'Inseam / Asan Depth',
+                                    defaultVal: '34',
+                                  },
+                                  {
+                                    id: 'bottom_opening',
+                                    name: 'Paicha (Bottom Opening)',
+                                    defaultVal: '16',
+                                  },
+                                  {
+                                    id: 'hip_bottom',
+                                    name: 'Ghera / Seat Width',
+                                    defaultVal: '24',
+                                  },
+                                ]
+                              : [
+                                  {
+                                    id: 'trouser_length',
+                                    name: 'Trouser Length',
+                                    defaultVal: '40',
+                                  },
+                                  {
+                                    id: 'waist_bottom',
+                                    name: 'Trouser Waist',
+                                    defaultVal: '34',
+                                  },
+                                  {
+                                    id: 'bottom_opening',
+                                    name: 'Paicha (Bottom Opening)',
+                                    defaultVal: '16',
+                                  },
+                                  {
+                                    id: 'hip_bottom',
+                                    name: 'Hips / Seat',
+                                    defaultVal: '40',
+                                  },
+                                  {
+                                    id: 'thigh',
+                                    name: 'Thigh Width',
+                                    defaultVal: '24',
+                                  },
+                                ]
+                          : bottomType === 'shalwar'
+                            ? [
+                                {
+                                  id: 'trouser_length',
+                                  name: 'Shalwar Length',
+                                  defaultVal: '39',
+                                },
+                                {
+                                  id: 'waist_bottom',
+                                  name: 'Inseam / Asan Depth',
+                                  defaultVal: '32',
+                                },
+                                {
+                                  id: 'bottom_opening',
+                                  name: 'Paicha (Bottom Opening)',
+                                  defaultVal: '15',
+                                },
+                                {
+                                  id: 'hip_bottom',
+                                  name: 'Ghera / Seat Width',
+                                  defaultVal: '26',
+                                },
+                              ]
+                            : [
+                                {
+                                  id: 'trouser_length',
+                                  name: 'Trouser Length',
+                                  defaultVal: '39',
+                                },
+                                {
+                                  id: 'waist_bottom',
+                                  name: 'Trouser Waist',
+                                  defaultVal: '30',
+                                },
+                                {
+                                  id: 'bottom_opening',
+                                  name: 'Ankle Opening (Paicha)',
+                                  defaultVal: '14',
+                                },
+                                {
+                                  id: 'hip_bottom',
+                                  name: 'Hips / Seat',
+                                  defaultVal: '42',
+                                },
+                              ]
                         ).map((field) => (
                           <div
                             key={field.id}
@@ -5175,6 +5524,16 @@ function NewOrderContent() {
                   <BodyDiagram
                     activeField={activeField}
                     gender={gender}
+                    garmentType={garmentType}
+                    category={
+                      garmentType === 'pant_coat'
+                        ? 'coat'
+                        : garmentType === 'waistcoat'
+                          ? 'coat'
+                          : gender === 'male'
+                            ? 'men_suit'
+                            : 'women_suit'
+                    }
                     onSelectField={(f) => setActiveField(f)}
                   />
                 </div>
@@ -5716,11 +6075,21 @@ function NewOrderContent() {
       )}
 
       {/* Reference Modals */}
+      <FetchingDetailsModal
+        isOpen={isFetchingModalOpen}
+        url={productUrl}
+        isSuccess={fetchSuccess}
+        onCancel={() => {
+          setIsFetchingModalOpen(false);
+          setParsing(false);
+        }}
+      />
       <SizeChartModal
         isOpen={showSizeChart}
         onClose={() => setShowSizeChart(false)}
         onSelectSize={applyPreset}
         gender={gender}
+        garmentType={garmentType}
         initialUnit={unit}
         hasTrouser={hasTrouser}
         hasSleeves={hasSleeves}

@@ -17,6 +17,7 @@ interface SizeChartModalProps {
   onClose: () => void;
   onSelectSize: (measurements: Record<string, string>) => void;
   gender?: 'female' | 'male';
+  garmentType?: string;
   initialUnit?: 'inches' | 'cm';
   hasTrouser?: boolean;
   hasSleeves?: boolean;
@@ -414,6 +415,7 @@ export function SizeChartModal({
   onClose,
   onSelectSize,
   gender = 'female',
+  garmentType,
   initialUnit = 'inches',
   hasTrouser = true,
   hasSleeves = true,
@@ -630,9 +632,13 @@ export function SizeChartModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-bold text-gray-700 truncate">
-                  {activeGender === 'male'
-                    ? "Men's Complete Kameez Shalwar / Kurta Sizes:"
-                    : "Women's Complete 3-Piece / 2-Piece Suit Sizes:"}
+                  {garmentType === 'pant_coat'
+                    ? "Men's Formal Pent Coat Sizes:"
+                    : garmentType === 'waistcoat'
+                      ? "Men's Waistcoat Sizes:"
+                      : activeGender === 'male'
+                        ? "Men's Complete Kameez Shalwar / Kurta Sizes:"
+                        : "Women's Complete 3-Piece / 2-Piece Suit Sizes:"}
                 </span>
 
                 <div className="flex items-center gap-2 shrink-0">

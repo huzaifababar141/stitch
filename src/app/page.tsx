@@ -41,7 +41,7 @@ export default function Home() {
       title: "Women's Shalwar Kameez",
       desc: 'Classic and modern cuts for unstitched lawn, silk, and chiffon.',
       price: 'Stitching from Rs. 2,800',
-      image: '/images/tailor/garment_w_shalwarkameez.png',
+      image: '/images/tailor/garment_w_shalwarkameez_v2.png',
       link: '/stock?gender=female',
       badge: 'Bestseller',
     },
@@ -50,7 +50,7 @@ export default function Home() {
       title: 'Festive Frocks & Maxis',
       desc: 'Kalidar, flared anarkali, and flowing gowns with custom flare.',
       price: 'Stitching from Rs. 3,800',
-      image: '/images/tailor/garment_w_frockmaxi.png',
+      image: '/images/tailor/garment_w_frockmaxi_v2.png',
       link: '/stock?gender=female',
       badge: 'Festive',
     },
@@ -59,7 +59,7 @@ export default function Home() {
       title: "Men's Royal Waistcoats",
       desc: 'Structured canvas, raw silk, and jamawar with bespoke pocketing.',
       price: 'Tailoring from Rs. 4,500',
-      image: '/images/tailor/garment_m_waistcoat.png',
+      image: '/images/tailor/garment_m_waistcoat_v2.png',
       link: '/stock?gender=male',
       badge: 'Formal',
     },
@@ -68,7 +68,7 @@ export default function Home() {
       title: "Men's Pent Coat & Suits",
       desc: 'Two-piece and three-piece suits crafted from Italian suiting wool.',
       price: 'Crafted from Rs. 14,500',
-      image: '/images/tailor/garment_m_pentcoat.png',
+      image: '/images/tailor/garment_m_pentcoat_v2.png',
       link: '/stock?gender=male',
       badge: 'Bespoke',
     },
@@ -401,7 +401,7 @@ export default function Home() {
                 <div className="bg-[#FAF9F6] p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 text-center space-y-1.5 sm:space-y-2">
                   <div className="relative aspect-[3/4] w-full">
                     <Image
-                      src="/images/tailor/garment_w_shalwarkameez.png"
+                      src="/images/tailor/garment_w_shalwarkameez_v2.png"
                       alt="Women's Shalwar Kameez"
                       fill
                       priority
@@ -420,7 +420,7 @@ export default function Home() {
                 <div className="bg-[#FAF9F6] p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-100 text-center space-y-1.5 sm:space-y-2">
                   <div className="relative aspect-[3/4] w-full">
                     <Image
-                      src="/images/tailor/garment_m_waistcoat.png"
+                      src="/images/tailor/garment_m_waistcoat_v2.png"
                       alt="Men's Waistcoat"
                       fill
                       priority
