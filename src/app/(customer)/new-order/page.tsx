@@ -70,9 +70,6 @@ import {
   PANT_COAT_CUFFS,
   PANT_COAT_VENTS,
   PANT_COAT_TROUSER_DESIGNS,
-  PANT_COAT_TROUSER_WAISTS,
-  PANT_COAT_TROUSER_POCKETS,
-  PANT_COAT_TROUSER_BOTTOMS,
   FROCK_NECKLINES,
   FROCK_SLEEVES,
   FROCK_STYLES,
@@ -1900,42 +1897,40 @@ function NewOrderContent() {
                       </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-3.5">
                     {FROCK_NECKLINES.map((item) => {
                       const isSelected = neckStyle === item.name;
                       return (
                         <div
                           key={item.name}
                           onClick={() => setNeckStyle(item.name)}
-                          className={`rounded-2xl border-2 p-2.5 sm:p-3 text-center cursor-pointer transition-all flex flex-col justify-between group ${
+                          className={`rounded-2xl border-2 overflow-hidden text-center cursor-pointer transition-all flex flex-col group ${
                             isSelected
-                              ? 'border-[#7E153A] bg-red-50/30 ring-1 ring-[#7E153A]/20 shadow-xs'
-                              : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-2xs'
+                              ? 'border-[#7E153A] bg-[#7E153A]/5 shadow-sm ring-1 ring-[#7E153A]/30'
+                              : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
                           }`}
                         >
-                          <div className="w-full h-24 sm:h-28 flex items-center justify-center rounded-xl bg-gray-50/60 p-2 overflow-hidden relative">
+                          <div className="w-full aspect-[2.2/1] sm:aspect-[2.1/1] overflow-hidden relative bg-[#c8b4a5]">
                             <img
                               src={item.image}
                               alt={item.name}
-                              className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                              className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                             />
                             {isSelected && (
-                              <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                <Check
-                                  size={9}
-                                  className="text-white"
-                                  strokeWidth={3.5}
-                                />
+                              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                <Check size={11} strokeWidth={3.5} />
                               </div>
                             )}
                           </div>
-                          <p
-                            className={`text-xs font-bold mt-2 leading-tight ${
-                              isSelected ? 'text-[#7E153A]' : 'text-gray-800'
-                            }`}
-                          >
-                            {item.name}
-                          </p>
+                          <div className="py-2.5 px-3 bg-white flex items-center justify-center min-h-[44px]">
+                            <p
+                              className={`text-xs font-bold leading-tight ${
+                                isSelected ? 'text-[#7E153A]' : 'text-gray-800'
+                              }`}
+                            >
+                              {item.name}
+                            </p>
+                          </div>
                         </div>
                       );
                     })}
@@ -1997,42 +1992,42 @@ function NewOrderContent() {
                   </div>
 
                   {frockSleeveType === 'with_sleeves' ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3.5 animate-in fade-in-50 duration-200">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-3.5 animate-in fade-in-50 duration-200">
                       {FROCK_SLEEVES.map((item) => {
                         const isSelected = sleeveStyle === item.name;
                         return (
                           <div
                             key={item.name}
                             onClick={() => setSleeveStyle(item.name)}
-                            className={`rounded-2xl border-2 p-2.5 sm:p-3 text-center cursor-pointer transition-all flex flex-col justify-between group ${
+                            className={`rounded-2xl border-2 overflow-hidden text-center cursor-pointer transition-all flex flex-col group ${
                               isSelected
-                                ? 'border-[#7E153A] bg-red-50/30 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-2xs'
+                                ? 'border-[#7E153A] bg-[#7E153A]/5 shadow-sm ring-1 ring-[#7E153A]/30'
+                                : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
                             }`}
                           >
-                            <div className="w-full h-24 sm:h-28 flex items-center justify-center rounded-xl bg-gray-50/60 p-2 overflow-hidden relative">
+                            <div className="w-full aspect-[2.2/1] sm:aspect-[2.1/1] overflow-hidden relative bg-[#c8b4a5]">
                               <img
                                 src={item.image}
                                 alt={item.name}
-                                className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                                className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                               />
                               {isSelected && (
-                                <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                  <Check
-                                    size={9}
-                                    className="text-white"
-                                    strokeWidth={3.5}
-                                  />
+                                <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                  <Check size={11} strokeWidth={3.5} />
                                 </div>
                               )}
                             </div>
-                            <p
-                              className={`text-xs font-bold mt-2 leading-tight ${
-                                isSelected ? 'text-[#7E153A]' : 'text-gray-800'
-                              }`}
-                            >
-                              {item.name}
-                            </p>
+                            <div className="py-2.5 px-3 bg-white flex items-center justify-center min-h-[44px]">
+                              <p
+                                className={`text-xs font-bold leading-tight ${
+                                  isSelected
+                                    ? 'text-[#7E153A]'
+                                    : 'text-gray-800'
+                                }`}
+                              >
+                                {item.name}
+                              </p>
+                            </div>
                           </div>
                         );
                       })}
@@ -2077,42 +2072,40 @@ function NewOrderContent() {
                       </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-3.5">
                     {FROCK_STYLES.map((item) => {
                       const isSelected = frockStyle === item.name;
                       return (
                         <div
                           key={item.name}
                           onClick={() => setFrockStyle(item.name)}
-                          className={`rounded-2xl border-2 p-2.5 sm:p-3 text-center cursor-pointer transition-all flex flex-col justify-between group ${
+                          className={`rounded-2xl border-2 overflow-hidden text-center cursor-pointer transition-all flex flex-col group ${
                             isSelected
-                              ? 'border-[#7E153A] bg-red-50/30 ring-1 ring-[#7E153A]/20 shadow-xs'
-                              : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-2xs'
+                              ? 'border-[#7E153A] bg-[#7E153A]/5 shadow-sm ring-1 ring-[#7E153A]/30'
+                              : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
                           }`}
                         >
-                          <div className="w-full h-24 sm:h-28 flex items-center justify-center rounded-xl bg-gray-50/60 p-2 overflow-hidden relative">
+                          <div className="w-full aspect-[2.2/1] sm:aspect-[2.1/1] overflow-hidden relative bg-[#c8b4a5]">
                             <img
                               src={item.image}
                               alt={item.name}
-                              className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                              className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                             />
                             {isSelected && (
-                              <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                <Check
-                                  size={9}
-                                  className="text-white"
-                                  strokeWidth={3.5}
-                                />
+                              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                <Check size={11} strokeWidth={3.5} />
                               </div>
                             )}
                           </div>
-                          <p
-                            className={`text-xs font-bold mt-2 leading-tight ${
-                              isSelected ? 'text-[#7E153A]' : 'text-gray-800'
-                            }`}
-                          >
-                            {item.name}
-                          </p>
+                          <div className="py-2.5 px-3 bg-white flex items-center justify-center min-h-[44px]">
+                            <p
+                              className={`text-xs font-bold leading-tight ${
+                                isSelected ? 'text-[#7E153A]' : 'text-gray-800'
+                              }`}
+                            >
+                              {item.name}
+                            </p>
+                          </div>
                         </div>
                       );
                     })}
@@ -2136,42 +2129,40 @@ function NewOrderContent() {
                       </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-3.5">
                     {FROCK_DAMANS.map((item) => {
                       const isSelected = damanStyle === item.name;
                       return (
                         <div
                           key={item.name}
                           onClick={() => setDamanStyle(item.name)}
-                          className={`rounded-2xl border-2 p-2.5 sm:p-3 text-center cursor-pointer transition-all flex flex-col justify-between group ${
+                          className={`rounded-2xl border-2 overflow-hidden text-center cursor-pointer transition-all flex flex-col group ${
                             isSelected
-                              ? 'border-[#7E153A] bg-red-50/30 ring-1 ring-[#7E153A]/20 shadow-xs'
-                              : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-2xs'
+                              ? 'border-[#7E153A] bg-[#7E153A]/5 shadow-sm ring-1 ring-[#7E153A]/30'
+                              : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
                           }`}
                         >
-                          <div className="w-full h-24 sm:h-28 flex items-center justify-center rounded-xl bg-gray-50/60 p-2 overflow-hidden relative">
+                          <div className="w-full aspect-[2.2/1] sm:aspect-[2.1/1] overflow-hidden relative bg-[#c8b4a5]">
                             <img
                               src={item.image}
                               alt={item.name}
-                              className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                              className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                             />
                             {isSelected && (
-                              <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                <Check
-                                  size={9}
-                                  className="text-white"
-                                  strokeWidth={3.5}
-                                />
+                              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                <Check size={11} strokeWidth={3.5} />
                               </div>
                             )}
                           </div>
-                          <p
-                            className={`text-xs font-bold mt-2 leading-tight ${
-                              isSelected ? 'text-[#7E153A]' : 'text-gray-800'
-                            }`}
-                          >
-                            {item.name}
-                          </p>
+                          <div className="py-2.5 px-3 bg-white flex items-center justify-center min-h-[44px]">
+                            <p
+                              className={`text-xs font-bold leading-tight ${
+                                isSelected ? 'text-[#7E153A]' : 'text-gray-800'
+                              }`}
+                            >
+                              {item.name}
+                            </p>
+                          </div>
                         </div>
                       );
                     })}
@@ -2205,69 +2196,43 @@ function NewOrderContent() {
                     Choose your preferred front collar or neckline cut.
                   </p>
 
-                  <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                    {/* Cards Grid */}
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                      {WAISTCOAT_COLLARS.map((item) => {
-                        const isSelected = collarStyle === item.name;
-                        return (
-                          <div
-                            key={item.name}
-                            onClick={() => setCollarStyle(item.name)}
-                            className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                              isSelected
-                                ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                : 'border-gray-200 hover:border-gray-300 bg-white'
-                            }`}
-                          >
-                            <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="h-full w-auto object-contain"
-                              />
-                              {isSelected && (
-                                <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                  <Check
-                                    size={9}
-                                    className="text-white"
-                                    strokeWidth={3.5}
-                                  />
-                                </div>
-                              )}
-                            </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-3.5">
+                    {WAISTCOAT_COLLARS.map((item) => {
+                      const isSelected = collarStyle === item.name;
+                      return (
+                        <div
+                          key={item.name}
+                          onClick={() => setCollarStyle(item.name)}
+                          className={`rounded-2xl border-2 overflow-hidden text-center cursor-pointer transition-all flex flex-col group ${
+                            isSelected
+                              ? 'border-[#7E153A] bg-[#7E153A]/5 shadow-sm ring-1 ring-[#7E153A]/30'
+                              : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
+                          }`}
+                        >
+                          <div className="w-full aspect-[2/1] sm:aspect-[1.86/1] overflow-hidden relative bg-[#7a716c]">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                            />
+                            {isSelected && (
+                              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                <Check size={11} strokeWidth={3.5} />
+                              </div>
+                            )}
+                          </div>
+                          <div className="py-2.5 px-3 bg-white flex items-center justify-center min-h-[44px]">
                             <p
-                              className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                              className={`text-xs font-bold leading-tight ${
                                 isSelected ? 'text-[#7E153A]' : 'text-gray-800'
                               }`}
                             >
                               {item.name}
                             </p>
                           </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* "Your Selection" Preview Card */}
-                    <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                      <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                        Your Selection
-                      </span>
-                      <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                        <img
-                          src={
-                            WAISTCOAT_COLLARS.find(
-                              (c) => c.name === collarStyle
-                            )?.image || WAISTCOAT_COLLARS[0].image
-                          }
-                          alt={collarStyle}
-                          className="h-full w-auto object-contain"
-                        />
-                      </div>
-                      <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                        {collarStyle}
-                      </span>
-                    </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -2335,39 +2300,34 @@ function NewOrderContent() {
                         Choose your full sleeve cuff design.
                       </p>
 
-                      <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                        {/* Cards Grid */}
-                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                          {WAISTCOAT_SLEEVES.map((item) => {
-                            const isSelected = cuffStyle === item.name;
-                            return (
-                              <div
-                                key={item.name}
-                                onClick={() => setCuffStyle(item.name)}
-                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                                }`}
-                              >
-                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3.5">
+                        {WAISTCOAT_SLEEVES.map((item) => {
+                          const isSelected = cuffStyle === item.name;
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => setCuffStyle(item.name)}
+                              className={`rounded-2xl border-2 overflow-hidden text-center cursor-pointer transition-all flex flex-col group ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-[#7E153A]/5 shadow-sm ring-1 ring-[#7E153A]/30'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
+                              }`}
+                            >
+                              <div className="w-full aspect-[2/1] sm:aspect-[1.86/1] overflow-hidden relative bg-[#c4b4a6]">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                    <Check size={11} strokeWidth={3.5} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="py-2.5 px-3 bg-white flex items-center justify-center min-h-[44px]">
                                 <p
-                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  className={`text-xs font-bold leading-tight ${
                                     isSelected
                                       ? 'text-[#7E153A]'
                                       : 'text-gray-800'
@@ -2376,30 +2336,9 @@ function NewOrderContent() {
                                   {item.name}
                                 </p>
                               </div>
-                            );
-                          })}
-                        </div>
-
-                        {/* "Your Selection" Preview Card */}
-                        <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                          <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                            Your Selection
-                          </span>
-                          <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                            <img
-                              src={
-                                WAISTCOAT_SLEEVES.find(
-                                  (s) => s.name === cuffStyle
-                                )?.image || WAISTCOAT_SLEEVES[0].image
-                              }
-                              alt={cuffStyle}
-                              className="h-full w-auto object-contain"
-                            />
-                          </div>
-                          <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                            {cuffStyle}
-                          </span>
-                        </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -2460,38 +2399,34 @@ function NewOrderContent() {
                         Choose your buttoning style and breasted cut.
                       </p>
 
-                      <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                          {PANT_COAT_STYLES.map((item) => {
-                            const isSelected = pantCoatStyle === item.name;
-                            return (
-                              <div
-                                key={item.name}
-                                onClick={() => setPantCoatStyle(item.name)}
-                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                                }`}
-                              >
-                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3.5">
+                        {PANT_COAT_STYLES.map((item) => {
+                          const isSelected = pantCoatStyle === item.name;
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => setPantCoatStyle(item.name)}
+                              className={`rounded-2xl border-2 overflow-hidden text-center cursor-pointer transition-all flex flex-col group ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-[#7E153A]/5 shadow-sm ring-1 ring-[#7E153A]/30'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
+                              }`}
+                            >
+                              <div className="w-full aspect-[2/1] sm:aspect-[1.86/1] overflow-hidden relative bg-[#7a716c]">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                    <Check size={11} strokeWidth={3.5} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="py-2.5 px-3 bg-white flex items-center justify-center min-h-[44px]">
                                 <p
-                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  className={`text-xs font-bold leading-tight ${
                                     isSelected
                                       ? 'text-[#7E153A]'
                                       : 'text-gray-800'
@@ -2500,29 +2435,9 @@ function NewOrderContent() {
                                   {item.name}
                                 </p>
                               </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                          <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                            Your Selection
-                          </span>
-                          <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                            <img
-                              src={
-                                PANT_COAT_STYLES.find(
-                                  (s) => s.name === pantCoatStyle
-                                )?.image || PANT_COAT_STYLES[0].image
-                              }
-                              alt={pantCoatStyle}
-                              className="h-full w-auto object-contain"
-                            />
-                          </div>
-                          <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                            {pantCoatStyle}
-                          </span>
-                        </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -2540,38 +2455,34 @@ function NewOrderContent() {
                         Select lapel design for the jacket neckline.
                       </p>
 
-                      <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                          {PANT_COAT_LAPELS.map((item) => {
-                            const isSelected = pantCoatLapel === item.name;
-                            return (
-                              <div
-                                key={item.name}
-                                onClick={() => setPantCoatLapel(item.name)}
-                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                                }`}
-                              >
-                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3.5">
+                        {PANT_COAT_LAPELS.map((item) => {
+                          const isSelected = pantCoatLapel === item.name;
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => setPantCoatLapel(item.name)}
+                              className={`rounded-2xl border-2 overflow-hidden text-center cursor-pointer transition-all flex flex-col group ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-[#7E153A]/5 shadow-sm ring-1 ring-[#7E153A]/30'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
+                              }`}
+                            >
+                              <div className="w-full aspect-[2/1] sm:aspect-[1.86/1] overflow-hidden relative bg-[#7a716c]">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                    <Check size={11} strokeWidth={3.5} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="py-2.5 px-3 bg-white flex items-center justify-center min-h-[44px]">
                                 <p
-                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  className={`text-xs font-bold leading-tight ${
                                     isSelected
                                       ? 'text-[#7E153A]'
                                       : 'text-gray-800'
@@ -2580,29 +2491,9 @@ function NewOrderContent() {
                                   {item.name}
                                 </p>
                               </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                          <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                            Your Selection
-                          </span>
-                          <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                            <img
-                              src={
-                                PANT_COAT_LAPELS.find(
-                                  (l) => l.name === pantCoatLapel
-                                )?.image || PANT_COAT_LAPELS[0].image
-                              }
-                              alt={pantCoatLapel}
-                              className="h-full w-auto object-contain"
-                            />
-                          </div>
-                          <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                            {pantCoatLapel}
-                          </span>
-                        </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -2620,38 +2511,34 @@ function NewOrderContent() {
                         Choose pocket style for the jacket front.
                       </p>
 
-                      <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                          {PANT_COAT_POCKETS.map((item) => {
-                            const isSelected = pantCoatPocket === item.name;
-                            return (
-                              <div
-                                key={item.name}
-                                onClick={() => setPantCoatPocket(item.name)}
-                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                                }`}
-                              >
-                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3.5">
+                        {PANT_COAT_POCKETS.map((item) => {
+                          const isSelected = pantCoatPocket === item.name;
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => setPantCoatPocket(item.name)}
+                              className={`rounded-2xl border-2 overflow-hidden text-center cursor-pointer transition-all flex flex-col group ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-[#7E153A]/5 shadow-sm ring-1 ring-[#7E153A]/30'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
+                              }`}
+                            >
+                              <div className="w-full aspect-[2/1] sm:aspect-[1.86/1] overflow-hidden relative bg-[#7a716c]">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                    <Check size={11} strokeWidth={3.5} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="py-2.5 px-3 bg-white flex items-center justify-center min-h-[44px]">
                                 <p
-                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  className={`text-xs font-bold leading-tight ${
                                     isSelected
                                       ? 'text-[#7E153A]'
                                       : 'text-gray-800'
@@ -2660,29 +2547,9 @@ function NewOrderContent() {
                                   {item.name}
                                 </p>
                               </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                          <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                            Your Selection
-                          </span>
-                          <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                            <img
-                              src={
-                                PANT_COAT_POCKETS.find(
-                                  (p) => p.name === pantCoatPocket
-                                )?.image || PANT_COAT_POCKETS[0].image
-                              }
-                              alt={pantCoatPocket}
-                              className="h-full w-auto object-contain"
-                            />
-                          </div>
-                          <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                            {pantCoatPocket}
-                          </span>
-                        </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -2700,38 +2567,34 @@ function NewOrderContent() {
                         Choose cuff buttoning and sleeve finish.
                       </p>
 
-                      <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                          {PANT_COAT_CUFFS.map((item) => {
-                            const isSelected = pantCoatCuff === item.name;
-                            return (
-                              <div
-                                key={item.name}
-                                onClick={() => setPantCoatCuff(item.name)}
-                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                                }`}
-                              >
-                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3.5">
+                        {PANT_COAT_CUFFS.map((item) => {
+                          const isSelected = pantCoatCuff === item.name;
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => setPantCoatCuff(item.name)}
+                              className={`rounded-2xl border-2 overflow-hidden text-center cursor-pointer transition-all flex flex-col group ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-[#7E153A]/5 shadow-sm ring-1 ring-[#7E153A]/30'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
+                              }`}
+                            >
+                              <div className="w-full aspect-[2/1] sm:aspect-[1.86/1] overflow-hidden relative bg-[#7a716c]">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                    <Check size={11} strokeWidth={3.5} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="py-2.5 px-3 bg-white flex items-center justify-center min-h-[44px]">
                                 <p
-                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  className={`text-xs font-bold leading-tight ${
                                     isSelected
                                       ? 'text-[#7E153A]'
                                       : 'text-gray-800'
@@ -2740,29 +2603,9 @@ function NewOrderContent() {
                                   {item.name}
                                 </p>
                               </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                          <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                            Your Selection
-                          </span>
-                          <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                            <img
-                              src={
-                                PANT_COAT_CUFFS.find(
-                                  (c) => c.name === pantCoatCuff
-                                )?.image || PANT_COAT_CUFFS[0].image
-                              }
-                              alt={pantCoatCuff}
-                              className="h-full w-auto object-contain"
-                            />
-                          </div>
-                          <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                            {pantCoatCuff}
-                          </span>
-                        </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -2780,38 +2623,34 @@ function NewOrderContent() {
                         Choose back vent slits for drape and mobility.
                       </p>
 
-                      <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                          {PANT_COAT_VENTS.map((item) => {
-                            const isSelected = pantCoatVent === item.name;
-                            return (
-                              <div
-                                key={item.name}
-                                onClick={() => setPantCoatVent(item.name)}
-                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                                }`}
-                              >
-                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-3.5">
+                        {PANT_COAT_VENTS.map((item) => {
+                          const isSelected = pantCoatVent === item.name;
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => setPantCoatVent(item.name)}
+                              className={`rounded-2xl border-2 overflow-hidden text-center cursor-pointer transition-all flex flex-col group ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-[#7E153A]/5 shadow-sm ring-1 ring-[#7E153A]/30'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
+                              }`}
+                            >
+                              <div className="w-full aspect-[2/1] sm:aspect-[1.86/1] overflow-hidden relative bg-[#7a716c]">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                    <Check size={11} strokeWidth={3.5} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="py-2.5 px-3 bg-white flex items-center justify-center min-h-[44px]">
                                 <p
-                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  className={`text-xs font-bold leading-tight ${
                                     isSelected
                                       ? 'text-[#7E153A]'
                                       : 'text-gray-800'
@@ -2820,29 +2659,9 @@ function NewOrderContent() {
                                   {item.name}
                                 </p>
                               </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                          <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                            Your Selection
-                          </span>
-                          <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                            <img
-                              src={
-                                PANT_COAT_VENTS.find(
-                                  (v) => v.name === pantCoatVent
-                                )?.image || PANT_COAT_VENTS[0].image
-                              }
-                              alt={pantCoatVent}
-                              className="h-full w-auto object-contain"
-                            />
-                          </div>
-                          <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                            {pantCoatVent}
-                          </span>
-                        </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -2869,41 +2688,37 @@ function NewOrderContent() {
                         </div>
                       </div>
                       <p className="text-[11px] text-gray-400">
-                        Choose overall fit and pleating style.
+                        Choose overall fit and silhouette style.
                       </p>
 
-                      <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                          {PANT_COAT_TROUSER_DESIGNS.map((item) => {
-                            const isSelected = pantCoatTrouserFit === item.name;
-                            return (
-                              <div
-                                key={item.name}
-                                onClick={() => setPantCoatTrouserFit(item.name)}
-                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                                }`}
-                              >
-                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3.5">
+                        {PANT_COAT_TROUSER_DESIGNS.map((item) => {
+                          const isSelected = pantCoatTrouserFit === item.name;
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => setPantCoatTrouserFit(item.name)}
+                              className={`rounded-2xl border-2 overflow-hidden text-center cursor-pointer transition-all flex flex-col group ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-[#7E153A]/5 shadow-sm ring-1 ring-[#7E153A]/30'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
+                              }`}
+                            >
+                              <div className="w-full aspect-[2/1] sm:aspect-[1.86/1] overflow-hidden relative bg-[#7a716c]">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                    <Check size={11} strokeWidth={3.5} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="py-2.5 px-3 bg-white flex items-center justify-center min-h-[44px]">
                                 <p
-                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  className={`text-xs font-bold leading-tight ${
                                     isSelected
                                       ? 'text-[#7E153A]'
                                       : 'text-gray-800'
@@ -2912,278 +2727,9 @@ function NewOrderContent() {
                                   {item.name}
                                 </p>
                               </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                          <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                            Your Selection
-                          </span>
-                          <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                            <img
-                              src={
-                                PANT_COAT_TROUSER_DESIGNS.find(
-                                  (t) => t.name === pantCoatTrouserFit
-                                )?.image || PANT_COAT_TROUSER_DESIGNS[0].image
-                              }
-                              alt={pantCoatTrouserFit}
-                              className="h-full w-auto object-contain"
-                            />
-                          </div>
-                          <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                            {pantCoatTrouserFit}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 7. Trouser Waist */}
-                    <div className="space-y-2 pt-4 border-t border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
-                          <span>7. Trouser Waist</span>
-                          <span className="text-[10px] text-[#7E153A] font-semibold bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
-                            {pantCoatTrouserWaist}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-[11px] text-gray-400">
-                        Choose waistband closure and adjustment preference.
-                      </p>
-
-                      <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                          {PANT_COAT_TROUSER_WAISTS.map((item) => {
-                            const isSelected =
-                              pantCoatTrouserWaist === item.name;
-                            return (
-                              <div
-                                key={item.name}
-                                onClick={() =>
-                                  setPantCoatTrouserWaist(item.name)
-                                }
-                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                                }`}
-                              >
-                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-                                <p
-                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
-                                    isSelected
-                                      ? 'text-[#7E153A]'
-                                      : 'text-gray-800'
-                                  }`}
-                                >
-                                  {item.name}
-                                </p>
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                          <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                            Your Selection
-                          </span>
-                          <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                            <img
-                              src={
-                                PANT_COAT_TROUSER_WAISTS.find(
-                                  (w) => w.name === pantCoatTrouserWaist
-                                )?.image || PANT_COAT_TROUSER_WAISTS[0].image
-                              }
-                              alt={pantCoatTrouserWaist}
-                              className="h-full w-auto object-contain"
-                            />
-                          </div>
-                          <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                            {pantCoatTrouserWaist}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 8. Trouser Pocket */}
-                    <div className="space-y-2 pt-4 border-t border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
-                          <span>8. Trouser Pocket</span>
-                          <span className="text-[10px] text-[#7E153A] font-semibold bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
-                            {pantCoatTrouserPocket}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-[11px] text-gray-400">
-                        Choose trouser side and back pockets.
-                      </p>
-
-                      <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                          {PANT_COAT_TROUSER_POCKETS.map((item) => {
-                            const isSelected =
-                              pantCoatTrouserPocket === item.name;
-                            return (
-                              <div
-                                key={item.name}
-                                onClick={() =>
-                                  setPantCoatTrouserPocket(item.name)
-                                }
-                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                                }`}
-                              >
-                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-                                <p
-                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
-                                    isSelected
-                                      ? 'text-[#7E153A]'
-                                      : 'text-gray-800'
-                                  }`}
-                                >
-                                  {item.name}
-                                </p>
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                          <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                            Your Selection
-                          </span>
-                          <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                            <img
-                              src={
-                                PANT_COAT_TROUSER_POCKETS.find(
-                                  (p) => p.name === pantCoatTrouserPocket
-                                )?.image || PANT_COAT_TROUSER_POCKETS[0].image
-                              }
-                              alt={pantCoatTrouserPocket}
-                              className="h-full w-auto object-contain"
-                            />
-                          </div>
-                          <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                            {pantCoatTrouserPocket}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 9. Trouser Bottom */}
-                    <div className="space-y-2 pt-4 border-t border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
-                          <span>9. Trouser Bottom</span>
-                          <span className="text-[10px] text-[#7E153A] font-semibold bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
-                            {pantCoatTrouserBottom}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-[11px] text-gray-400">
-                        Choose hem finish and length break over shoes.
-                      </p>
-
-                      <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                          {PANT_COAT_TROUSER_BOTTOMS.map((item) => {
-                            const isSelected =
-                              pantCoatTrouserBottom === item.name;
-                            return (
-                              <div
-                                key={item.name}
-                                onClick={() =>
-                                  setPantCoatTrouserBottom(item.name)
-                                }
-                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                                }`}
-                              >
-                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-                                <p
-                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
-                                    isSelected
-                                      ? 'text-[#7E153A]'
-                                      : 'text-gray-800'
-                                  }`}
-                                >
-                                  {item.name}
-                                </p>
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                          <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                            Your Selection
-                          </span>
-                          <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                            <img
-                              src={
-                                PANT_COAT_TROUSER_BOTTOMS.find(
-                                  (b) => b.name === pantCoatTrouserBottom
-                                )?.image || PANT_COAT_TROUSER_BOTTOMS[0].image
-                              }
-                              alt={pantCoatTrouserBottom}
-                              className="h-full w-auto object-contain"
-                            />
-                          </div>
-                          <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                            {pantCoatTrouserBottom}
-                          </span>
-                        </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -3215,87 +2761,59 @@ function NewOrderContent() {
                       : 'Choose your preferred collar style.'}
                   </p>
 
-                  <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                    {/* Cards Grid */}
-                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                      {(() => {
-                        const activeCollars =
-                          gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS;
-                        return activeCollars.map((item, idx) => {
-                          const isSelected =
-                            collarStyle === item.name ||
-                            (!activeCollars.some(
-                              (c) => c.name === collarStyle
-                            ) &&
-                              idx === 0);
-                          return (
+                  {/* Cards Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3.5">
+                    {(() => {
+                      const activeCollars =
+                        gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS;
+                      return activeCollars.map((item, idx) => {
+                        const isSelected =
+                          collarStyle === item.name ||
+                          (!activeCollars.some((c) => c.name === collarStyle) &&
+                            idx === 0);
+                        return (
+                          <div
+                            key={item.name}
+                            onClick={() => setCollarStyle(item.name)}
+                            className={`group rounded-2xl border-2 transition-all cursor-pointer overflow-hidden flex flex-col p-0 ${
+                              isSelected
+                                ? 'border-[#7E153A] bg-red-50/20 ring-2 ring-[#7E153A]/20 shadow-sm'
+                                : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
+                            }`}
+                          >
                             <div
-                              key={item.name}
-                              onClick={() => setCollarStyle(item.name)}
-                              className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                isSelected
-                                  ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                              className={`w-full aspect-[2.2/1] sm:aspect-[2.1/1] overflow-hidden relative flex items-center justify-center ${
+                                gender === 'female'
+                                  ? 'bg-[#ded7d3]'
+                                  : 'bg-[#c4b4a6]'
                               }`}
                             >
-                              <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  className="h-full w-auto object-contain"
-                                />
-                                {isSelected && (
-                                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                    <Check
-                                      size={9}
-                                      className="text-white"
-                                      strokeWidth={3.5}
-                                    />
-                                  </div>
-                                )}
-                              </div>
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                              />
+                              {isSelected && (
+                                <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                  <Check size={11} strokeWidth={3.5} />
+                                </div>
+                              )}
+                            </div>
+                            <div className="py-2.5 px-3 text-left bg-white">
                               <p
-                                className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                className={`text-xs sm:text-sm font-bold leading-tight ${
                                   isSelected
                                     ? 'text-[#7E153A]'
-                                    : 'text-gray-800'
+                                    : 'text-gray-900'
                                 }`}
                               >
                                 {item.name}
                               </p>
                             </div>
-                          );
-                        });
-                      })()}
-                    </div>
-
-                    {/* "Your Selection" Preview Card */}
-                    <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                      <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                        Your Selection
-                      </span>
-                      {(() => {
-                        const activeCollars =
-                          gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS;
-                        const activeCollar =
-                          activeCollars.find((c) => c.name === collarStyle) ||
-                          activeCollars[0];
-                        return (
-                          <>
-                            <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                              <img
-                                src={activeCollar.image}
-                                alt={activeCollar.name}
-                                className="h-full w-auto object-contain"
-                              />
-                            </div>
-                            <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                              {activeCollar.name}
-                            </span>
-                          </>
+                          </div>
                         );
-                      })()}
-                    </div>
+                      });
+                    })()}
                   </div>
                 </div>
 
@@ -3353,123 +2871,79 @@ function NewOrderContent() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                      {womenSleeveType === 'with_sleeves' ? (
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                          {WOMEN_SLEEVES.map((item) => {
-                            const isSelected = womenSleeveLength === item.name;
-                            return (
-                              <div
-                                key={item.name}
-                                onClick={() => {
-                                  setWomenSleeveLength(item.name as any);
-                                  setSleeveStyle(item.name);
-                                }}
-                                className={`rounded-2xl border-2 p-2.5 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
-                                }`}
-                              >
-                                <div className="w-full h-24 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="mt-2 text-center">
-                                  <p
-                                    className={`text-xs font-extrabold leading-tight ${
-                                      isSelected
-                                        ? 'text-[#7E153A]'
-                                        : 'text-gray-800'
-                                    }`}
-                                  >
-                                    {item.name}
-                                  </p>
-                                  <span className="text-[10px] text-gray-400 block mt-0.5">
-                                    {item.name === 'Half sleeve'
-                                      ? 'Elbow Length'
-                                      : item.name === 'Three Quarter'
-                                        ? 'Mid Forearm'
-                                        : 'Wrist Length'}
-                                  </span>
-                                </div>
+                    {womenSleeveType === 'with_sleeves' ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-3.5">
+                        {WOMEN_SLEEVES.map((item) => {
+                          const isSelected = womenSleeveLength === item.name;
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => {
+                                setWomenSleeveLength(item.name as any);
+                                setSleeveStyle(item.name);
+                              }}
+                              className={`group rounded-2xl border-2 transition-all cursor-pointer overflow-hidden flex flex-col ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-red-50/20 ring-2 ring-[#7E153A]/20 shadow-sm'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
+                              } p-0`}
+                            >
+                              <div className="w-full aspect-[2.2/1] sm:aspect-[2.1/1] bg-[#d2bfad] overflow-hidden relative flex items-center justify-center">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                    <Check size={11} strokeWidth={3.5} />
+                                  </div>
+                                )}
                               </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="flex-1 rounded-2xl border-2 border-dashed border-[#7E153A]/30 bg-red-50/20 p-5 flex flex-col sm:flex-row items-center gap-3.5 text-center sm:text-left">
-                          <div className="w-11 h-11 rounded-2xl bg-[#7E153A]/10 text-[#7E153A] flex items-center justify-center shrink-0">
-                            <Scissors size={20} />
-                          </div>
-                          <div>
-                            <div className="flex items-center justify-center sm:justify-start gap-2">
-                              <h4 className="text-xs font-extrabold text-gray-900">
-                                Sleeveless Kurta / Kameez Selected
-                              </h4>
-                              <span className="text-[9px] font-bold bg-[#7E153A] text-white px-2 py-0.5 rounded-full">
-                                Active
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-gray-500 mt-1">
-                              No sleeve measurements will be required in the
-                              next step. Our master tailors will neatly finish
-                              the armholes with custom facing or piping.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* "Your Selection" Preview Card */}
-                      <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                        <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                          Your Selection
-                        </span>
-                        {womenSleeveType === 'sleeveless' ? (
-                          <>
-                            <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs text-[#7E153A]">
-                              <Scissors size={24} />
-                            </div>
-                            <span className="text-[10px] font-extrabold text-gray-800 mt-1.5">
-                              Sleeveless
-                            </span>
-                          </>
-                        ) : (
-                          (() => {
-                            const activeSleeve =
-                              WOMEN_SLEEVES.find(
-                                (s) => s.name === womenSleeveLength
-                              ) || WOMEN_SLEEVES[2];
-                            return (
-                              <>
-                                <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                                  <img
-                                    src={activeSleeve.image}
-                                    alt={activeSleeve.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                </div>
-                                <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                                  {activeSleeve.name}
+                              <div className="py-2.5 px-3 text-left bg-white">
+                                <p
+                                  className={`text-xs sm:text-sm font-bold leading-tight ${
+                                    isSelected
+                                      ? 'text-[#7E153A]'
+                                      : 'text-gray-900'
+                                  }`}
+                                >
+                                  {item.name}
+                                </p>
+                                <span className="text-[11px] text-gray-500 font-medium block mt-0.5">
+                                  {item.name === 'Half sleeve'
+                                    ? 'Elbow Length'
+                                    : item.name === 'Three Quarter'
+                                      ? 'Mid Forearm'
+                                      : 'Wrist Length'}
                                 </span>
-                              </>
-                            );
-                          })()
-                        )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
+                    ) : (
+                      <div className="w-full rounded-2xl border-2 border-dashed border-[#7E153A]/30 bg-red-50/20 p-5 flex flex-col sm:flex-row items-center gap-3.5 text-center sm:text-left">
+                        <div className="w-11 h-11 rounded-2xl bg-[#7E153A]/10 text-[#7E153A] flex items-center justify-center shrink-0">
+                          <Scissors size={20} />
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-center sm:justify-start gap-2">
+                            <h4 className="text-xs font-extrabold text-gray-900">
+                              Sleeveless Kurta / Kameez Selected
+                            </h4>
+                            <span className="text-[9px] font-bold bg-[#7E153A] text-white px-2 py-0.5 rounded-full">
+                              Active
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500 mt-1">
+                            No sleeve measurements will be required in the next
+                            step. Our master tailors will neatly finish the
+                            armholes with custom facing or piping.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -3489,85 +2963,59 @@ function NewOrderContent() {
                         : 'Choose the cuff style for your sleeves.'}
                     </p>
 
-                    <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                      {/* Cards Grid */}
-                      <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                        {(() => {
-                          const activeCuffs =
-                            gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS;
-                          return activeCuffs.map((item, idx) => {
-                            const isSelected =
-                              cuffStyle === item.name ||
-                              (!activeCuffs.some((c) => c.name === cuffStyle) &&
-                                idx === 0);
-                            return (
+                    {/* Cards Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3.5">
+                      {(() => {
+                        const activeCuffs =
+                          gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS;
+                        return activeCuffs.map((item, idx) => {
+                          const isSelected =
+                            cuffStyle === item.name ||
+                            (!activeCuffs.some((c) => c.name === cuffStyle) &&
+                              idx === 0);
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => setCuffStyle(item.name)}
+                              className={`group rounded-2xl border-2 transition-all cursor-pointer overflow-hidden flex flex-col p-0 ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-red-50/20 ring-2 ring-[#7E153A]/20 shadow-sm'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
+                              }`}
+                            >
                               <div
-                                key={item.name}
-                                onClick={() => setCuffStyle(item.name)}
-                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                                className={`w-full aspect-[2.2/1] sm:aspect-[2.1/1] overflow-hidden relative flex items-center justify-center ${
+                                  gender === 'female'
+                                    ? 'bg-[#d2bfad]'
+                                    : 'bg-[#c4b4a6]'
                                 }`}
                               >
-                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                    <Check size={11} strokeWidth={3.5} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="py-2.5 px-3 text-left bg-white">
                                 <p
-                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  className={`text-xs sm:text-sm font-bold leading-tight ${
                                     isSelected
                                       ? 'text-[#7E153A]'
-                                      : 'text-gray-800'
+                                      : 'text-gray-900'
                                   }`}
                                 >
                                   {item.name}
                                 </p>
                               </div>
-                            );
-                          });
-                        })()}
-                      </div>
-
-                      {/* "Your Selection" Preview Card */}
-                      <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                        <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                          Your Selection
-                        </span>
-                        {(() => {
-                          const activeCuffs =
-                            gender === 'female' ? WOMEN_CUFFS : MEN_CUFFS;
-                          const activeCuff =
-                            activeCuffs.find((c) => c.name === cuffStyle) ||
-                            activeCuffs[0];
-                          return (
-                            <>
-                              <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                                <img
-                                  src={activeCuff.image}
-                                  alt={activeCuff.name}
-                                  className="h-full w-auto object-contain"
-                                />
-                              </div>
-                              <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                                {activeCuff.name}
-                              </span>
-                            </>
+                            </div>
                           );
-                        })()}
-                      </div>
+                        });
+                      })()}
                     </div>
                   </div>
                 )}
@@ -3624,100 +3072,67 @@ function NewOrderContent() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                      {/* Cards Grid */}
-                      <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2.5">
-                        {(() => {
-                          const activeTrousers =
-                            bottomType === 'shalwar'
-                              ? gender === 'female'
-                                ? WOMEN_SHALWARS
-                                : MEN_SHALWARS
-                              : gender === 'female'
-                                ? WOMEN_TROUSERS
-                                : MEN_TROUSERS;
-                          return activeTrousers.map((item, idx) => {
-                            const isSelected =
-                              trouserStyle === item.name ||
-                              (!activeTrousers.some(
-                                (t) => t.name === trouserStyle
-                              ) &&
-                                idx === 0);
-                            return (
+                    {/* Cards Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3.5">
+                      {(() => {
+                        const activeTrousers =
+                          bottomType === 'shalwar'
+                            ? gender === 'female'
+                              ? WOMEN_SHALWARS
+                              : MEN_SHALWARS
+                            : gender === 'female'
+                              ? WOMEN_TROUSERS
+                              : MEN_TROUSERS;
+                        return activeTrousers.map((item, idx) => {
+                          const isSelected =
+                            trouserStyle === item.name ||
+                            (!activeTrousers.some(
+                              (t) => t.name === trouserStyle
+                            ) &&
+                              idx === 0);
+                          return (
+                            <div
+                              key={item.name}
+                              onClick={() => setTrouserStyle(item.name)}
+                              className={`group rounded-2xl border-2 transition-all cursor-pointer overflow-hidden flex flex-col p-0 ${
+                                isSelected
+                                  ? 'border-[#7E153A] bg-red-50/20 ring-2 ring-[#7E153A]/20 shadow-sm'
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-xs'
+                              }`}
+                            >
                               <div
-                                key={item.name}
-                                onClick={() => setTrouserStyle(item.name)}
-                                className={`rounded-2xl border-2 p-2 text-left cursor-pointer transition-all flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#7E153A] bg-red-50/20 ring-1 ring-[#7E153A]/20 shadow-xs'
-                                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                                className={`w-full aspect-[2.2/1] sm:aspect-[2.1/1] overflow-hidden relative flex items-center justify-center ${
+                                  gender === 'female'
+                                    ? 'bg-[#ded7d3]'
+                                    : 'bg-[#c4b4a6]'
                                 }`}
                               >
-                                <div className="w-full h-20 flex items-center justify-center rounded-xl bg-gray-50/60 p-1.5 overflow-hidden relative">
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-full w-auto object-contain"
-                                  />
-                                  {isSelected && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#7E153A] flex items-center justify-center shadow-xs">
-                                      <Check
-                                        size={9}
-                                        className="text-white"
-                                        strokeWidth={3.5}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                                />
+                                {isSelected && (
+                                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7E153A] text-white flex items-center justify-center shadow-md">
+                                    <Check size={11} strokeWidth={3.5} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="py-2.5 px-3 text-left bg-white">
                                 <p
-                                  className={`text-[10px] font-extrabold mt-1.5 leading-tight ${
+                                  className={`text-xs sm:text-sm font-bold leading-tight ${
                                     isSelected
                                       ? 'text-[#7E153A]'
-                                      : 'text-gray-800'
+                                      : 'text-gray-900'
                                   }`}
                                 >
                                   {item.name}
                                 </p>
                               </div>
-                            );
-                          });
-                        })()}
-                      </div>
-
-                      {/* "Your Selection" Preview Card */}
-                      <div className="w-full md:w-32 rounded-2xl border border-red-100 bg-red-50/40 p-2.5 flex flex-col items-center justify-center text-center shrink-0">
-                        <span className="text-[9px] uppercase font-extrabold text-[#7E153A] tracking-wider mb-1">
-                          Your Selection
-                        </span>
-                        {(() => {
-                          const activeTrousers =
-                            bottomType === 'shalwar'
-                              ? gender === 'female'
-                                ? WOMEN_SHALWARS
-                                : MEN_SHALWARS
-                              : gender === 'female'
-                                ? WOMEN_TROUSERS
-                                : MEN_TROUSERS;
-                          const activeTrouser =
-                            activeTrousers.find(
-                              (t) => t.name === trouserStyle
-                            ) || activeTrousers[0];
-                          return (
-                            <>
-                              <div className="w-16 h-16 rounded-xl bg-white border border-red-100 flex items-center justify-center p-1.5 overflow-hidden shadow-2xs">
-                                <img
-                                  src={activeTrouser.image}
-                                  alt={activeTrouser.name}
-                                  className="h-full w-auto object-contain"
-                                />
-                              </div>
-                              <span className="text-[10px] font-extrabold text-gray-800 mt-1.5 line-clamp-1">
-                                {activeTrouser.name}
-                              </span>
-                            </>
+                            </div>
                           );
-                        })()}
-                      </div>
+                        });
+                      })()}
                     </div>
                   </div>
                 )}
@@ -3861,14 +3276,14 @@ function NewOrderContent() {
                   <>
                     {/* Neck Design */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div className="w-12 h-8 rounded-lg bg-[#c8b4a5] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                         <img
                           src={
                             FROCK_NECKLINES.find((n) => n.name === neckStyle)
                               ?.image || FROCK_NECKLINES[0].image
                           }
                           alt="Neck Design"
-                          className="h-full w-auto object-contain"
+                          className="w-full h-full object-cover object-center"
                         />
                       </div>
                       <div className="min-w-0">
@@ -3883,7 +3298,7 @@ function NewOrderContent() {
 
                     {/* Sleeve Style */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div className="w-12 h-8 rounded-lg bg-[#c8b4a5] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                         {frockSleeveType === 'sleeveless' ? (
                           <Scissors size={18} className="text-[#7E153A]" />
                         ) : (
@@ -3893,7 +3308,7 @@ function NewOrderContent() {
                                 ?.image || FROCK_SLEEVES[0].image
                             }
                             alt="Sleeve Style"
-                            className="h-full w-auto object-contain"
+                            className="w-full h-full object-cover object-center"
                           />
                         )}
                       </div>
@@ -3911,14 +3326,14 @@ function NewOrderContent() {
 
                     {/* Frock Style */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div className="w-12 h-8 rounded-lg bg-[#c8b4a5] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                         <img
                           src={
                             FROCK_STYLES.find((f) => f.name === frockStyle)
                               ?.image || FROCK_STYLES[0].image
                           }
                           alt="Frock Style"
-                          className="h-full w-auto object-contain"
+                          className="w-full h-full object-cover object-center"
                         />
                       </div>
                       <div className="min-w-0">
@@ -3933,14 +3348,14 @@ function NewOrderContent() {
 
                     {/* Daman Style */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div className="w-12 h-8 rounded-lg bg-[#c8b4a5] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                         <img
                           src={
                             FROCK_DAMANS.find((d) => d.name === damanStyle)
                               ?.image || FROCK_DAMANS[0].image
                           }
                           alt="Daman Style"
-                          className="h-full w-auto object-contain"
+                          className="w-full h-full object-cover object-center"
                         />
                       </div>
                       <div className="min-w-0">
@@ -3957,7 +3372,7 @@ function NewOrderContent() {
                   <>
                     {/* Collar / Neck Design */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div className="w-12 h-8 rounded-lg bg-[#7a716c] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                         <img
                           src={
                             WAISTCOAT_COLLARS.find(
@@ -3965,7 +3380,7 @@ function NewOrderContent() {
                             )?.image || WAISTCOAT_COLLARS[0].image
                           }
                           alt="Collar / Neck"
-                          className="h-full w-auto object-contain"
+                          className="w-full h-full object-cover object-center"
                         />
                       </div>
                       <div className="min-w-0">
@@ -3980,9 +3395,11 @@ function NewOrderContent() {
 
                     {/* Sleeve Style */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div className="w-12 h-8 rounded-lg bg-[#c4b4a6] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                         {waistcoatSleeveType === 'sleeveless' ? (
-                          <Scissors size={18} className="text-[#7E153A]" />
+                          <div className="w-full h-full bg-red-50/60 flex items-center justify-center">
+                            <Scissors size={14} className="text-[#7E153A]" />
+                          </div>
                         ) : (
                           <img
                             src={
@@ -3991,7 +3408,7 @@ function NewOrderContent() {
                               )?.image || WAISTCOAT_SLEEVES[0].image
                             }
                             alt="Sleeve Design"
-                            className="h-full w-auto object-contain"
+                            className="w-full h-full object-cover object-center"
                           />
                         )}
                       </div>
@@ -4010,8 +3427,9 @@ function NewOrderContent() {
                 ) : garmentType === 'pant_coat' ? (
                   <>
                     {/* Coat Style */}
+                    {/* Coat Style */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div className="w-12 h-8 rounded-lg bg-[#7a716c] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                         <img
                           src={
                             PANT_COAT_STYLES.find(
@@ -4019,7 +3437,7 @@ function NewOrderContent() {
                             )?.image || PANT_COAT_STYLES[0].image
                           }
                           alt="Coat Style"
-                          className="h-full w-auto object-contain"
+                          className="w-full h-full object-cover object-center"
                         />
                       </div>
                       <div className="min-w-0">
@@ -4034,7 +3452,7 @@ function NewOrderContent() {
 
                     {/* Lapel */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div className="w-12 h-8 rounded-lg bg-[#7a716c] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                         <img
                           src={
                             PANT_COAT_LAPELS.find(
@@ -4042,7 +3460,7 @@ function NewOrderContent() {
                             )?.image || PANT_COAT_LAPELS[0].image
                           }
                           alt="Lapel"
-                          className="h-full w-auto object-contain"
+                          className="w-full h-full object-cover object-center"
                         />
                       </div>
                       <div className="min-w-0">
@@ -4057,7 +3475,7 @@ function NewOrderContent() {
 
                     {/* Coat Pocket */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div className="w-12 h-8 rounded-lg bg-[#7a716c] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                         <img
                           src={
                             PANT_COAT_POCKETS.find(
@@ -4065,7 +3483,7 @@ function NewOrderContent() {
                             )?.image || PANT_COAT_POCKETS[0].image
                           }
                           alt="Coat Pocket"
-                          className="h-full w-auto object-contain"
+                          className="w-full h-full object-cover object-center"
                         />
                       </div>
                       <div className="min-w-0">
@@ -4080,14 +3498,14 @@ function NewOrderContent() {
 
                     {/* Cuff */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div className="w-12 h-8 rounded-lg bg-[#7a716c] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                         <img
                           src={
                             PANT_COAT_CUFFS.find((c) => c.name === pantCoatCuff)
                               ?.image || PANT_COAT_CUFFS[0].image
                           }
                           alt="Cuff"
-                          className="h-full w-auto object-contain"
+                          className="w-full h-full object-cover object-center"
                         />
                       </div>
                       <div className="min-w-0">
@@ -4102,14 +3520,14 @@ function NewOrderContent() {
 
                     {/* Vent */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div className="w-12 h-8 rounded-lg bg-[#7a716c] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                         <img
                           src={
                             PANT_COAT_VENTS.find((v) => v.name === pantCoatVent)
                               ?.image || PANT_COAT_VENTS[0].image
                           }
                           alt="Vent"
-                          className="h-full w-auto object-contain"
+                          className="w-full h-full object-cover object-center"
                         />
                       </div>
                       <div className="min-w-0">
@@ -4124,7 +3542,7 @@ function NewOrderContent() {
 
                     {/* Trouser Design */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div className="w-12 h-8 rounded-lg bg-[#7a716c] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                         <img
                           src={
                             PANT_COAT_TROUSER_DESIGNS.find(
@@ -4132,7 +3550,7 @@ function NewOrderContent() {
                             )?.image || PANT_COAT_TROUSER_DESIGNS[0].image
                           }
                           alt="Trouser Design"
-                          className="h-full w-auto object-contain"
+                          className="w-full h-full object-cover object-center"
                         />
                       </div>
                       <div className="min-w-0">
@@ -4144,82 +3562,19 @@ function NewOrderContent() {
                         </span>
                       </div>
                     </div>
-
-                    {/* Trouser Waist */}
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
-                        <img
-                          src={
-                            PANT_COAT_TROUSER_WAISTS.find(
-                              (w) => w.name === pantCoatTrouserWaist
-                            )?.image || PANT_COAT_TROUSER_WAISTS[0].image
-                          }
-                          alt="Trouser Waist"
-                          className="h-full w-auto object-contain"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[10px] text-gray-400 block leading-tight">
-                          Trouser Waist
-                        </span>
-                        <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
-                          {pantCoatTrouserWaist}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Trouser Pocket */}
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
-                        <img
-                          src={
-                            PANT_COAT_TROUSER_POCKETS.find(
-                              (p) => p.name === pantCoatTrouserPocket
-                            )?.image || PANT_COAT_TROUSER_POCKETS[0].image
-                          }
-                          alt="Trouser Pocket"
-                          className="h-full w-auto object-contain"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[10px] text-gray-400 block leading-tight">
-                          Trouser Pocket
-                        </span>
-                        <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
-                          {pantCoatTrouserPocket}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Trouser Bottom */}
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
-                        <img
-                          src={
-                            PANT_COAT_TROUSER_BOTTOMS.find(
-                              (b) => b.name === pantCoatTrouserBottom
-                            )?.image || PANT_COAT_TROUSER_BOTTOMS[0].image
-                          }
-                          alt="Trouser Bottom"
-                          className="h-full w-auto object-contain"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[10px] text-gray-400 block leading-tight">
-                          Trouser Bottom
-                        </span>
-                        <span className="text-xs font-bold text-gray-800 leading-tight block truncate">
-                          {pantCoatTrouserBottom}
-                        </span>
-                      </div>
-                    </div>
                   </>
                 ) : (
                   <>
                     {/* Collar Design */}
                     {/* Collar Design */}
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                      <div
+                        className={`rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 ${
+                          gender === 'male'
+                            ? 'w-12 h-8 bg-[#c4b4a6]'
+                            : 'w-12 h-8 bg-[#ded7d3]'
+                        }`}
+                      >
                         {(() => {
                           const activeList =
                             gender === 'female' ? WOMEN_COLLARS : MEN_COLLARS;
@@ -4230,7 +3585,7 @@ function NewOrderContent() {
                             <img
                               src={activeCollar.image}
                               alt={activeCollar.name}
-                              className="h-full w-auto object-contain"
+                              className="w-full h-full object-cover object-center"
                             />
                           );
                         })()}
@@ -4258,7 +3613,13 @@ function NewOrderContent() {
                     {gender === 'female' ? (
                       <>
                         <div className="flex items-center gap-2.5">
-                          <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                          <div
+                            className={`rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 ${
+                              womenSleeveType === 'sleeveless'
+                                ? 'w-10 h-10 bg-gray-50 p-1'
+                                : 'w-12 h-8 bg-[#d2bfad]'
+                            }`}
+                          >
                             {womenSleeveType === 'sleeveless' ? (
                               <Scissors size={18} className="text-[#7E153A]" />
                             ) : (
@@ -4271,7 +3632,7 @@ function NewOrderContent() {
                                   ).image
                                 }
                                 alt={womenSleeveLength}
-                                className="h-full w-auto object-contain"
+                                className="w-full h-full object-cover object-center"
                               />
                             )}
                           </div>
@@ -4289,7 +3650,7 @@ function NewOrderContent() {
 
                         {hasSleeves && (
                           <div className="flex items-center gap-2.5">
-                            <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                            <div className="w-12 h-8 rounded-lg bg-[#d2bfad] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                               <img
                                 src={
                                   (
@@ -4299,7 +3660,7 @@ function NewOrderContent() {
                                   ).image
                                 }
                                 alt={cuffStyle}
-                                className="h-full w-auto object-contain"
+                                className="w-full h-full object-cover object-center"
                               />
                             </div>
                             <div className="min-w-0">
@@ -4316,7 +3677,7 @@ function NewOrderContent() {
                     ) : (
                       hasSleeves && (
                         <div className="flex items-center gap-2.5">
-                          <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                          <div className="w-12 h-8 rounded-lg bg-[#7a716c] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                             {(() => {
                               const activeCuff =
                                 MEN_CUFFS.find((c) => c.name === cuffStyle) ||
@@ -4325,7 +3686,7 @@ function NewOrderContent() {
                                 <img
                                   src={activeCuff.image}
                                   alt={activeCuff.name}
-                                  className="h-full w-auto object-contain"
+                                  className="w-full h-full object-cover object-center"
                                 />
                               );
                             })()}
@@ -4350,7 +3711,13 @@ function NewOrderContent() {
                     {/* Trouser Design */}
                     {hasTrouser && (
                       <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                        <div
+                          className={`rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 ${
+                            gender === 'male'
+                              ? 'w-12 h-8 bg-[#c4b4a6]'
+                              : 'w-12 h-8 bg-[#ded7d3]'
+                          }`}
+                        >
                           <img
                             src={
                               (bottomType === 'shalwar'
@@ -4372,7 +3739,7 @@ function NewOrderContent() {
                             alt={
                               bottomType === 'shalwar' ? 'Shalwar' : 'Trouser'
                             }
-                            className="h-full w-auto object-contain"
+                            className="w-full h-full object-cover object-center"
                           />
                         </div>
                         <div className="min-w-0">
@@ -5873,9 +5240,6 @@ function NewOrderContent() {
                         pantCoatCuff,
                         pantCoatVent,
                         pantCoatTrouserFit,
-                        pantCoatTrouserWaist,
-                        pantCoatTrouserPocket,
-                        pantCoatTrouserBottom,
                         fitType,
                       ]
                         .filter(Boolean)
