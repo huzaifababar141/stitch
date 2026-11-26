@@ -16,6 +16,10 @@ import {
   ShieldAlert,
   UserRound,
   Package,
+  Building2,
+  MapPin,
+  Boxes,
+  CheckCircle2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,9 +39,10 @@ import {
 } from '@/components/ui/dialog';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { EmptyState } from '@/components/admin/empty-state';
-import { useAuth } from '@/hooks/useAuth';
+import { useAdminActor } from '@/components/admin/AdminActorContext';
 import {
   useOrder,
+  useAssignUnit,
   useAssignTailor,
   useOverrideStatus,
   useAddNote,
@@ -45,6 +50,7 @@ import {
   useCancelOrder,
 } from '@/hooks/admin/use-orders';
 import { useTailors } from '@/hooks/admin/use-tailors';
+import { useUnits } from '@/hooks/admin/use-units';
 import {
   formatCurrency,
   formatStatus,
@@ -70,12 +76,19 @@ const PRIORITY_OPTIONS = [
   { value: 3, label: 'Urgent' },
 ];
 
-type ModalKind = 'assign' | 'priority' | 'note' | 'status' | 'cancel';
+type ModalKind =
+  'assign-unit' | 'assign' | 'priority' | 'note' | 'status' | 'cancel';
+
+const UNIT_WORKSHOP_STATUSES = [
+  'in_stitching',
+  'stitching_complete',
+  'qc_pending',
+] as const;
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
-  const isSuperAdmin = user?.app_metadata?.role === 'super_admin';
+  const actor = useAdminActor();
+  const isSuperAdmin = actor.isSuperAdmin;
 
   const { data: order, isLoading, isError } = useOrder(id);
   const [modal, setModal] = useState<ModalKind | null>(null);
@@ -137,22 +150,49 @@ export default function AdminOrderDetailPage() {
 
           {/* Actions */}
           <div className="flex flex-wrap gap-2">
+            {isSuperAdmin && (
+              <Button
+                size="sm"
+                className="bg-[#7E153A] hover:bg-[#630f2d] text-white"
+                onClick={() => setModal('assign-unit')}
+              >
+                <Building2 className="mr-2 h-4 w-4" />
+                {order.assignedUnit ? 'Reassign Unit' : 'Assign to Unit'}
+              </Button>
+            )}
             <Button
-              variant="outline"
+              variant={isSuperAdmin ? 'outline' : 'default'}
               size="sm"
+              className={
+                !isSuperAdmin
+                  ? 'bg-[#7E153A] hover:bg-[#630f2d] text-white'
+                  : undefined
+              }
               onClick={() => setModal('assign')}
             >
               <Scissors className="mr-2 h-4 w-4" />
               {order.assignedTailor ? 'Reassign' : 'Assign'} tailor
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setModal('priority')}
-            >
-              <Flag className="mr-2 h-4 w-4" />
-              Priority
-            </Button>
+            {!isSuperAdmin && !isClosed && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setModal('status')}
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Update progress
+              </Button>
+            )}
+            {isSuperAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setModal('priority')}
+              >
+                <Flag className="mr-2 h-4 w-4" />
+                Priority
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -171,7 +211,7 @@ export default function AdminOrderDetailPage() {
                 Override status
               </Button>
             )}
-            {!isClosed && (
+            {isSuperAdmin && !isClosed && (
               <Button
                 variant="destructive"
                 size="sm"
@@ -256,8 +296,55 @@ export default function AdminOrderDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-[#7E153A]" />
+                Tailoring Unit
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5">
+              {order.assignedUnit ? (
+                <>
+                  <InfoRow label="Unit" value={order.assignedUnit.name} />
+                  <InfoRow
+                    label="Location"
+                    value={`${order.assignedUnit.location}, ${order.assignedUnit.city}`}
+                  />
+                  {order.assignedUnit.manager && (
+                    <InfoRow
+                      label="Manager"
+                      value={fullName(
+                        order.assignedUnit.manager.firstName,
+                        order.assignedUnit.manager.lastName
+                      )}
+                    />
+                  )}
+                  {order.assignedUnitAt && (
+                    <InfoRow
+                      label="Assigned"
+                      value={formatDateTime(order.assignedUnitAt)}
+                    />
+                  )}
+                  {order.product?.unitId && (
+                    <div className="pt-1.5">
+                      <Badge variant="info" className="gap-1">
+                        <Boxes className="h-3 w-3" /> Unit&apos;s Own Fabric
+                        Stock
+                      </Badge>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-amber-600 font-medium">
+                  Not assigned to a unit yet.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
                 <Scissors className="h-4 w-4 text-[#7E153A]" />
-                Tailor
+                Tailor (Darzi)
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-1.5">
@@ -440,9 +527,17 @@ export default function AdminOrderDetailPage() {
       </div>
 
       {/* Modals — mounted only while open */}
+      {modal === 'assign-unit' && isSuperAdmin && (
+        <AssignUnitModal
+          orderId={id}
+          currentUnitId={order.assignedUnit?.id ?? ''}
+          onClose={() => setModal(null)}
+        />
+      )}
       {modal === 'assign' && (
         <AssignTailorModal
           orderId={id}
+          unitId={order.assignedUnit?.id}
           currentTailorId={order.assignedTailor?.id ?? ''}
           onClose={() => setModal(null)}
         />
@@ -461,6 +556,7 @@ export default function AdminOrderDetailPage() {
         <StatusModal
           orderId={id}
           current={order.status}
+          isSuperAdmin={isSuperAdmin}
           onClose={() => setModal(null)}
         />
       )}
@@ -654,16 +750,133 @@ function OrderDetailSkeleton() {
 
 /* --------------------------------- modals -------------------------------- */
 
+function AssignUnitModal({
+  orderId,
+  currentUnitId,
+  onClose,
+}: {
+  orderId: string;
+  currentUnitId: string;
+  onClose: () => void;
+}) {
+  const { data: units, isLoading } = useUnits(true);
+  const assignUnit = useAssignUnit(orderId);
+  const [unitId, setUnitId] = useState(currentUnitId);
+
+  const activeUnits = (units ?? []).filter((u) => u.isActive);
+
+  const submit = () => {
+    if (!unitId) return;
+    assignUnit.mutate({ unitId }, { onSuccess: onClose });
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Assign Order to Tailoring Unit</DialogTitle>
+          <DialogDescription>
+            Choose a workshop unit below. The Unit Manager will receive this
+            order in their dashboard and assign it to one of their tailors.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody className="space-y-3">
+          {isLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          ) : activeUnits.length === 0 ? (
+            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
+              No active tailoring units found. Create a unit first from{' '}
+              <Link href="/admin/units" className="font-bold underline">
+                Tailoring Units
+              </Link>
+              .
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {activeUnits.map((u) => {
+                const selected = unitId === u.id;
+                return (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => setUnitId(u.id)}
+                    className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer ${
+                      selected
+                        ? 'border-[#7E153A] bg-red-50/50 ring-2 ring-[#7E153A]/20'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-extrabold text-gray-900">
+                          {u.name}
+                        </p>
+                        <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                          <MapPin className="h-3 w-3 text-[#7E153A]" />
+                          {u.location}, {u.city}
+                        </p>
+                      </div>
+                      <Badge variant={selected ? 'default' : 'secondary'}>
+                        {u.activeOrdersCount}/{u.maxDailyCapacity} load
+                      </Badge>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-600 mt-2 pt-2 border-t border-gray-100">
+                      <span>
+                        <strong>Manager:</strong>{' '}
+                        {fullName(u.manager.firstName, u.manager.lastName)}
+                      </span>
+                      <span>
+                        <strong>Tailors:</strong> {u.tailorCount}
+                      </span>
+                      <span>
+                        <strong>Capacity:</strong> {u.maxDailyCapacity}/day
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={assignUnit.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={submit}
+            disabled={!unitId || assignUnit.isPending}
+            className="bg-[#7E153A] hover:bg-[#630f2d] text-white"
+          >
+            {assignUnit.isPending ? 'Assigning…' : 'Assign to Unit'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function AssignTailorModal({
   orderId,
+  unitId,
   currentTailorId,
   onClose,
 }: {
   orderId: string;
+  unitId?: string;
   currentTailorId: string;
   onClose: () => void;
 }) {
-  const { data: tailors, isLoading } = useTailors({ isActive: true });
+  const { data: tailors, isLoading } = useTailors({
+    isActive: true,
+    unitId: unitId || undefined,
+  });
   const assign = useAssignTailor(orderId);
   const [tailorId, setTailorId] = useState(currentTailorId);
 
@@ -842,14 +1055,23 @@ function NoteModal({
 function StatusModal({
   orderId,
   current,
+  isSuperAdmin,
   onClose,
 }: {
   orderId: string;
   current: string;
+  isSuperAdmin: boolean;
   onClose: () => void;
 }) {
   const override = useOverrideStatus(orderId);
-  const [status, setStatus] = useState(current);
+  const allowedStatuses = isSuperAdmin
+    ? ORDER_STATUSES
+    : UNIT_WORKSHOP_STATUSES;
+  const [status, setStatus] = useState<string>(
+    (allowedStatuses as readonly string[]).includes(current)
+      ? current
+      : allowedStatuses[0]
+  );
 
   const submit = () => {
     if (status === current) return onClose();
@@ -860,10 +1082,13 @@ function StatusModal({
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Override status</DialogTitle>
+          <DialogTitle>
+            {isSuperAdmin ? 'Override status' : 'Update stitching progress'}
+          </DialogTitle>
           <DialogDescription>
-            Manually set the order status. This bypasses the normal workflow —
-            use with care.
+            {isSuperAdmin
+              ? 'Manually set the order status. This bypasses the normal workflow — use with care.'
+              : 'Update the workshop stitching status for this suit.'}
           </DialogDescription>
         </DialogHeader>
         <DialogBody>
@@ -874,7 +1099,7 @@ function StatusModal({
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
-            {ORDER_STATUSES.map((s) => (
+            {allowedStatuses.map((s) => (
               <option key={s} value={s}>
                 {formatStatus(s)}
               </option>

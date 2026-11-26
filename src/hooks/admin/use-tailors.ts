@@ -13,12 +13,14 @@ import type {
 export interface TailorFilters {
   isActive?: boolean;
   search?: string;
+  unitId?: string;
 }
 
 function tailorsUrl(f: TailorFilters) {
   const p = new URLSearchParams();
   if (f.isActive !== undefined) p.set('isActive', String(f.isActive));
   if (f.search) p.set('search', f.search);
+  if (f.unitId) p.set('unitId', f.unitId);
   const qs = p.toString();
   return `/api/admin/tailors${qs ? `?${qs}` : ''}`;
 }

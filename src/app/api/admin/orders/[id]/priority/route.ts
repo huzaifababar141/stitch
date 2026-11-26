@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { requireRole } from '@/lib/utils/auth';
+import { requireSuperAdmin } from '@/lib/utils/auth';
 import { apiSuccess } from '@/lib/utils/response';
 import { handleApiError, AppError } from '@/lib/utils/errors';
 import { updateOrderPriority } from '@/lib/services/admin.service';
@@ -9,12 +9,16 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireRole('admin', 'super_admin');
+    await requireSuperAdmin();
     const { id } = await context.params;
     const { priorityLevel } = await request.json();
 
-    if (priorityLevel === undefined || typeof priorityLevel !== 'number') {
-      throw AppError.badRequest('Valid priorityLevel is required');
+    if (
+      typeof priorityLevel !== 'number' ||
+      priorityLevel < 0 ||
+      priorityLevel > 3
+    ) {
+      throw AppError.badRequest('priorityLevel must be 0–3');
     }
 
     const order = await updateOrderPriority(id, priorityLevel);

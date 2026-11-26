@@ -53,11 +53,18 @@ export interface Pagination {
 // --- Dashboard & analytics -------------------------------------------------
 
 export interface DashboardStats {
+  scope?: 'hq' | 'unit';
   totalOrders: number;
   activeTailors: number;
   pendingQC: number;
   totalCustomers: number;
   totalRevenue: number;
+  totalUnits?: number;
+  unassignedOrders?: number;
+  pendingStockApprovals?: number;
+  awaitingTailor?: number;
+  inStitching?: number;
+  completedOrders?: number;
 }
 
 export interface RevenuePoint {
@@ -100,6 +107,75 @@ export interface TailorRef {
   phone?: string;
 }
 
+export interface UnitRef {
+  id: string;
+  name: string;
+  location: string;
+  city: string;
+  maxDailyCapacity?: number;
+  manager?: {
+    id?: string;
+    firstName: string;
+    lastName: string | null;
+    phone?: string;
+    email?: string | null;
+  };
+}
+
+export interface UnitSummary {
+  id: string;
+  name: string;
+  location: string;
+  city: string;
+  maxDailyCapacity: number;
+  tailorsDailyCapacity: number;
+  hasStockAccess: boolean;
+  isActive: boolean;
+  notes: string | null;
+  createdAt: string;
+  manager: {
+    id: string;
+    firstName: string;
+    lastName: string | null;
+    email: string | null;
+    phone: string;
+    isActive: boolean;
+  };
+  tailorCount: number;
+  totalTailorCount: number;
+  totalOrdersCount: number;
+  activeOrdersCount: number;
+  productsCount: number;
+  pendingStockCount: number;
+  tailors: Array<{
+    id: string;
+    firstName: string;
+    lastName: string | null;
+    phone: string;
+    skillLevel: string;
+    currentActiveOrders: number;
+    maxDailyCapacity: number;
+    isAvailable: boolean;
+  }>;
+}
+
+export interface AdminActorDTO {
+  id: string;
+  email: string;
+  fullName: string;
+  role: 'admin' | 'super_admin';
+  isSuperAdmin: boolean;
+  unit: {
+    id: string;
+    name: string;
+    location: string;
+    city: string;
+    maxDailyCapacity: number;
+    hasStockAccess: boolean;
+    isActive: boolean;
+  } | null;
+}
+
 // --- Orders ----------------------------------------------------------------
 
 export interface OrderListItem {
@@ -111,7 +187,9 @@ export interface OrderListItem {
   totalAmount: string;
   createdAt: string;
   customer: CustomerRef;
+  assignedUnit: UnitRef | null;
   assignedTailor: TailorRef | null;
+  product?: { id: string; name: string | null; unitId: string | null } | null;
 }
 
 export interface OrdersListResponse {
@@ -190,7 +268,17 @@ export interface OrderDetail {
   productSnapshot: Record<string, unknown> | null;
   deliveryAddressSnapshot: Record<string, unknown> | null;
   customer: OrderCustomerFull;
+  assignedUnitId?: string | null;
+  assignedUnitAt?: string | null;
+  assignedUnit: UnitRef | null;
   assignedTailor: TailorRef | null;
+  product?: {
+    id: string;
+    name: string | null;
+    brand: string | null;
+    unitId: string | null;
+    unit: { id: string; name: string } | null;
+  } | null;
   qcInspector: {
     id: string;
     firstName: string;
@@ -206,6 +294,13 @@ export interface OrderDetail {
 
 export interface TailorProfileDTO {
   id: string;
+  unitId?: string | null;
+  unit?: {
+    id: string;
+    name: string;
+    location: string;
+    city: string;
+  } | null;
   employeeId: string | null;
   skillLevel: TailorSkillLevel;
   maxDailyCapacity: number;
@@ -217,6 +312,18 @@ export interface TailorProfileDTO {
   isAvailable: boolean;
 }
 
+export interface TailorAssignedOrderRef {
+  id: string;
+  orderNumber: string;
+  garmentType: string;
+  status: OrderStatus;
+  assignedAt?: string | null;
+  customer: {
+    firstName: string;
+    lastName: string | null;
+  };
+}
+
 export interface TailorRow {
   id: string;
   firstName: string;
@@ -226,6 +333,7 @@ export interface TailorRow {
   isActive: boolean;
   createdAt: string;
   tailorProfile: TailorProfileDTO | null;
+  ordersAsTailor?: TailorAssignedOrderRef[];
 }
 
 // --- Users -----------------------------------------------------------------

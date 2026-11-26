@@ -16,6 +16,7 @@ export interface OrderFilters {
   limit: number;
   status?: string;
   search?: string;
+  unitId?: string;
 }
 
 function ordersUrl(f: OrderFilters) {
@@ -24,6 +25,7 @@ function ordersUrl(f: OrderFilters) {
   p.set('limit', String(f.limit));
   if (f.status) p.set('status', f.status);
   if (f.search) p.set('search', f.search);
+  if (f.unitId) p.set('unitId', f.unitId);
   return `/api/admin/orders?${p.toString()}`;
 }
 
@@ -48,14 +50,39 @@ function invalidateOrder(qc: ReturnType<typeof useQueryClient>, id: string) {
   qc.invalidateQueries({ queryKey: adminKeys.ordersAll });
 }
 
+export function useAssignUnit(orderId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ unitId, reason }: { unitId: string; reason?: string }) =>
+      api.patch(`/api/admin/orders/${orderId}/assign-unit`, { unitId, reason }),
+    onSuccess: async () => {
+      invalidateOrder(qc, orderId);
+      qc.removeQueries({ queryKey: adminKeys.tailorsAll });
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: adminKeys.unitsAll }),
+        qc.invalidateQueries({ queryKey: adminKeys.dashboard }),
+      ]);
+      toast({ title: 'Order assigned to tailoring unit', variant: 'success' });
+    },
+    onError: (e: Error) =>
+      toast({
+        title: 'Could not assign unit',
+        description: e.message,
+        variant: 'destructive',
+      }),
+  });
+}
+
 export function useAssignTailor(orderId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (tailorId: string) =>
       api.patch(`/api/admin/orders/${orderId}/assign`, { tailorId }),
-    onSuccess: () => {
+    onSuccess: async () => {
       invalidateOrder(qc, orderId);
-      qc.invalidateQueries({ queryKey: adminKeys.tailorsAll });
+      // Clear cached tailor list so navigating back to /admin/tailors always fetches fresh assigned suits
+      qc.removeQueries({ queryKey: adminKeys.tailorsAll });
+      await qc.invalidateQueries({ queryKey: adminKeys.dashboard });
       toast({ title: 'Tailor assigned', variant: 'success' });
     },
     onError: (e: Error) =>

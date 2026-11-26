@@ -150,6 +150,12 @@ enum AuditTriggerType {
   ai
 }
 
+enum StockApprovalStatus {
+  approved
+  pending
+  rejected
+}
+
 // ================================================================
 // MODELS
 // ================================================================
@@ -199,6 +205,7 @@ model User {
   cancelledOrders    Order[]         @relation("CancelledByOrders")
   payments           Payment[]
   tailorProfile      TailorProfile?
+  managedUnit        TailoringUnit?  @relation("UnitManager")
   deliveries         Delivery[]
   feedback           OrderFeedback[]
   referralsGiven     Referral[]      @relation("ReferrerReferrals")
@@ -383,17 +390,22 @@ model Product {
   priceOriginal   Decimal?     @map("price_original") @db.Decimal(10, 2)
   currencyOriginal String?     @map("currency_original") @db.VarChar(10)
   isActive        Boolean      @default(true) @map("is_active")
-  parseSource     String?      @map("parse_source") @db.VarChar(100)
-  parsedAt        DateTime?    @map("parsed_at") @db.Timestamptz
-  parseMetadata   Json         @default("{}") @map("parse_metadata") @db.JsonB
-  createdById     String?      @map("created_by") @db.Uuid
-  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  parseSource     String?             @map("parse_source") @db.VarChar(100)
+  parsedAt        DateTime?           @map("parsed_at") @db.Timestamptz
+  parseMetadata   Json                @default("{}") @map("parse_metadata") @db.JsonB
+  createdById     String?             @map("created_by") @db.Uuid
+  unitId          String?             @map("unit_id") @db.Uuid
+  approvalStatus  StockApprovalStatus @default(approved) @map("approval_status")
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz
 
+  unit            TailoringUnit?      @relation(fields: [unitId], references: [id], onDelete: SetNull)
   orders          Order[]
 
   @@map("products")
   @@index([normalizedUrl])
+  @@index([unitId])
+  @@index([approvalStatus])
 }
 
 model Order {
@@ -407,6 +419,8 @@ model Order {
   styleConfigId             String?      @map("style_config_id") @db.Uuid
   styleSnapshot             Json         @map("style_snapshot") @db.JsonB
   productSnapshot           Json         @default("{}") @map("product_snapshot") @db.JsonB
+  assignedUnitId            String?      @map("assigned_unit_id") @db.Uuid
+  assignedUnitAt            DateTime?    @map("assigned_unit_at") @db.Timestamptz
   assignedTailorId          String?      @map("assigned_tailor_id") @db.Uuid
   assignedAt                DateTime?    @map("assigned_at") @db.Timestamptz
   assignmentReason          String?      @map("assignment_reason")
@@ -448,6 +462,7 @@ model Order {
   deletedAt                 DateTime?    @map("deleted_at") @db.Timestamptz
 
   customer          User                @relation("CustomerOrders", fields: [customerId], references: [id])
+  assignedUnit      TailoringUnit?      @relation(fields: [assignedUnitId], references: [id], onDelete: SetNull)
   assignedTailor    User?               @relation("TailorOrders", fields: [assignedTailorId], references: [id])
   qcInspector       User?               @relation("QcOrders", fields: [qcInspectorId], references: [id])
   cancelledBy       User?               @relation("CancelledByOrders", fields: [cancelledById], references: [id])
@@ -468,6 +483,7 @@ model Order {
   @@map("orders")
   @@index([customerId])
   @@index([status])
+  @@index([assignedUnitId])
   @@index([assignedTailorId])
   @@index([orderNumber])
   @@index([createdAt(sort: Desc)])
@@ -575,9 +591,32 @@ model Payment {
   @@index([status])
 }
 
+model TailoringUnit {
+  id                  String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                String   @db.VarChar(200)
+  location            String   @db.VarChar(300)
+  city                String   @default("Lahore") @db.VarChar(100)
+  managerId           String   @unique @map("manager_id") @db.Uuid
+  maxDailyCapacity    Int      @default(10) @map("max_daily_capacity")
+  hasStockAccess      Boolean  @default(false) @map("has_stock_access")
+  isActive            Boolean  @default(true) @map("is_active")
+  notes               String?
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  manager             User            @relation("UnitManager", fields: [managerId], references: [id], onDelete: Cascade)
+  tailors             TailorProfile[]
+  orders              Order[]
+  products            Product[]
+
+  @@map("tailoring_units")
+  @@index([isActive])
+}
+
 model TailorProfile {
   id                      String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   userId                  String           @unique @map("user_id") @db.Uuid
+  unitId                  String?          @map("unit_id") @db.Uuid
   employeeId              String?          @unique @map("employee_id") @db.VarChar(50)
   skillLevel              TailorSkillLevel @default(junior) @map("skill_level")
   maxDailyCapacity        Int              @default(3) @map("max_daily_capacity")
@@ -598,9 +637,11 @@ model TailorProfile {
   updatedAt               DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
   user                    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unit                    TailoringUnit?   @relation(fields: [unitId], references: [id], onDelete: SetNull)
 
   @@map("tailor_profiles")
   @@index([isAvailable, currentActiveOrders])
+  @@index([unitId])
 }
 
 model Delivery {

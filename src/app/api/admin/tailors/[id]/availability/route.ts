@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { requireRole } from '@/lib/utils/auth';
+import { requireAdminActor } from '@/lib/utils/auth';
 import { apiSuccess } from '@/lib/utils/response';
 import { handleApiError, AppError } from '@/lib/utils/errors';
 import { setTailorAvailability } from '@/lib/services/admin.service';
@@ -9,7 +9,10 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireRole(['admin', 'super_admin']);
+    const actor = await requireAdminActor();
+    if (!actor.isSuperAdmin && !actor.unit) {
+      throw AppError.forbidden('No tailoring unit is linked to your account.');
+    }
     const { id } = await params;
     const { isAvailable } = await request.json();
 
@@ -17,7 +20,11 @@ export async function PATCH(
       throw AppError.badRequest('isAvailable boolean is required');
     }
 
-    const tailor = await setTailorAvailability(id, isAvailable);
+    const tailor = await setTailorAvailability(
+      id,
+      isAvailable,
+      actor.isSuperAdmin ? null : actor.unit!.id
+    );
     return apiSuccess(tailor, 200, {
       message: 'Availability updated successfully',
     });

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { requireRole } from '@/lib/utils/auth';
+import { requireAdminActor } from '@/lib/utils/auth';
 import { apiSuccess } from '@/lib/utils/response';
 import { handleApiError, AppError } from '@/lib/utils/errors';
 import path from 'path';
@@ -32,7 +32,12 @@ const s3Client = isR2Configured
 
 export async function POST(request: NextRequest) {
   try {
-    await requireRole('admin', 'super_admin');
+    const actor = await requireAdminActor();
+    if (!actor.isSuperAdmin && (!actor.unit || !actor.unit.hasStockAccess)) {
+      throw AppError.forbidden(
+        'Stock image uploads require Super Admin or a unit with Stock Access enabled.'
+      );
+    }
 
     const formData = await request.formData();
     const files: File[] = [];

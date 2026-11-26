@@ -62,3 +62,89 @@ export async function getFullUser(userId: string): Promise<FullUser | null> {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   return user;
 }
+
+export interface AdminUnitInfo {
+  id: string;
+  name: string;
+  location: string;
+  city: string;
+  maxDailyCapacity: number;
+  hasStockAccess: boolean;
+  isActive: boolean;
+}
+
+export interface AdminActor {
+  id: string;
+  email: string;
+  fullName: string;
+  role: 'admin' | 'super_admin';
+  isSuperAdmin: boolean;
+  unit: AdminUnitInfo | null;
+}
+
+/**
+ * Resolves the authenticated admin or super_admin together with their assigned
+ * TailoringUnit (for unit admins). Centralizes RBAC + unit scoping in one place.
+ */
+export async function requireAdminActor(): Promise<AdminActor> {
+  const authUser = await requireRole('admin', 'super_admin');
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: authUser.id },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      role: true,
+      isActive: true,
+      isBlocked: true,
+      managedUnit: {
+        select: {
+          id: true,
+          name: true,
+          location: true,
+          city: true,
+          maxDailyCapacity: true,
+          hasStockAccess: true,
+          isActive: true,
+        },
+      },
+    },
+  });
+
+  if (dbUser && (!dbUser.isActive || dbUser.isBlocked)) {
+    throw AppError.forbidden(
+      'Your administrator account is inactive or blocked.'
+    );
+  }
+
+  const resolvedRole =
+    dbUser?.role === 'super_admin' ||
+    (authUser as any).app_metadata?.role === 'super_admin'
+      ? 'super_admin'
+      : 'admin';
+
+  const firstName =
+    dbUser?.firstName || (authUser.user_metadata?.first_name as string) || '';
+  const lastName =
+    dbUser?.lastName || (authUser.user_metadata?.last_name as string) || '';
+  const fullName = `${firstName} ${lastName}`.trim() || 'Administrator';
+
+  return {
+    id: authUser.id,
+    email: dbUser?.email || authUser.email || '',
+    fullName,
+    role: resolvedRole,
+    isSuperAdmin: resolvedRole === 'super_admin',
+    unit: resolvedRole === 'super_admin' ? null : (dbUser?.managedUnit ?? null),
+  };
+}
+
+export async function requireSuperAdmin(): Promise<AdminActor> {
+  const actor = await requireAdminActor();
+  if (!actor.isSuperAdmin) {
+    throw AppError.forbidden('This action is restricted to Super Admin only.');
+  }
+  return actor;
+}

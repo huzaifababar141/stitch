@@ -15,6 +15,9 @@ export const adminKeys = {
   tailors: (filters: unknown) => ['admin', 'tailors', filters] as const,
   tailor: (id: string) => ['admin', 'tailor', id] as const,
 
+  unitsAll: ['admin', 'units'] as const,
+  unit: (id: string) => ['admin', 'unit', id] as const,
+
   usersAll: ['admin', 'users'] as const,
   users: (filters: unknown) => ['admin', 'users', filters] as const,
   user: (id: string) => ['admin', 'user', id] as const,

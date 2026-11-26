@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { requireRole } from '@/lib/utils/auth';
+import { requireAdminActor } from '@/lib/utils/auth';
 import { apiSuccess } from '@/lib/utils/response';
 import { handleApiError, AppError } from '@/lib/utils/errors';
 import { overrideOrderStatus } from '@/lib/services/admin.service';
@@ -10,7 +10,10 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await requireRole('super_admin'); // Only super admin can override
+    const actor = await requireAdminActor();
+    if (!actor.isSuperAdmin && !actor.unit) {
+      throw AppError.forbidden('No tailoring unit is linked to your account.');
+    }
     const { id } = await context.params;
     const { status } = await request.json();
 
@@ -18,9 +21,12 @@ export async function PATCH(
       throw AppError.badRequest('Valid status is required');
     }
 
-    const order = await overrideOrderStatus(id, status, admin.id);
+    const order = await overrideOrderStatus(id, status, actor.id, {
+      isSuperAdmin: actor.isSuperAdmin,
+      scopedUnitId: actor.isSuperAdmin ? null : actor.unit!.id,
+    });
     return apiSuccess(order, 200, {
-      message: 'Status overridden successfully',
+      message: 'Status updated successfully',
     });
   } catch (error) {
     return handleApiError(error);

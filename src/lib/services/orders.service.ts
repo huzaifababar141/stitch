@@ -270,12 +270,49 @@ export async function createOrder(customerId: string, data: any) {
     fitType: data.stylePreferences?.fitType,
   };
 
+  // Resolve product ownership: if the ordered fabric belongs to a TailoringUnit,
+  // auto-route the order to that unit so its own darzi stitches it (while Super Admin still sees all orders).
+  let linkedUnitId: string | null = null;
+  let productSnapshot: Record<string, unknown> = {};
+  if (data.productId) {
+    const product = await prisma.product.findUnique({
+      where: { id: data.productId },
+      include: {
+        unit: {
+          select: { id: true, name: true, location: true, isActive: true },
+        },
+      },
+    });
+    if (product) {
+      productSnapshot = {
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        fabricType: product.fabricType,
+        priceOriginal: product.priceOriginal
+          ? Number(product.priceOriginal)
+          : null,
+        unitId: product.unitId,
+        unitName: product.unit?.name ?? null,
+      };
+      if (product.unitId && product.unit?.isActive) {
+        linkedUnitId = product.unitId;
+      }
+    }
+  }
+
   // Create Order
   const order = await prisma.order.create({
     data: {
       orderNumber,
       customerId,
       productId: data.productId,
+      productSnapshot: productSnapshot as any,
+      assignedUnitId: linkedUnitId,
+      assignedUnitAt: linkedUnitId ? new Date() : null,
+      assignmentReason: linkedUnitId
+        ? 'Auto-assigned to fabric stock owner unit'
+        : null,
       garmentType: data.garmentType,
       measurementProfileId: measurement.id,
       measurementSnapshot: measurement as any,

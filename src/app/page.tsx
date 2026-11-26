@@ -906,7 +906,7 @@ export default function Home() {
               <p className="font-semibold text-white text-[12px]">
                 +92 (300) 000-0000
               </p>
-              <p className="text-gray-400 text-[11px]">support@tailorlink.pk</p>
+              <p className="text-gray-400 text-[11px]">support@suidhagaa.com</p>
             </div>
           </div>
         </div>

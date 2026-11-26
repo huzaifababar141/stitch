@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
     const where: any = {
       parseSource: 'in_house',
       isActive: true,
+      approvalStatus: 'approved',
     };
 
     if (search) {

@@ -33,6 +33,7 @@ export function DragDropImageUploader({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isDropzoneActive, setIsDropzoneActive] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
 
   // Handle uploading files from computer via /api/upload
   const handleFileUpload = async (files: FileList | File[]) => {
@@ -239,6 +240,41 @@ export function DragDropImageUploader({
         >
           {uploading ? 'Processing...' : 'Browse Local Files'}
         </Button>
+
+        {/* Alternative: Add Image by Direct URL */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center gap-2 pt-3 border-t border-stone-200/80 w-full max-w-md mx-auto mt-1"
+        >
+          <input
+            type="url"
+            placeholder="Or enter image URL (https://...)"
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            className="h-8 px-3 text-xs bg-white rounded-xl border border-gray-300 w-full text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#7E153A]"
+          />
+          <Button
+            type="button"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!urlInput.trim()) return;
+              if (images.length >= maxImages) {
+                toast({
+                  title: 'Limit Exceeded',
+                  description: `You can upload up to ${maxImages} images per article.`,
+                  variant: 'destructive',
+                });
+                return;
+              }
+              onChange([...images, urlInput.trim()]);
+              setUrlInput('');
+            }}
+            className="h-8 px-3.5 rounded-xl bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold shrink-0 cursor-pointer shadow-xs"
+          >
+            Add URL
+          </Button>
+        </div>
       </div>
 
       {/* Reorderable Image Gallery Grid */}

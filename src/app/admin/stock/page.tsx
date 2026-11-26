@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   Boxes,
   Plus,
@@ -21,12 +22,17 @@ import {
   X,
   RefreshCw,
   ShoppingBag,
+  Building2,
+  ShieldAlert,
+  Clock,
+  XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { confirmDialog } from '@/components/ui/confirm-dialog';
 import { DragDropImageUploader } from '@/components/admin/DragDropImageUploader';
+import { useAdminActor } from '@/components/admin/AdminActorContext';
 
 interface ProductItem {
   id: string;
@@ -40,6 +46,14 @@ interface ProductItem {
   priceOriginal: number;
   currencyOriginal: string;
   isActive: boolean;
+  unitId?: string | null;
+  approvalStatus?: 'approved' | 'pending' | 'rejected';
+  unit?: {
+    id: string;
+    name: string;
+    location: string;
+    city: string;
+  } | null;
   parseMetadata: {
     gender?: string;
     piecesCount?: string;
@@ -48,6 +62,7 @@ interface ProductItem {
     inStock?: boolean;
     sku?: string;
     season?: string;
+    rejectionNote?: string;
     specifications?: {
       shirtFabric?: string;
       dupattaFabric?: string;
@@ -169,15 +184,22 @@ export const ALL_CATEGORIES = [
   { key: 'trouser_only', label: 'Trouser / Bottom' },
 ];
 
-export default function AdminStockPage() {
+function AdminStockContent() {
   const { toast } = useToast();
+  const actor = useAdminActor();
+  const searchParams = useSearchParams();
+
+  const canAccessStock =
+    actor.isSuperAdmin || Boolean(actor.unit?.hasStockAccess);
 
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalArticles: 0,
     inStockCount: 0,
     lowStockCount: 0,
+    pendingApprovalCount: 0,
     totalValuation: 0,
   });
 
@@ -187,6 +209,9 @@ export default function AdminStockPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [fabricFilter, setFabricFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all');
+  const [approvalFilter, setApprovalFilter] = useState(
+    searchParams.get('approvalStatus') || 'all'
+  );
 
   // Modal / Drawer state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -224,6 +249,10 @@ export default function AdminStockPage() {
 
   // Fetch articles from API
   const fetchArticles = async () => {
+    if (!canAccessStock) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -232,6 +261,8 @@ export default function AdminStockPage() {
       if (categoryFilter !== 'all') params.append('category', categoryFilter);
       if (fabricFilter !== 'all') params.append('fabricType', fabricFilter);
       if (stockFilter !== 'all') params.append('inStock', stockFilter);
+      if (approvalFilter !== 'all')
+        params.append('approvalStatus', approvalFilter);
 
       const res = await fetch(`/api/admin/products?${params.toString()}`);
       const json = await res.json();
@@ -239,10 +270,13 @@ export default function AdminStockPage() {
       if (res.ok && json.data) {
         setProducts(json.data.products || []);
         if (json.data.stats) {
-          setStats(json.data.stats);
+          setStats({
+            pendingApprovalCount: 0,
+            ...json.data.stats,
+          });
         }
       }
-    } catch (err) {
+    } catch {
       toast({
         title: 'Error loading inventory',
         description: 'Could not fetch stock articles.',
@@ -256,7 +290,54 @@ export default function AdminStockPage() {
   useEffect(() => {
     fetchArticles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [genderFilter, categoryFilter, fabricFilter, stockFilter]);
+  }, [
+    canAccessStock,
+    genderFilter,
+    categoryFilter,
+    fabricFilter,
+    stockFilter,
+    approvalFilter,
+  ]);
+
+  // Super Admin Approve / Reject Unit Stock Submission
+  const handleReviewArticle = async (
+    id: string,
+    name: string,
+    action: 'approve' | 'reject'
+  ) => {
+    setReviewingId(id);
+    try {
+      const res = await fetch(`/api/admin/products/${id}/approve`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error?.message || 'Review action failed.');
+      }
+      toast({
+        title:
+          action === 'approve'
+            ? 'Published to Storefront'
+            : 'Submission Rejected',
+        description:
+          json.meta?.message ||
+          (action === 'approve'
+            ? `"${name}" is now live for customers.`
+            : `"${name}" was marked rejected.`),
+      });
+      fetchArticles();
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message || 'Could not update approval status.',
+        variant: 'destructive',
+      });
+    } finally {
+      setReviewingId(null);
+    }
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -424,8 +505,14 @@ export default function AdminStockPage() {
       }
 
       toast({
-        title: editingProduct ? 'Article Updated' : 'Article Added to Stock',
-        description: `"${formName}" is now active in in-house stock.`,
+        title: editingProduct
+          ? 'Article Updated'
+          : actor.isSuperAdmin
+            ? 'Article Added to Stock'
+            : 'Submitted for Super Admin Approval',
+        description: actor.isSuperAdmin
+          ? `"${formName}" is now active in in-house stock.`
+          : `"${formName}" was sent to Super Admin for review & publishing.`,
       });
 
       setIsModalOpen(false);
@@ -473,6 +560,30 @@ export default function AdminStockPage() {
     }
   };
 
+  if (!canAccessStock) {
+    return (
+      <div className="bg-white rounded-3xl border border-gray-200 p-12 text-center space-y-4 max-w-xl mx-auto mt-8">
+        <div className="w-14 h-14 rounded-2xl bg-red-50 text-[#7E153A] flex items-center justify-center mx-auto">
+          <ShieldAlert size={28} />
+        </div>
+        <h2 className="text-xl font-black text-gray-900">
+          Stock Access Not Enabled
+        </h2>
+        <p className="text-sm text-gray-500 leading-relaxed">
+          Your tailoring unit (<strong>{actor.unit?.name}</strong>) currently
+          only has stitching access. If you have your own fabric stock to sell,
+          ask the Super Admin to enable <strong>Stock Access</strong> for your
+          unit from Tailoring Units.
+        </p>
+        <Link href="/admin/dashboard">
+          <Button variant="outline" className="rounded-xl text-xs font-bold">
+            Return to Unit Dashboard
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 pb-16">
       {/* Top Header & Quick Action */}
@@ -483,12 +594,15 @@ export default function AdminStockPage() {
               <Boxes size={22} />
             </span>
             <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-              In-House Stock & Fabric Studio
+              {actor.isSuperAdmin
+                ? 'In-House Stock & Unit Approval Studio'
+                : `${actor.unit?.name} — Fabric Stock Submissions`}
             </h1>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            Manage your unstitched fabric articles, reorder gallery photos, and
-            set PKR prices for direct tailoring.
+            {actor.isSuperAdmin
+              ? 'Manage HQ unstitched fabrics, and review & publish fabric stock submitted by partner tailoring units.'
+              : 'Upload photos & details of your unit’s fabric stock. Super Admin will review and publish approved articles to the live storefront.'}
           </p>
         </div>
 
@@ -506,9 +620,41 @@ export default function AdminStockPage() {
             onClick={handleOpenAddModal}
             className="bg-[#7E153A] hover:bg-[#630f2d] text-white rounded-xl text-xs font-bold shadow-md shadow-[#7E153A]/20 gap-1.5 px-4 h-10 cursor-pointer"
           >
-            <Plus size={16} /> Add Stock Article
+            <Plus size={16} />{' '}
+            {actor.isSuperAdmin ? 'Add Stock Article' : 'Submit Unit Stock'}
           </Button>
         </div>
+      </div>
+
+      {/* Approval Status Filter Tabs */}
+      <div className="flex flex-wrap items-center gap-2">
+        {[
+          { key: 'all', label: `All (${stats.totalArticles})` },
+          {
+            key: 'pending',
+            label: `Pending Approval (${stats.pendingApprovalCount})`,
+          },
+          { key: 'approved', label: 'Published Live' },
+          { key: 'rejected', label: 'Rejected' },
+        ].map((tab) => {
+          const active = approvalFilter === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setApprovalFilter(tab.key)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                active
+                  ? 'bg-[#7E153A] !text-white border-[#7E153A] shadow-xs'
+                  : tab.key === 'pending' && stats.pendingApprovalCount > 0
+                    ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Metric Cards */}
@@ -698,12 +844,22 @@ export default function AdminStockPage() {
                     </span>
                     <span
                       className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                        isAvailable
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-red-600 text-white'
+                        item.approvalStatus === 'pending'
+                          ? 'bg-amber-500 text-white'
+                          : item.approvalStatus === 'rejected'
+                            ? 'bg-red-700 text-white'
+                            : isAvailable
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-red-600 text-white'
                       }`}
                     >
-                      {isAvailable ? `${qty} in stock` : 'Out of stock'}
+                      {item.approvalStatus === 'pending'
+                        ? 'Pending Approval'
+                        : item.approvalStatus === 'rejected'
+                          ? 'Rejected'
+                          : isAvailable
+                            ? `${qty} in stock`
+                            : 'Out of stock'}
                     </span>
                   </div>
 
@@ -730,7 +886,7 @@ export default function AdminStockPage() {
                       {item.name}
                     </h3>
 
-                    <div className="flex items-center gap-2 mt-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                       <span className="text-[10px] font-bold bg-[#FAF0F2] text-[#7E153A] px-2 py-0.5 rounded-md border border-[#7E153A]/20">
                         {meta.gender === 'male' ? 'Men' : 'Women'} ·{' '}
                         {ALL_CATEGORIES.find(
@@ -744,6 +900,64 @@ export default function AdminStockPage() {
                         {meta.piecesCount || '3-Piece'}
                       </span>
                     </div>
+
+                    {/* Source Unit Badge */}
+                    <div className="mt-2">
+                      {item.unit ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full">
+                          <Building2 size={10} /> Unit: {item.unit.name}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full">
+                          HQ Stock
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Super Admin Approval Controls for Unit Submissions */}
+                    {actor.isSuperAdmin &&
+                      item.approvalStatus === 'pending' && (
+                        <div className="mt-3 pt-2.5 border-t border-amber-100 flex items-center gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={reviewingId === item.id}
+                            onClick={() =>
+                              handleReviewArticle(item.id, item.name, 'approve')
+                            }
+                            className="flex-1 h-8 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg cursor-pointer"
+                          >
+                            {reviewingId === item.id ? (
+                              <Loader2 size={12} className="animate-spin" />
+                            ) : (
+                              <>
+                                <CheckCircle2 size={12} className="mr-1" />
+                                Approve & Publish
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={reviewingId === item.id}
+                            onClick={() =>
+                              handleReviewArticle(item.id, item.name, 'reject')
+                            }
+                            className="h-8 px-2.5 text-[11px] font-bold rounded-lg text-red-600 border-red-200 hover:bg-red-50 cursor-pointer"
+                          >
+                            <XCircle size={12} className="mr-1" /> Reject
+                          </Button>
+                        </div>
+                      )}
+
+                    {!actor.isSuperAdmin &&
+                      item.approvalStatus === 'pending' && (
+                        <div className="mt-2.5 p-2 rounded-lg bg-amber-50 border border-amber-200 text-[10px] text-amber-800 flex items-center gap-1.5 font-semibold">
+                          <Clock size={12} className="shrink-0" /> Waiting for
+                          Super Admin to publish live
+                        </div>
+                      )}
                   </div>
 
                   {/* Price & Actions */}
@@ -1235,9 +1449,15 @@ export default function AdminStockPage() {
                       Saving to Database...
                     </>
                   ) : editingProduct ? (
-                    'Update Article & Photos'
-                  ) : (
+                    actor.isSuperAdmin ? (
+                      'Update Article & Photos'
+                    ) : (
+                      'Save & Re-submit for Approval'
+                    )
+                  ) : actor.isSuperAdmin ? (
                     'Upload & Publish to Stock'
+                  ) : (
+                    'Submit for Super Admin Approval'
                   )}
                 </Button>
               </div>
@@ -1246,5 +1466,22 @@ export default function AdminStockPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminStockPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#7E153A] mb-3" />
+          <p className="text-sm font-bold text-gray-700">
+            Loading Stock Studio...
+          </p>
+        </div>
+      }
+    >
+      <AdminStockContent />
+    </Suspense>
   );
 }

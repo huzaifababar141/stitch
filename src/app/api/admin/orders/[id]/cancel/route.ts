@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { requireRole } from '@/lib/utils/auth';
+import { requireSuperAdmin } from '@/lib/utils/auth';
 import { apiSuccess } from '@/lib/utils/response';
 import { handleApiError } from '@/lib/utils/errors';
 import { cancelOrder } from '@/lib/services/admin.service';
@@ -9,7 +9,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await requireRole(['admin', 'super_admin']);
+    const admin = await requireSuperAdmin();
     const { id } = await params;
     const { reason } = await request.json().catch(() => ({}));
 
