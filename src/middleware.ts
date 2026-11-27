@@ -79,8 +79,11 @@ export async function middleware(request: NextRequest) {
     const role = (user.app_metadata?.role as string) || 'customer';
     const isAdmin = role === 'admin' || role === 'super_admin';
 
-    // If logged-in admin tries to open admin login or customer login, send them to admin dashboard
-    if ((isAdminLogin || isCustomerAuthRoute) && isAdmin) {
+    // If logged-in admin tries to open admin login or customer login, send them to admin dashboard.
+    // Never redirect away from /admin/login when an ?error= query param is present so users
+    // are never trapped in a redirect loop.
+    const hasErrorParam = request.nextUrl.searchParams.has('error');
+    if (((isAdminLogin && !hasErrorParam) || isCustomerAuthRoute) && isAdmin) {
       return NextResponse.redirect(new URL('/admin/dashboard', request.url));
     }
 

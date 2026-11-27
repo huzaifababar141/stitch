@@ -41,10 +41,16 @@ function AdminLoginForm() {
       ? 'Access Denied: The logged-in account does not possess administrator privileges.'
       : '');
 
-  // If already logged in as admin, auto-redirect to dashboard
+  // If already logged in as admin, auto-redirect to dashboard (unless redirected here with an error)
   useEffect(() => {
     async function checkExistingAdmin() {
-      if (user && !authLoading) {
+      if (user && !authLoading && !errorParam) {
+        const appRole = (user.app_metadata as { role?: string } | undefined)
+          ?.role;
+        if (appRole === 'admin' || appRole === 'super_admin') {
+          router.push(redirectUrl);
+          return;
+        }
         const { data: profile } = await supabase
           .from('users')
           .select('role')
@@ -57,7 +63,7 @@ function AdminLoginForm() {
       }
     }
     checkExistingAdmin();
-  }, [user, authLoading, redirectUrl, router, supabase]);
+  }, [user, authLoading, errorParam, redirectUrl, router, supabase]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,14 +92,17 @@ function AdminLoginForm() {
         throw new Error('Authentication failed. No user returned.');
       }
 
-      // 2. Verify admin role in database
+      // 2. Verify admin role (authoritative app_metadata or database profile)
       const { data: profile } = await supabase
         .from('users')
         .select('role, first_name, last_name')
         .eq('id', data.user.id)
         .single();
 
-      const userRole = profile?.role || data.user.user_metadata?.role;
+      const userRole =
+        (data.user.app_metadata as { role?: string } | undefined)?.role ||
+        profile?.role ||
+        data.user.user_metadata?.role;
 
       if (userRole !== 'admin' && userRole !== 'super_admin') {
         // Not authorized: Log them out immediately
@@ -110,13 +119,14 @@ function AdminLoginForm() {
         return;
       }
 
-      // 3. Success: Redirect to Admin Dashboard
+      // 3. Success: Full navigation guarantees freshly written SSR auth cookies
+      // are sent on the very first /api/admin/me request (no race condition).
       toast({
         title: 'Authentication Successful',
         description: 'Welcome to the TailorLink Admin Command Center.',
       });
 
-      router.push(redirectUrl);
+      window.location.assign(redirectUrl);
     } catch (err: any) {
       const msg =
         err.message || 'Invalid administrator email address or password.';

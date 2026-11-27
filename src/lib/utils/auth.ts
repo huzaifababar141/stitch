@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '../supabase/server';
+import { supabaseAdmin } from '../supabase/admin';
 import { prisma } from '../prisma';
 import { AppError } from './errors';
 import { AuthUser, FullUser } from '../types';
@@ -89,29 +90,94 @@ export interface AdminActor {
 export async function requireAdminActor(): Promise<AdminActor> {
   const authUser = await requireRole('admin', 'super_admin');
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: authUser.id },
-    select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-      role: true,
-      isActive: true,
-      isBlocked: true,
-      managedUnit: {
-        select: {
-          id: true,
-          name: true,
-          location: true,
-          city: true,
-          maxDailyCapacity: true,
-          hasStockAccess: true,
-          isActive: true,
+  let dbUser: {
+    id: string;
+    email: string | null;
+    firstName: string;
+    lastName: string | null;
+    role: string;
+    isActive: boolean;
+    isBlocked: boolean;
+    managedUnit: AdminUnitInfo | null;
+  } | null = null;
+
+  try {
+    dbUser = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        isActive: true,
+        isBlocked: true,
+        managedUnit: {
+          select: {
+            id: true,
+            name: true,
+            location: true,
+            city: true,
+            maxDailyCapacity: true,
+            hasStockAccess: true,
+            isActive: true,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (prismaErr) {
+    // Graceful HTTPS fallback via Supabase service-role client so transient
+    // PostgreSQL pooler/network errors on serverless never lock out valid admins.
+    console.error(
+      'requireAdminActor Prisma lookup failed, falling back to Supabase REST:',
+      prismaErr
+    );
+    try {
+      const { data: uRow } = await supabaseAdmin
+        .from('users')
+        .select('id, email, first_name, last_name, role, is_active, is_blocked')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      if (uRow) {
+        let managedUnit: AdminUnitInfo | null = null;
+        if (uRow.role === 'admin') {
+          const { data: unitRow } = await supabaseAdmin
+            .from('tailoring_units')
+            .select(
+              'id, name, location, city, max_daily_capacity, has_stock_access, is_active'
+            )
+            .eq('manager_id', authUser.id)
+            .maybeSingle();
+
+          if (unitRow) {
+            managedUnit = {
+              id: unitRow.id,
+              name: unitRow.name,
+              location: unitRow.location,
+              city: unitRow.city,
+              maxDailyCapacity: unitRow.max_daily_capacity,
+              hasStockAccess: unitRow.has_stock_access,
+              isActive: unitRow.is_active,
+            };
+          }
+        }
+
+        dbUser = {
+          id: uRow.id,
+          email: uRow.email,
+          firstName: uRow.first_name || '',
+          lastName: uRow.last_name || null,
+          role: uRow.role,
+          isActive: uRow.is_active ?? true,
+          isBlocked: uRow.is_blocked ?? false,
+          managedUnit,
+        };
+      }
+    } catch (sbErr) {
+      console.error('requireAdminActor Supabase fallback failed:', sbErr);
+    }
+  }
 
   if (dbUser && (!dbUser.isActive || dbUser.isBlocked)) {
     throw AppError.forbidden(

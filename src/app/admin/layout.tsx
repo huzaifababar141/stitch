@@ -63,6 +63,11 @@ export default function AdminLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [actor, setActor] = useState<AdminActorDTO | null>(null);
   const [verifyingRole, setVerifyingRole] = useState(true);
+  const [verifyError, setVerifyError] = useState<{
+    kind: 'forbidden' | 'server';
+    message: string;
+  } | null>(null);
+  const [retryTick, setRetryTick] = useState(0);
   const lastVerifiedUserIdRef = useRef<string | null>(null);
 
   const { newOrdersCount, resetNewOrdersCount } = useAdminRealtime();
@@ -77,6 +82,7 @@ export default function AdminLayout({
         lastVerifiedUserIdRef.current = null;
         queryClient.clear();
       }
+      setVerifyError(null);
       return;
     }
 
@@ -87,6 +93,7 @@ export default function AdminLayout({
 
       if (!user) {
         setActor(null);
+        setVerifyError(null);
         lastVerifiedUserIdRef.current = null;
         queryClient.clear();
         router.push(
@@ -99,6 +106,7 @@ export default function AdminLayout({
       // immediately clear stale React Query data and re-verify role from server.
       if (lastVerifiedUserIdRef.current !== user.id) {
         setActor(null);
+        setVerifyError(null);
         setVerifyingRole(true);
         queryClient.clear();
       } else if (actor) {
@@ -108,7 +116,20 @@ export default function AdminLayout({
       }
 
       try {
-        const res = await fetch('/api/admin/me', { cache: 'no-store' });
+        let res = await fetch('/api/admin/me', {
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+
+        // One brief retry if SSR auth cookies were still settling right after login
+        if (res.status === 401) {
+          await new Promise((r) => setTimeout(r, 400));
+          res = await fetch('/api/admin/me', {
+            cache: 'no-store',
+            credentials: 'same-origin',
+          });
+        }
+
         const json = await res.json().catch(() => null);
 
         if (!isMounted) return;
@@ -116,25 +137,52 @@ export default function AdminLayout({
         if (!res.ok || !json?.data) {
           setActor(null);
           lastVerifiedUserIdRef.current = null;
-          toast({
-            title: 'Access Denied',
-            description:
+
+          if (res.status === 401) {
+            router.push(
+              `/admin/login?redirect=${encodeURIComponent(pathname || '/admin/dashboard')}`
+            );
+            return;
+          }
+
+          if (res.status === 403) {
+            const msg =
               json?.error?.message ||
-              'You do not have administrator permissions.',
+              'You do not have administrator permissions.';
+            setVerifyError({ kind: 'forbidden', message: msg });
+            toast({
+              title: 'Access Denied',
+              description: msg,
+              variant: 'destructive',
+            });
+            return;
+          }
+
+          const serverMsg =
+            json?.error?.message ||
+            'Could not verify administrator session right now. Please retry.';
+          setVerifyError({ kind: 'server', message: serverMsg });
+          toast({
+            title: 'Session Check Failed',
+            description: serverMsg,
             variant: 'destructive',
           });
-          router.push('/admin/login?error=forbidden');
           return;
         }
 
         lastVerifiedUserIdRef.current = user.id;
+        setVerifyError(null);
         setActor(json.data as AdminActorDTO);
       } catch (err) {
         console.error('Error verifying admin access:', err);
         if (isMounted) {
           setActor(null);
           lastVerifiedUserIdRef.current = null;
-          router.push('/admin/login?error=forbidden');
+          setVerifyError({
+            kind: 'server',
+            message:
+              'Network error while verifying administrator session. Please retry.',
+          });
         }
       } finally {
         if (isMounted) {
@@ -157,6 +205,7 @@ export default function AdminLayout({
     toast,
     queryClient,
     actor,
+    retryTick,
   ]);
 
   const navItems = useMemo<NavItem[]>(() => {
@@ -218,7 +267,46 @@ export default function AdminLayout({
   }
 
   if (!actor) {
-    return null;
+    return (
+      <div className="min-h-screen bg-[#111315] flex flex-col items-center justify-center p-6 text-white font-sans">
+        <div className="w-full max-w-md bg-[#181B1E] border border-white/10 rounded-3xl p-8 text-center space-y-4 shadow-2xl">
+          <div className="w-12 h-12 rounded-2xl bg-[#7E153A]/20 text-[#E11D48] flex items-center justify-center mx-auto">
+            <ShieldCheck size={24} />
+          </div>
+          <h2 className="text-lg font-extrabold text-white">
+            {verifyError?.kind === 'forbidden'
+              ? 'Administrator Access Required'
+              : verifyError
+                ? 'Unable to Load Admin Portal'
+                : 'Redirecting to Admin Login...'}
+          </h2>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            {verifyError?.message ||
+              'Please sign in with an authorized Super Admin or Unit Admin account.'}
+          </p>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            {verifyError?.kind === 'server' && (
+              <button
+                onClick={() => {
+                  setVerifyError(null);
+                  setVerifyingRole(true);
+                  setRetryTick((t) => t + 1);
+                }}
+                className="px-4 py-2 rounded-xl bg-[#7E153A] hover:bg-[#630f2d] text-white text-xs font-bold cursor-pointer"
+              >
+                Retry Verification
+              </button>
+            )}
+            <button
+              onClick={handleSignOut}
+              className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold cursor-pointer"
+            >
+              Sign Out & Go to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const roleBadgeLabel = actor.isSuperAdmin
