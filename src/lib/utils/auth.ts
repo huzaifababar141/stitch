@@ -133,7 +133,10 @@ export async function requireAdminActor(): Promise<AdminActor> {
       prismaErr
     );
     try {
-      const { data: uRow } = await supabaseAdmin
+      const sbClient = process.env.SUPABASE_SERVICE_ROLE_KEY
+        ? supabaseAdmin
+        : await createClient();
+      const { data: uRow } = await sbClient
         .from('users')
         .select('id, email, first_name, last_name, role, is_active, is_blocked')
         .eq('id', authUser.id)
@@ -142,7 +145,7 @@ export async function requireAdminActor(): Promise<AdminActor> {
       if (uRow) {
         let managedUnit: AdminUnitInfo | null = null;
         if (uRow.role === 'admin') {
-          const { data: unitRow } = await supabaseAdmin
+          const { data: unitRow } = await sbClient
             .from('tailoring_units')
             .select(
               'id, name, location, city, max_daily_capacity, has_stock_access, is_active'

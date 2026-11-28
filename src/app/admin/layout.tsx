@@ -160,7 +160,7 @@ export default function AdminLayout({
 
           const serverMsg =
             json?.error?.message ||
-            'Could not verify administrator session right now. Please retry.';
+            `Could not verify administrator session (HTTP ${res.status}). Please retry.`;
           setVerifyError({ kind: 'server', message: serverMsg });
           toast({
             title: 'Session Check Failed',
